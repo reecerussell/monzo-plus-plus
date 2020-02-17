@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package proto;
+
+message CalculateData {
+    string UserID = 1;
+    string AccountID = 2;
+    string AccessToken = 3;
+}
+
+message CalculateResponse {
+}
+
+service BudgetService {
+    rpc Calculate(CalculateData) returns (CalculateResponse) {}
+}
