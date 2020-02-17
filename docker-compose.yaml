@@ -27,8 +27,8 @@ services:
         ports:
             - "9789:80"
         environment:
-            - "MONZO_CLIENT_ID=oauth2client_00009s3ckU7N3MgdombGID"
-            - "MONZO_CLIENT_SECRET=mnzconf.Eyibg50JD2pfkDcUwwosndK3uMP4nQudkOc+/QcNU0Hq/2WhEmK13E2S9TubQnJYUDcdo8DXjxGXxazhKjgS"
+            - "MONZO_CLIENT_ID=<monzo client id>"
+            - "MONZO_CLIENT_SECRET=<monzo client secret>"
             - "OAUTH_CALLBACK_URL=http://localhost:9789/monzo/callback"
             - "SUCCESS_CALLBACK_URL=http://localhost:9789/monzo/callback"
             - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
@@ -38,15 +38,3 @@ services:
             - monzo
         depends_on:
             - plugin.budget
-    # refresher:
-    #     image: reecerussell/monzo-plus-plus:refresher
-    #     restart: always
-    #     build:
-    #         context: service.refresher
-    #         dockerfile: Dockerfile
-    #     environment:
-    #         - "MONZO_CLIENT_ID=oauth2client_00009s3ckU7N3MgdombGID"
-    #         - "MONZO_CLIENT_SECRET=mnzconf.Eyibg50JD2pfkDcUwwosndK3uMP4nQudkOc+/QcNU0Hq/2WhEmK13E2S9TubQnJYUDcdo8DXjxGXxazhKjgS"
-    #         - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
-    #     networks:
-    #         - monzo
