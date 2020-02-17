@@ -4,6 +4,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/interface/http"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/interface/rpc"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/registry"
@@ -11,6 +13,9 @@ import (
 
 func main() {
 	ctn := registry.Build()
+
+	web := http.New(ctn)
+	go web.Serve()
 
 	server := rpc.Build(ctn)
 	go server.Serve()
