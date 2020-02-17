@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
@@ -29,6 +30,8 @@ var (
 	BudgetRPCHost = os.Getenv("BUDGET_RPC_HOST")
 )
 
+const baseAPIURL = "/api/plugin/budget"
+
 type BudgetPlugin struct {
 	usecase usecase.UserUsecase
 }
@@ -48,7 +51,55 @@ func (bp *BudgetPlugin) Build(ctn *di.Container) {
 }
 
 func (bp *BudgetPlugin) Handler() http.Handler {
-	return nil
+	m := http.NewServeMux()
+	m.HandleFunc(baseAPIURL, bp.handleHTTPRequest)
+
+	return m
+}
+
+func (bp *BudgetPlugin) handleHTTPRequest(w http.ResponseWriter, r *http.Request) {
+	url := strings.Replace(r.URL.String(), baseAPIURL, "", 1)
+
+	// make request
+	req, err := http.NewRequest(r.Method, url, r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Errorf("req: %v", err).Error()))
+		return
+	}
+
+	for k, values := range r.Header {
+		for _, v := range values {
+			req.Header.Set(k, v)
+		}
+	}
+
+	c := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	resp, err := c.Do(req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Errorf("resp: %v", err).Error()))
+		return
+	}
+
+	buf := []byte{}
+	_, err = r.Body.Read(buf)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Errorf("read: %v", err).Error()))
+		return
+	}
+
+	for k, values := range resp.Header {
+		for _, v := range values {
+			w.Header().Set(k, v)
+		}
+	}
+
+	w.WriteHeader(resp.StatusCode)
+	w.Write(buf)
 }
 
 func (bp *BudgetPlugin) TransactionCreated(ctx context.Context, t *monzo.Transaction) error {
