@@ -48,6 +48,7 @@ const (
 	VarClientID         = "MONZO_CLIENT_ID"
 	VarClientSecret     = "MONZO_CLIENT_SECRET"
 	VarOAuthCallbackURL = "OAUTH_CALLBACK_URL"
+	VarWebhookURL       = "WEBHOOK_URL"
 )
 
 // Client is a high-level interface, used to communicate and interact with
@@ -66,6 +67,9 @@ type Client interface {
 	// to return a redirect response to Monzo's authentication page - this
 	// will be a permanent redirect to avoid backtracking (starting the flow again).
 	Login(w http.ResponseWriter, r *http.Request, state string)
+
+	// RegisterHook is used to register a webhook to Monz++, on the user's account.
+	RegisterHook(accountID string) error
 }
 
 // client is an implementation of the Client interface.
@@ -133,6 +137,25 @@ func (c *client) Login(w http.ResponseWriter, r *http.Request, state string) {
 	)
 
 	http.Redirect(w, r, target, http.StatusPermanentRedirect)
+}
+
+func (c *client) RegisterHook(accountID string) error {
+	target := path.Join(APIBaseURL, "webhooks")
+	body := url.Values{
+		"account_id": {accountID},
+		"url":        {getEnvVar(VarWebhookURL)},
+	}
+
+	resp, err := c.http.PostForm(target, body)
+	if err == nil {
+		defer resp.Body.Close()
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return readResponseError(resp)
+	}
+
+	return nil
 }
 
 func readResponseError(resp *http.Response) error {
