@@ -60,6 +60,15 @@ func (u *User) IsEnabled() bool {
 	return u.enabled != nil
 }
 
+func (u *User) Update(d *dto.UpdateUser) errors.Error {
+	err := u.UpdateUsername(d.Username)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // UpdateUsername updates the user's username with the given string, username.
 // A non-nil error will be returned if the username is not valid.
 //
