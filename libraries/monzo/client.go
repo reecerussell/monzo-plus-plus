@@ -48,7 +48,7 @@ const (
 	VarClientID         = "MONZO_CLIENT_ID"
 	VarClientSecret     = "MONZO_CLIENT_SECRET"
 	VarOAuthCallbackURL = "OAUTH_CALLBACK_URL"
-	VarWebhookURL       = "WEBHOOK_URL"
+	VarWebhookURL       = "MONZO_WEBHOOK_URL"
 )
 
 // Client is a high-level interface, used to communicate and interact with
@@ -67,6 +67,12 @@ type Client interface {
 	// to return a redirect response to Monzo's authentication page - this
 	// will be a permanent redirect to avoid backtracking (starting the flow again).
 	Login(w http.ResponseWriter, r *http.Request, state string)
+
+	// WhoAmI is used to validate a user's access token by making a request
+	// to /ping/whoami. If this failed, the access token is most likely
+	// invalid. Return is a *AuthenticationData instance, containing the
+	// authentication status, client id and user's id.
+	WhoAmI(accessToken string) (*AuthenticationData, error)
 
 	// RegisterHook is used to register a webhook to Monz++, on the user's account.
 	RegisterHook(accountID string) error
@@ -139,6 +145,26 @@ func (c *client) Login(w http.ResponseWriter, r *http.Request, state string) {
 	http.Redirect(w, r, target, http.StatusPermanentRedirect)
 }
 
+func (c *client) WhoAmI(accessToken string) (*AuthenticationData, error) {
+	req, _ := http.NewRequest(http.MethodGet, path.Join(APIBaseURL, "ping/whoami"), nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	resp, err := c.http.Do(req)
+	if err == nil {
+		defer resp.Body.Close()
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, readResponseError(resp)
+	}
+
+	var ad AuthenticationData
+	_ = json.NewDecoder(resp.Body).Decode(&ad)
+
+	return &ad, nil
+}
+
+// RegisterHook is used to regsiter a web hook to Monzo++, on the given account.
 func (c *client) RegisterHook(accountID string) error {
 	target := path.Join(APIBaseURL, "webhooks")
 	body := url.Values{
@@ -158,6 +184,7 @@ func (c *client) RegisterHook(accountID string) error {
 	return nil
 }
 
+// reads the standard Monzo error response and returns a detailed error.
 func readResponseError(resp *http.Response) error {
 	var body Error
 	_ = json.NewDecoder(resp.Body).Decode(&body)
@@ -167,6 +194,7 @@ func readResponseError(resp *http.Response) error {
 	return fmt.Errorf("%v: %s", monzoMessage, body.Message)
 }
 
+// returns a predefined error for each status code.
 func getMonzoErrorMessage(code int) error {
 	switch code {
 	case http.StatusBadRequest:
