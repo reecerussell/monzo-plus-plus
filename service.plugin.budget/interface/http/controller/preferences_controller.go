@@ -48,10 +48,13 @@ func (pc *PreferencesController) HandleGet(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var data dto.Preferences
-	_ = json.NewDecoder(r.Body).Decode(&data)
+	userID := r.URL.Query().Get("userId")
+	if userID == "" {
+		http.NotFound(w, r)
+		return
+	}
 
-	p, err := pc.pu.Get(data.UserID)
+	p, err := pc.pu.Get(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

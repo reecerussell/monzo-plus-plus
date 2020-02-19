@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/monzo"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin/budget/proto"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/registry"
@@ -27,7 +29,8 @@ func init() {
 
 // Environment variables.
 var (
-	BudgetRPCHost = os.Getenv("BUDGET_RPC_HOST")
+	BudgetRPCHost  = os.Getenv("BUDGET_RPC_HOST")
+	BudgetHTTPHost = os.Getenv("BUDGET_HTTP_HOST")
 )
 
 const baseAPIURL = "/api/plugin/budget"
@@ -51,55 +54,14 @@ func (bp *BudgetPlugin) Build(ctn *di.Container) {
 }
 
 func (bp *BudgetPlugin) Handler() http.Handler {
-	m := http.NewServeMux()
-	m.HandleFunc(baseAPIURL, bp.handleHTTPRequest)
+	remote, _ := url.Parse(BudgetHTTPHost)
+	proxy := httputil.NewSingleHostReverseProxy(remote)
 
-	return m
-}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.Replace(r.URL.Path, "/api/plugin/budget", "", 1)
 
-func (bp *BudgetPlugin) handleHTTPRequest(w http.ResponseWriter, r *http.Request) {
-	url := strings.Replace(r.URL.String(), baseAPIURL, "", 1)
-
-	// make request
-	req, err := http.NewRequest(r.Method, url, r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Errorf("req: %v", err).Error()))
-		return
-	}
-
-	for k, values := range r.Header {
-		for _, v := range values {
-			req.Header.Set(k, v)
-		}
-	}
-
-	c := &http.Client{
-		Timeout: time.Second * 10,
-	}
-	resp, err := c.Do(req)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Errorf("resp: %v", err).Error()))
-		return
-	}
-
-	buf := []byte{}
-	_, err = r.Body.Read(buf)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Errorf("read: %v", err).Error()))
-		return
-	}
-
-	for k, values := range resp.Header {
-		for _, v := range values {
-			w.Header().Set(k, v)
-		}
-	}
-
-	w.WriteHeader(resp.StatusCode)
-	w.Write(buf)
+		proxy.ServeHTTP(w, r)
+	})
 }
 
 func (bp *BudgetPlugin) TransactionCreated(ctx context.Context, t *monzo.Transaction) error {

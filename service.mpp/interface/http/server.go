@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/interface/http/controller"
 
@@ -26,6 +28,7 @@ func NewServer(ctn *di.Container) *Server {
 	mux := &http.ServeMux{}
 
 	controller.NewMonzoController().Apply(ctn, mux)
+	mux.Handle("/api/plugin/", plugin.Handler())
 
 	return &Server{
 		mux: mux,
@@ -34,9 +37,6 @@ func NewServer(ctn *di.Container) *Server {
 }
 
 func (s *Server) Serve() {
-	// mux := &http.ServeMux{}
-	// mux.Handle("/", panicHandler(s.mux))
-
 	s.s.Handler = s.mux
 	s.s.Addr = fmt.Sprintf(":%s", HTTPPort)
 

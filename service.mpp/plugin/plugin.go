@@ -2,11 +2,12 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/monzo"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 )
 
 // TransactionFunc is a function type that is called on an event.
@@ -78,4 +79,19 @@ func TransactionCreatedHandler() []TransactionFunc {
 	}
 
 	return h
+}
+
+// Handlers returns all API handlers for each plugin.
+func Handler() http.Handler {
+	mu.RLock()
+	defer mu.RUnlock()
+
+	m := http.NewServeMux()
+
+	for _, p := range plugins {
+		m.Handle(fmt.Sprintf("/api/plugin/%s", p.Name()), p.Handler())
+		m.Handle(fmt.Sprintf("/api/plugin/%s/", p.Name()), p.Handler())
+	}
+
+	return m
 }

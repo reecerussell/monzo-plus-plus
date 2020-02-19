@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/monzo"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/usecase"
@@ -44,7 +44,8 @@ func (c *MonzoController) Login(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Before monzo login")
 
-	monzo.Login(w, r, u)
+	mc := monzo.NewClient()
+	mc.Login(w, r, u.GetStateToken())
 }
 
 func (c *MonzoController) LoginCallback(w http.ResponseWriter, r *http.Request) {
@@ -56,21 +57,7 @@ func (c *MonzoController) LoginCallback(w http.ResponseWriter, r *http.Request) 
 	log.Printf("\t code: %s\n", code)
 	log.Printf("\t state: %s\n", state)
 
-	u, err := c.usecase.FindByStateToken(state)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	ac, err := monzo.RequestAccessToken(code)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	err = c.usecase.SetAccessToken(u, ac)
+	err := c.usecase.Login(code, state)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
