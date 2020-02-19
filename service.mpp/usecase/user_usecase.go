@@ -1,16 +1,15 @@
 package usecase
 
 import (
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/domain/repository"
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/monzo"
 )
 
 type UserUsecase interface {
-	FindByStateToken(token string) (*model.User, error)
 	Get(userID string) (*model.User, error)
 	New() (*model.User, error)
-	SetAccessToken(u *model.User, ac *monzo.AccessToken) error
+	Login(code, state string) error
 	GetAccessToken(userID string) (string, error)
 }
 
@@ -41,6 +40,26 @@ func (uu *userUsecase) New() (*model.User, error) {
 	}
 
 	return u, nil
+}
+
+func (uu *userUsecase) Login(code, state string) error {
+	u, err := uu.repo.FindByStateToken(state)
+	if err != nil {
+		return err
+	}
+
+	c := monzo.NewClient()
+	ac, err := c.RequestAccessToken(code)
+	if err != nil {
+		return err
+	}
+
+	err = uu.SetAccessToken(u, ac)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SetAccessToken updates the user's token values with the new access token.
@@ -81,13 +100,25 @@ func (uu *userUsecase) SetAccessToken(u *model.User, ac *monzo.AccessToken) erro
 }
 
 // RefreshAccessToken refreshed the given user's access token.
-func (uu *userUsecase) RefreshAccessToken(u *model.User) error {
-	ac, err := monzo.RefreshAccessToken(u.GetToken().GetRefreshToken())
+func (uu *userUsecase) RefreshAccessToken(userID string) error {
+	u, err := uu.repo.Get(userID)
 	if err != nil {
 		return err
 	}
 
-	return uu.SetAccessToken(u, ac)
+	rt := u.GetToken().GetRefreshToken()
+	c := monzo.NewClient()
+	ac, err := c.RefreshAccessToken(rt)
+	if err != nil {
+		return err
+	}
+
+	err = uu.SetAccessToken(u, ac)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetAccessToken returns a user's access token, but refreshes it if needed.
@@ -97,11 +128,21 @@ func (uu *userUsecase) GetAccessToken(userID string) (string, error) {
 		return "", err
 	}
 
-	if !monzo.IsAuthenticated(u) {
-		err = uu.RefreshAccessToken(u)
-		if err != nil {
-			return "", nil
-		}
+	token := u.GetToken().GetAccessToken()
+	c := monzo.NewClient()
+	_, err = c.WhoAmI(token)
+	if err == nil {
+		return token, nil
+	}
+
+	ac, err := c.RefreshAccessToken(u.GetToken().GetRefreshToken())
+	if err != nil {
+		return "", err
+	}
+
+	err = uu.SetAccessToken(u, ac)
+	if err != nil {
+		return "", err
 	}
 
 	return u.GetToken().GetAccessToken(), nil
