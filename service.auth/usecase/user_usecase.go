@@ -33,6 +33,15 @@ type userUsecase struct {
 	ps   password.Service
 }
 
+// NewUserUsecase instantiates a new instance of UserUsecase with the given dependencies.
+func NewUserUsecase(repo repository.UserRepository, serv *service.UserService, ps password.Service) UserUsecase {
+	return &userUsecase{
+		repo: repo,
+		serv: serv,
+		ps:   ps,
+	}
+}
+
 func (uu *userUsecase) Create(d *dto.CreateUser) (*dto.User, errors.Error) {
 	u, err := model.NewUser(d, uu.ps)
 	if err != nil {
