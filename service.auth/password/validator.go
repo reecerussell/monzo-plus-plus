@@ -39,6 +39,16 @@ type Options struct {
 	RequiredUniqueChars int
 }
 
+// DefaultOptions are the service's default password validation options.
+var DefaultOptions = &Options{
+	RequiredLength:         6,
+	RequireUppercase:       true,
+	RequireLowercase:       true,
+	RequireNonAlphanumeric: false,
+	RequireDigit:           true,
+	RequiredUniqueChars:    0,
+}
+
 // Validate validates a given password against o's values. Returns
 // an error is password is not valid, otherwise nil.
 func (o *Options) Validate(pwd string) error {
