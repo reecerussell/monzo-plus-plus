@@ -3,15 +3,14 @@ package usecase
 import (
 	"context"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 
-	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
-
-	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/service"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
 )
 
