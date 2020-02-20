@@ -78,6 +78,11 @@ func (jwt *JWT) GetData() []byte {
 	return jwt.data
 }
 
+// String returns a sign JWT's data in string form.
+func (jwt *JWT) String() string {
+	return string(jwt.data)
+}
+
 // LoadClaimsFromConfig loads a JSON config file, then
 // sets the JWT's config and claims. This doesn't set
 // the expiry, not before or issued claims.
