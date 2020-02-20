@@ -3,6 +3,10 @@ package usecase
 import (
 	"context"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
+
+	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
@@ -145,5 +149,19 @@ func (uu *userUsecase) Delete(id string) errors.Error {
 }
 
 func (uu *userUsecase) WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error) {
+	token := jwt.FromToken([]byte(accessToken))
+	userID, ok := token.Claims.String(jwt.ClaimUserID)
+	if !ok {
+		return ctx, errors.Unauthorised("user id not found in jwt payload")
+	}
+
+	u, err := uu.repo.Get(userID)
+	if err != nil {
+		return ctx, errors.Unauthorised("user not found")
+	}
+
+	ctx = context.WithValue(ctx, util.ContextKey("user"), u)
+	ctx = context.WithValue(ctx, util.ContextKey("user_id"), u.GetID())
+
 	return ctx, nil
 }

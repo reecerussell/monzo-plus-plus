@@ -36,6 +36,11 @@ const (
 	rsa256Header = "eyJhbGciOiJSUzI1NiJ9"
 )
 
+// Custom claims.
+const (
+	ClaimUserID = "user_id"
+)
+
 var encoding = base64.RawURLEncoding
 
 //
