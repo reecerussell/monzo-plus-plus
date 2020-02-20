@@ -23,8 +23,7 @@ type User struct {
 	stateToken   string
 	enabled      *time.Time
 
-	// TODO: add user token
-	// TODO: add user's roles
+	roles []*Role
 }
 
 // NewUser is used to create a new User domain model. Given the data in d,
@@ -60,6 +59,12 @@ func (u *User) IsEnabled() bool {
 	return u.enabled != nil
 }
 
+// GetRoles returns an array of the user's assign role ids.
+func (u *User) GetRoles() []string {
+	return []string{}
+}
+
+// Update updates the user's mutable properties, such as username.
 func (u *User) Update(d *dto.UpdateUser) errors.Error {
 	err := u.UpdateUsername(d.Username)
 	if err != nil {
@@ -167,7 +172,7 @@ func (u *User) DataModel() *datamodel.User {
 // The data in the data model should be of that from the database.
 // No data should be modified in the process of reading from the
 // database and calling this method.
-func UserFromDataModel(dm *datamodel.User) *User {
+func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel.Token) *User {
 	u := &User{
 		id:           dm.ID,
 		username:     dm.Username,
@@ -180,6 +185,16 @@ func UserFromDataModel(dm *datamodel.User) *User {
 	} else {
 		u.enabled = nil
 	}
+
+	if rdm != nil {
+		u.roles = make([]*Role, len(rdm))
+
+		for i, r := range rdm {
+			u.roles[i] = RoleFromDataModel(r)
+		}
+	}
+
+	// TODO: add token
 
 	return u
 }
