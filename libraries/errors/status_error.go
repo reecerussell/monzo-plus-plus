@@ -34,6 +34,6 @@ func Unauthorised(err string) Error {
 	return &statusError{errors.New(err), http.StatusUnauthorized}
 }
 
-func Forbidden(err string) Error {
-	return &statusError{errors.New(err), http.StatusForbidden}
+func Forbidden() Error {
+	return &statusError{errors.New("insufficient permissions"), http.StatusForbidden}
 }
