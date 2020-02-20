@@ -198,3 +198,13 @@ func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel
 
 	return u
 }
+
+// DTO returns a data-transfer object populated with the user's data.
+func (u *User) DTO() *dto.User {
+	return &dto.User{
+		ID:          u.id,
+		Username:    u.username,
+		DateEnabled: u.enabled,
+		Enabled:     u.enabled != nil,
+	}
+}
