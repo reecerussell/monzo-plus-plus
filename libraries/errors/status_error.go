@@ -29,3 +29,11 @@ func BadRequest(err string) Error {
 func NotFound(err string) Error {
 	return &statusError{errors.New(err), http.StatusNotFound}
 }
+
+func Unauthorised(err string) Error {
+	return &statusError{errors.New(err), http.StatusUnauthorized}
+}
+
+func Forbidden(err string) Error {
+	return &statusError{errors.New(err), http.StatusForbidden}
+}
