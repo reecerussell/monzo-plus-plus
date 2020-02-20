@@ -12,18 +12,19 @@ import (
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/service"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/permission"
 )
 
 // UserUsecase is a high-level interface providing methods to perform
 // CRUD operations, as well as, more specific operations on the User domain.
 type UserUsecase interface {
-	Create(d *dto.CreateUser) (*dto.User, errors.Error)
-	Get(id string) (*dto.User, errors.Error)
-	GetList(term string) ([]*dto.User, errors.Error)
-	GetPending(term string) ([]*dto.User, errors.Error)
-	Update(d *dto.UpdateUser) errors.Error
-	Enable(id string) errors.Error
-	Delete(id string) errors.Error
+	Create(ctx context.Context, d *dto.CreateUser) (*dto.User, errors.Error)
+	Get(ctx context.Context, id string) (*dto.User, errors.Error)
+	GetList(ctx context.Context, term string) ([]*dto.User, errors.Error)
+	GetPending(ctx context.Context, term string) ([]*dto.User, errors.Error)
+	Update(ctx context.Context, d *dto.UpdateUser) errors.Error
+	Enable(ctx context.Context, id string) errors.Error
+	Delete(ctx context.Context, id string) errors.Error
 	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
 }
 
@@ -42,7 +43,11 @@ func NewUserUsecase(repo repository.UserRepository, serv *service.UserService, p
 	}
 }
 
-func (uu *userUsecase) Create(d *dto.CreateUser) (*dto.User, errors.Error) {
+func (uu *userUsecase) Create(ctx context.Context, d *dto.CreateUser) (*dto.User, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionCreateUser) {
+		return nil, errors.Forbidden()
+	}
+
 	u, err := model.NewUser(d, uu.ps)
 	if err != nil {
 		return nil, err
@@ -61,7 +66,12 @@ func (uu *userUsecase) Create(d *dto.CreateUser) (*dto.User, errors.Error) {
 	return u.DTO(), nil
 }
 
-func (uu *userUsecase) Get(id string) (*dto.User, errors.Error) {
+func (uu *userUsecase) Get(ctx context.Context, id string) (*dto.User, errors.Error) {
+	currentUserID := ctx.Value(util.ContextKey("user_id"))
+	if id != currentUserID && !permission.Has(ctx, permission.PermissionGetUser) {
+		return nil, errors.Forbidden()
+	}
+
 	u, err := uu.repo.Get(id)
 	if err != nil {
 		return nil, err
@@ -70,7 +80,11 @@ func (uu *userUsecase) Get(id string) (*dto.User, errors.Error) {
 	return u.DTO(), nil
 }
 
-func (uu *userUsecase) GetList(term string) ([]*dto.User, errors.Error) {
+func (uu *userUsecase) GetList(ctx context.Context, term string) ([]*dto.User, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionGetList) {
+		return nil, errors.Forbidden()
+	}
+
 	users, err := uu.repo.GetList(term)
 	if err != nil {
 		return nil, err
@@ -79,7 +93,11 @@ func (uu *userUsecase) GetList(term string) ([]*dto.User, errors.Error) {
 	return convertToDTOs(users), nil
 }
 
-func (uu *userUsecase) GetPending(term string) ([]*dto.User, errors.Error) {
+func (uu *userUsecase) GetPending(ctx context.Context, term string) ([]*dto.User, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionGetPending) {
+		return nil, errors.Forbidden()
+	}
+
 	users, err := uu.repo.GetPending(term)
 	if err != nil {
 		return nil, err
@@ -98,7 +116,12 @@ func convertToDTOs(users []*model.User) []*dto.User {
 	return dtos
 }
 
-func (uu *userUsecase) Update(d *dto.UpdateUser) errors.Error {
+func (uu *userUsecase) Update(ctx context.Context, d *dto.UpdateUser) errors.Error {
+	currentUserID := ctx.Value(util.ContextKey("user_id"))
+	if d.ID != currentUserID && !permission.Has(ctx, permission.PermissionUpdateUser) {
+		return errors.Forbidden()
+	}
+
 	u, err := uu.repo.Get(d.ID)
 	if err != nil {
 		return err
@@ -122,7 +145,11 @@ func (uu *userUsecase) Update(d *dto.UpdateUser) errors.Error {
 	return nil
 }
 
-func (uu *userUsecase) Enable(id string) errors.Error {
+func (uu *userUsecase) Enable(ctx context.Context, id string) errors.Error {
+	if !permission.Has(ctx, permission.PermissionEnableUser) {
+		return errors.Forbidden()
+	}
+
 	u, err := uu.repo.Get(id)
 	if err != nil {
 		return err
@@ -141,7 +168,12 @@ func (uu *userUsecase) Enable(id string) errors.Error {
 	return nil
 }
 
-func (uu *userUsecase) Delete(id string) errors.Error {
+func (uu *userUsecase) Delete(ctx context.Context, id string) errors.Error {
+	currentUserID := ctx.Value(util.ContextKey("user_id"))
+	if id != currentUserID && !permission.Has(ctx, permission.PermissionDeleteUser) {
+		return errors.Forbidden()
+	}
+
 	// Ensure the user exists.
 	u, err := uu.repo.Get(id)
 	if err != nil {

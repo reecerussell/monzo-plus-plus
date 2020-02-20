@@ -14,7 +14,13 @@ import (
 
 // Permissions
 const (
-	PermissionUserManager = 1
+	PermissionCreateUser = 1
+	PermissionGetUser    = 2
+	PermissionGetList    = 3
+	PermissionGetPending = 4
+	PermissionUpdateUser = 5
+	PermissionEnableUser = 6
+	PermissionDeleteUser = 7
 )
 
 var (
