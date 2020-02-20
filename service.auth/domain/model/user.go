@@ -114,11 +114,22 @@ func (u *User) UpdateUsername(username string) errors.Error {
 //
 // An error is returned if the new or current password is in an invalid format.
 func (u *User) UpdatePassword(newPassword, currentPassword string, service password.Service) errors.Error {
-	if !service.Verify(currentPassword, u.passwordHash) {
-		return errors.BadRequest("password is invalid")
+	err := u.VerifyPassword(currentPassword, service)
+	if err != nil {
+		return err
 	}
 
 	return u.setPassword(newPassword, service)
+}
+
+// VerifyPassword is used to verify a given password against the user's password
+// hash. This used to given password.Service to verify the hash.
+func (u *User) VerifyPassword(pwd string, service password.Service) errors.Error {
+	if !service.Verify(pwd, u.passwordHash) {
+		return errors.BadRequest("password is invalid")
+	}
+
+	return nil
 }
 
 // setPassword sets the user's password after hashing it using the given password.Service.

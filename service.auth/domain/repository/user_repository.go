@@ -9,6 +9,7 @@ import (
 // the MySQL database.
 type UserRepository interface {
 	Get(id string) (*model.User, errors.Error)
+	GetByUsername(username string) (*model.User, errors.Error)
 	GetList(term string) ([]*model.User, errors.Error)
 	GetPending(term string) ([]*model.User, errors.Error)
 	Insert(u *model.User) errors.Error

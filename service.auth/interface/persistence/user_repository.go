@@ -96,6 +96,37 @@ func (ur *userRepository) Get(id string) (*model.User, errors.Error) {
 	return model.UserFromDataModel(user, roles, token), nil
 }
 
+// GetByUsername attempts to get a user from the database with the given username.
+// With the given username, an attempt to get the user's id is made, on success
+// Get() is then called, which handles the getting and reading the user.
+func (ur *userRepository) GetByUsername(username string) (*model.User, errors.Error) {
+	if openErr := ur.openConnection(); openErr != nil {
+		return nil, openErr
+	}
+
+	query := "CALL get_user_id_by_username(?);"
+
+	ctx := context.Background()
+	stmt, err := ur.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
+	}
+	defer stmt.Close()
+
+	var userID string
+
+	err = stmt.QueryRowContext(ctx, username).Scan(&username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NotFound("user not found")
+		}
+
+		return nil, errors.InternalError(fmt.Errorf("read: %v", err))
+	}
+
+	return ur.Get(userID)
+}
+
 func (ur *userRepository) GetList(term string) ([]*model.User, errors.Error) {
 	return ur.readUsers("CALL get_users(?);", term)
 }
