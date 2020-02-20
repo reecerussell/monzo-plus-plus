@@ -141,6 +141,20 @@ func (u *User) setPassword(pwd string, service password.Service) errors.Error {
 	return nil
 }
 
+// Enable marks the user as enabled, by setting the enabled date
+// to the current time, in UTC form. The user cannot already
+// be enabled, if it is, and arror is returned.
+func (u *User) Enable() errors.Error {
+	if u.enabled != nil {
+		return errors.BadRequest("user already enabled")
+	}
+
+	t := time.Now().UTC()
+	u.enabled = &t
+
+	return nil
+}
+
 // DataModel returns a new instance of the User data model,
 // which should be used to write data to the database.
 func (u *User) DataModel() *datamodel.User {
