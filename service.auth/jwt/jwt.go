@@ -83,6 +83,14 @@ func (jwt *JWT) String() string {
 	return string(jwt.data)
 }
 
+func (jwt *JWT) AccessToken() *AccessToken {
+	ac := new(AccessToken)
+	ac.AccessToken = jwt.String()
+	ac.Expires = time.Now().UTC().Sub(jwt.Claims.Expires.Time()).Seconds()
+
+	return ac
+}
+
 // LoadClaimsFromConfig loads a JSON config file, then
 // sets the JWT's config and claims. This doesn't set
 // the expiry, not before or issued claims.
