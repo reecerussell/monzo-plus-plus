@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 )
 
 // Environemt variables.
@@ -33,6 +35,7 @@ func BuildServer(s *http.Server) *HTTPServer {
 
 func (hs *HTTPServer) Serve() {
 	hs.base.Addr = fmt.Sprintf(":%s", HTTPPort)
+	hs.base.Handler = panicHandler(hs.base.Handler)
 
 	sc := make(chan struct{})
 	go hs.listenForShutdown()
@@ -52,30 +55,44 @@ func (hs *HTTPServer) Shutdown(mode int) {
 }
 
 func (hs *HTTPServer) listenForShutdown() {
-	go func() {
-		mode := <-hs.shutdown
-		var err error
+	mode := <-hs.shutdown
+	var err error
 
-		switch mode {
-		case ShutdownGraceful:
-			log.Printf("HTTP Server gracefully shutting down...")
-			err = hs.base.Shutdown(context.Background())
-			break
-		case ShutdownForce:
-			log.Printf("HTTP Server forcefully shutting down...")
-			err = hs.base.Close()
-			break
-		default:
-			log.Panicf("http: shutdown: %d is not a valid mode", mode)
-			break
-		}
+	switch mode {
+	case ShutdownGraceful:
+		log.Printf("HTTP Server gracefully shutting down...")
+		err = hs.base.Shutdown(context.Background())
+		break
+	case ShutdownForce:
+		log.Printf("HTTP Server forcefully shutting down...")
+		err = hs.base.Close()
+		break
+	default:
+		log.Panicf("http: shutdown: %d is not a valid mode", mode)
+		break
+	}
 
-		if err != nil {
-			log.Fatalf("HTTP Server failed to shutdown: %v", err)
-		}
+	if err != nil {
+		log.Fatalf("HTTP Server failed to shutdown: %v", err)
+	}
 
-		log.Printf("HTTP Server shutdown.")
+	log.Printf("HTTP Server shutdown.")
 
-		close(hs.shutdown)
-	}()
+	close(hs.shutdown)
+}
+
+func panicHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			p := recover()
+			if p == nil {
+				return
+			}
+
+			err := fmt.Errorf("%v", p)
+			errors.HandleHTTPError(w, r, errors.InternalError(err))
+		}()
+
+		h.ServeHTTP(w, r)
+	})
 }
