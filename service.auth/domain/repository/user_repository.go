@@ -12,6 +12,7 @@ type UserRepository interface {
 	GetByUsername(username string) (*model.User, errors.Error)
 	GetList(term string) ([]*model.User, errors.Error)
 	GetPending(term string) ([]*model.User, errors.Error)
+	EnsureExists(id string) errors.Error
 	Insert(u *model.User) errors.Error
 	Update(u *model.User) errors.Error
 	Delete(id string) errors.Error

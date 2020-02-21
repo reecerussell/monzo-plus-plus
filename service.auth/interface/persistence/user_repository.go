@@ -228,6 +228,33 @@ func readToken(s scannerFunc) (*datamodel.Token, errors.Error) {
 	return &dm, nil
 }
 
+func (ur *userRepository) EnsureExists(id string) errors.Error {
+	if openErr := ur.openConnection(); openErr != nil {
+		return openErr
+	}
+
+	query := "SELECT id FROM users WHERE id = ?;"
+
+	ctx := context.Background()
+	stmt, err := ur.db.PrepareContext(ctx, query)
+	if err != nil {
+		return errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	var userID string
+	err = stmt.QueryRowContext(ctx, id).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.NotFound("user not found")
+		}
+
+		return errors.InternalError(err)
+	}
+
+	return nil
+}
+
 func (ur *userRepository) Insert(u *model.User) errors.Error {
 	dm := u.DataModel()
 	query := "INSERT INTO users (`id`, `username`, `password_hash`, `state_token`, `enabled`) VALUES (?,?,?,?,?);"
