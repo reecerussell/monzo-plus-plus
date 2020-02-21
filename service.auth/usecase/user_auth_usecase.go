@@ -23,7 +23,7 @@ var (
 // UserAuthUsecase is a high-level interface used to generate and
 // validate JSON-Web tokens.
 type UserAuthUsecase interface {
-	GenerateToken(c *dto.UserCredential) (string, errors.Error)
+	GenerateToken(c *dto.UserCredential) (*jwt.AccessToken, errors.Error)
 	ValidateToken(accessToken string) errors.Error
 	ValidateCredentials(c *dto.UserCredential) (*model.User, errors.Error)
 }
@@ -72,10 +72,10 @@ func NewUserAuthUsecase(ps password.Service, repo repository.UserRepository) (Us
 //
 // An error could be returned if, at any point in the process, the credentials
 // could not be verified, or if the token could not be generated.
-func (uau *userAuthUsecase) GenerateToken(c *dto.UserCredential) (string, errors.Error) {
+func (uau *userAuthUsecase) GenerateToken(c *dto.UserCredential) (*jwt.AccessToken, errors.Error) {
 	u, err := uau.ValidateCredentials(c)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	return uau.generateToken(u)
@@ -90,7 +90,7 @@ func (uau *userAuthUsecase) GenerateToken(c *dto.UserCredential) (string, errors
 //
 // An error will only be returned if in the process of signing
 // the token fails.
-func (uau *userAuthUsecase) generateToken(u *model.User) (string, errors.Error) {
+func (uau *userAuthUsecase) generateToken(u *model.User) (*jwt.AccessToken, errors.Error) {
 	c := new(jwt.Claims)
 	c.Set = map[string]interface{}{
 		"user_id": u.GetID(),
@@ -105,10 +105,10 @@ func (uau *userAuthUsecase) generateToken(u *model.User) (string, errors.Error) 
 
 	err := t.Sign(uau.keys.PrivateKey)
 	if err != nil {
-		return "", errors.InternalError(fmt.Errorf("sign: %v", err))
+		return nil, errors.InternalError(fmt.Errorf("sign: %v", err))
 	}
 
-	return t.String(), nil
+	return t.AccessToken(), nil
 }
 
 // ValidateToken is used to validate the signature of a given JSON-Web token.
