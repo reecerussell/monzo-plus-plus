@@ -24,7 +24,7 @@ type roleUsecase struct {
 	serv *service.RoleService
 }
 
-func NewRoleService(repo repository.RoleRepository, serv *service.RoleService) RoleUsecase {
+func NewRoleUsecase(repo repository.RoleRepository, serv *service.RoleService) RoleUsecase {
 	return &roleUsecase{
 		repo: repo,
 		serv: serv,
