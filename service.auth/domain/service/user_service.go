@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
@@ -24,6 +25,10 @@ func NewUserService() *UserService {
 // and hasn't been taken. An error is returned if it has been taken, or
 // if there was an error communicating with the database.
 func (us *UserService) ValidateUsername(u *model.User) errors.Error {
+	if openErr := us.openConnection(); openErr != nil {
+		return openErr
+	}
+
 	query := "SELECT COUNT(*) FROM users WHERE username LIKE ? AND id != ?;"
 
 	ctx := context.Background()
@@ -43,6 +48,25 @@ func (us *UserService) ValidateUsername(u *model.User) errors.Error {
 
 	if count > 0 {
 		return errors.BadRequest(fmt.Sprintf("the username '%s' is already taken", dm.Username))
+	}
+
+	return nil
+}
+
+func (us *UserService) openConnection() errors.Error {
+	if us.db == nil {
+		db, err := sql.Open("mysql", os.Getenv("CONN_STRING"))
+		if err != nil {
+			return errors.InternalError(err)
+		}
+
+		us.db = db
+	}
+
+	ctx := context.Background()
+	err := us.db.PingContext(ctx)
+	if err != nil {
+		return errors.InternalError(err)
 	}
 
 	return nil
