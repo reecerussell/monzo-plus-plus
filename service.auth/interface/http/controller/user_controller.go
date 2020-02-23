@@ -36,6 +36,8 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 }
 
 func (c *UserController) HandleGet(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	id := mux.Vars(r)["id"]
 
 	ctx := r.Context()
@@ -49,6 +51,8 @@ func (c *UserController) HandleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) HandleGetList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	term := r.URL.Query().Get("term")
 
 	ctx := r.Context()
@@ -62,10 +66,7 @@ func (c *UserController) HandleGetList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) HandleGetPending(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+	w.Header().Set("Content-Type", "application/json")
 
 	term := r.URL.Query().Get("term")
 
@@ -80,6 +81,8 @@ func (c *UserController) HandleGetPending(w http.ResponseWriter, r *http.Request
 }
 
 func (c *UserController) HandleCreate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var d dto.CreateUser
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
@@ -95,6 +98,8 @@ func (c *UserController) HandleCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) HandleUpdate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var d dto.UpdateUser
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
@@ -109,6 +114,8 @@ func (c *UserController) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) HandleEnable(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	id := mux.Vars(r)["id"]
 
 	ctx := r.Context()
@@ -122,6 +129,8 @@ func (c *UserController) HandleEnable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) HandleDelete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	id := mux.Vars(r)["id"]
 
 	ctx := r.Context()

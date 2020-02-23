@@ -34,6 +34,8 @@ func NewTokenController(ctn *di.Container, r *mux.Router) *TokenController {
 //
 // TODO: create a token struct, to include expiry dates etc.
 func (c *TokenController) HandleToken(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var cred dto.UserCredential
 	_ = json.NewDecoder(r.Body).Decode(&cred)
 

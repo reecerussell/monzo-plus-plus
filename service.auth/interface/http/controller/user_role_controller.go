@@ -30,6 +30,8 @@ func NewUserRoleController(ctn *di.Container, r *mux.Router) *UserRoleController
 }
 
 func (c *UserRoleController) HandleAdd(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var d dto.UserRole
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
@@ -44,6 +46,8 @@ func (c *UserRoleController) HandleAdd(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserRoleController) HandleRemove(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var d dto.UserRole
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
