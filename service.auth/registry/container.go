@@ -15,6 +15,7 @@ const (
 	ServicePasswordService       = "password_service"
 	ServiceUserAuthUsecase       = "user_auth_usecase"
 	ServiceUserRoleUsecase       = "user_role_usecase"
+	ServiceRoleUsecase           = "role_usecase"
 )
 
 // Build builds the di container with the predefined services.
@@ -43,6 +44,11 @@ func Build() *di.Container {
 		&di.Service{
 			Name:     ServiceUserRoleUsecase,
 			Builder:  buildUserRoleUsecase,
+			Lifetime: di.LifetimeSingleton,
+		},
+		&di.Service{
+			Name:     ServiceRoleUsecase,
+			Builder:  buildRoleUsecase,
 			Lifetime: di.LifetimeSingleton,
 		},
 	}...)
@@ -80,4 +86,11 @@ func buildUserRoleUsecase(ctn *di.Container) (interface{}, error) {
 	repo := persistence.NewUserRoleRepository()
 
 	return usecase.NewUserRoleUsecase(userRepo, roleRepo, repo), nil
+}
+
+func buildRoleUsecase(ctn *di.Container) (interface{}, error) {
+	repo := persistence.NewRoleRepository()
+	serv := service.NewRoleService()
+
+	return usecase.NewRoleUsecase(repo, serv), nil
 }
