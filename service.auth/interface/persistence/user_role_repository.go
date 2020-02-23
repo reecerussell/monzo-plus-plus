@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"os"
 
-	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 )
 
 type userRoleRepository struct {
