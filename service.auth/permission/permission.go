@@ -5,22 +5,21 @@ import (
 	"sync"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
-
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
-
-	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 )
 
 // Permissions
 const (
-	PermissionCreateUser = 1
-	PermissionGetUser    = 2
-	PermissionGetList    = 3
-	PermissionGetPending = 4
-	PermissionUpdateUser = 5
-	PermissionEnableUser = 6
-	PermissionDeleteUser = 7
+	PermissionCreateUser  = 1
+	PermissionGetUser     = 2
+	PermissionGetList     = 3
+	PermissionGetPending  = 4
+	PermissionUpdateUser  = 5
+	PermissionEnableUser  = 6
+	PermissionDeleteUser  = 7
+	PermissionRoleManager = 8
 )
 
 var (
