@@ -81,7 +81,7 @@ func (uu *userUsecase) Get(ctx context.Context, id string) (*dto.User, errors.Er
 }
 
 func (uu *userUsecase) GetList(ctx context.Context, term string) ([]*dto.User, errors.Error) {
-	if !permission.Has(ctx, permission.PermissionGetList) {
+	if !permission.Has(ctx, permission.PermissionGetUserList) {
 		return nil, errors.Forbidden()
 	}
 
@@ -94,7 +94,7 @@ func (uu *userUsecase) GetList(ctx context.Context, term string) ([]*dto.User, e
 }
 
 func (uu *userUsecase) GetPending(ctx context.Context, term string) ([]*dto.User, errors.Error) {
-	if !permission.Has(ctx, permission.PermissionGetPending) {
+	if !permission.Has(ctx, permission.PermissionGetPendingUsers) {
 		return nil, errors.Forbidden()
 	}
 
