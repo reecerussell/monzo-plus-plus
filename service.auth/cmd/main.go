@@ -6,12 +6,16 @@ import (
 	"os/signal"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/http"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/permission"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 )
 
 func main() {
 	ctn := registry.Build()
+
+	permission.Build(ctn.Resolve(registry.ServicePermissionsRepository).(repository.PermissionsRepository))
 
 	web := http.Build(ctn)
 	go web.Serve()

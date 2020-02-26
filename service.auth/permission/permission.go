@@ -2,9 +2,9 @@ package permission
 
 import (
 	"context"
+	"log"
 	"sync"
 
-	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
@@ -37,9 +37,16 @@ var (
 // from the database.
 //
 // If an error occurs, it will panic.
-func Build(ctn *di.Container) {
-	r := ctn.Resolve("perm_repo").(repository.PermissionsRepository)
-	perms = r.LoadCollections()
+func Build(repo repository.PermissionsRepository) {
+	perms = repo.LoadCollections()
+
+	for p, roles := range perms {
+		log.Printf("Roles with permission: %d\n", p)
+
+		for _, role := range roles {
+			log.Printf("    - %s\n", role)
+		}
+	}
 }
 
 // Has is used to determine if the current user has permssion to access a
