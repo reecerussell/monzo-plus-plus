@@ -6,7 +6,6 @@ import (
 	"os/signal"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
-
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/http"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 )

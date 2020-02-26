@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
 )
@@ -17,6 +16,7 @@ import (
 // Environment variables.
 var (
 	PrivateKeyFilepath = os.Getenv("JWT_PRIVATE_KEY")
+	PrivateKeyPassword = os.Getenv("JWT_PRIVATE_KEY_PASS")
 	ConfigFilepath     = os.Getenv("JWT_CONFIG")
 )
 
@@ -43,7 +43,7 @@ type userAuthUsecase struct {
 // to be set and valid. In the event that either of which are invalid, an error
 // will be returned with the relavent message.
 func NewUserAuthUsecase(ps password.Service, repo repository.UserRepository) (UserAuthUsecase, error) {
-	keys, err := jwt.NewKeyRegisterFromFile(PrivateKeyFilepath, nil)
+	keys, err := jwt.NewKeyRegisterFromFile(PrivateKeyFilepath, []byte(PrivateKeyPassword))
 	if err != nil {
 		return nil, err
 	}
