@@ -67,10 +67,22 @@ func New(c *Claims) *JWT {
 
 // FromToken creates a new JWT instance and simply
 // sets the unexported data value. Check can be called after this.
-func FromToken(token []byte) *JWT {
-	return &JWT{
+func FromToken(token []byte) (*JWT, error) {
+	t := &JWT{
 		data: token,
 	}
+
+	fd, ld, sig, h, err := scan(token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = t.parseClaims(token[fd+1:ld], sig, h)
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }
 
 // GetData returns the token data from the JWT.
