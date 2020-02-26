@@ -4,16 +4,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
-
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
 )
 
 // AnonymousRoutes is an array of url paths, that can bypass
 // the authentication middleware.
-var AnonymousRoutes = [1]string{"/token"}
+var AnonymousRoutes = [2]string{"/token", "/users/default"}
 
 type AuthenticationMiddleware struct {
 	uu usecase.UserUsecase
@@ -38,18 +36,18 @@ func (am *AuthenticationMiddleware) Handler(h http.Handler) http.Handler {
 
 		auth := r.Header.Get("Authorization")
 		if auth == "" {
-			errors.Unauthorised("no authorization header")
+			errors.HandleHTTPError(w, r, errors.Unauthorised("no authorization header"))
 			return
 		}
 
 		p := strings.Split(auth, " ")
 		if len(p) < 2 {
-			errors.Unauthorised("malformed authorization header")
+			errors.HandleHTTPError(w, r, errors.Unauthorised("malformed authorization header"))
 			return
 		}
 
-		if p[0] == "Bearer" {
-			errors.Unauthorised("unsupported authorization scheme")
+		if p[0] != "Bearer" {
+			errors.HandleHTTPError(w, r, errors.Unauthorised("unsupported authorization scheme"))
 			return
 		}
 

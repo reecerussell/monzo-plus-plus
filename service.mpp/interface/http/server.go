@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/interface/http/controller"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
-
-	"net/http"
-	"os"
 )
 
 // Environemt variables
