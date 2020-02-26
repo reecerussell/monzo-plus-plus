@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 )
@@ -18,8 +19,12 @@ func NewPermissionRepository() repository.PermissionsRepository {
 // LoadCollections loads all permission/role records from the database and
 // organisises them into a map[int][]string, in the format of map[permissionID]roleIDs.
 func (pr *PermissionsRepository) LoadCollections() map[int][]string {
+	if err := pr.openConnection(); err != nil {
+		panic(err)
+	}
+
 	query := `SELECT 
-					*
+					permission_id, role_id
 				FROM
 					role_permissions
 				ORDER BY role_id;`
@@ -44,7 +49,7 @@ func (pr *PermissionsRepository) LoadCollections() map[int][]string {
 			roleID       string
 		)
 
-		err = rows.Scan(permissionID, roleID)
+		err = rows.Scan(&permissionID, &roleID)
 		if err != nil {
 			panic(err)
 		}
@@ -62,4 +67,23 @@ func (pr *PermissionsRepository) LoadCollections() map[int][]string {
 	}
 
 	return collections
+}
+
+func (pr *PermissionsRepository) openConnection() error {
+	if pr.db == nil {
+		db, err := sql.Open("mysql", os.Getenv("CONN_STRING"))
+		if err != nil {
+			return err
+		}
+
+		pr.db = db
+	}
+
+	ctx := context.Background()
+	err := pr.db.PingContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
