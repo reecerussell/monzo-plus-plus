@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
@@ -36,21 +38,18 @@ func (am *AuthenticationMiddleware) Handler(h http.Handler) http.Handler {
 
 		auth := r.Header.Get("Authorization")
 		if auth == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("no authorization header"))
+			errors.Unauthorised("no authorization header")
 			return
 		}
 
 		p := strings.Split(auth, " ")
 		if len(p) < 2 {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("malformed authorization header"))
+			errors.Unauthorised("malformed authorization header")
 			return
 		}
 
 		if p[0] == "Bearer" {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("unsupported authorization scheme"))
+			errors.Unauthorised("unsupported authorization scheme")
 			return
 		}
 

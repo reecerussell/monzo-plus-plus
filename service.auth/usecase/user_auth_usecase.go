@@ -45,13 +45,13 @@ type userAuthUsecase struct {
 func NewUserAuthUsecase(ps password.Service, repo repository.UserRepository) (UserAuthUsecase, error) {
 	keys, err := jwt.NewKeyRegisterFromFile(PrivateKeyFilepath, []byte(PrivateKeyPassword))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jwt: key: %v", err)
 	}
 
 	var config jwt.Config
 	err = config.LoadFromFile(ConfigFilepath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jwt: config: %v", err)
 	}
 
 	return &userAuthUsecase{
