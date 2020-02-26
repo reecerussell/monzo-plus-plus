@@ -29,8 +29,8 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/{id}", c.HandleGet).Methods("GET")
 	r.HandleFunc("/users", c.HandleCreate).Methods("POST")
 	r.HandleFunc("/users", c.HandleUpdate).Methods("UPDATE")
-	r.HandleFunc("/users/{id}", c.HandleEnable).Methods("POST")
-	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("POST")
+	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
+	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 
 	return c
 }
