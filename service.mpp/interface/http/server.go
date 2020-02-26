@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/interface/http/controller"
+	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
 
 	"net/http"
 	"os"
@@ -28,6 +27,7 @@ func NewServer(ctn *di.Container) *Server {
 	mux := &http.ServeMux{}
 
 	controller.NewMonzoController().Apply(ctn, mux)
+	mux.HandleFunc("/auth/", controller.AuthProxy())
 	mux.Handle("/api/plugin/", plugin.Handler())
 
 	return &Server{
