@@ -50,7 +50,12 @@ func Has(ctx context.Context, perm int) bool {
 	mu.Lock()
 	defer mu.Unlock()
 
-	user := ctx.Value(userKey).(*model.User)
+	val := ctx.Value(userKey)
+	if val == nil {
+		return false
+	}
+
+	user := val.(*model.User)
 	if user == nil {
 		return false
 	}
