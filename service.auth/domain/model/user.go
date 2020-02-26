@@ -232,10 +232,20 @@ func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel
 
 // DTO returns a data-transfer object populated with the user's data.
 func (u *User) DTO() *dto.User {
-	return &dto.User{
+	d := &dto.User{
 		ID:          u.id,
 		Username:    u.username,
 		DateEnabled: u.enabled,
 		Enabled:     u.enabled != nil,
 	}
+
+	if u.roles != nil {
+		d.Roles = make([]*dto.Role, len(u.roles))
+
+		for i, r := range u.roles {
+			d.Roles = append(d.Roles, r.DTO())
+		}
+	}
+
+	return u
 }
