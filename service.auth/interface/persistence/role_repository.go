@@ -3,9 +3,11 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 )
@@ -76,6 +78,21 @@ func (rr *roleRepository) GetList(term string) ([]*model.Role, errors.Error) {
 	}
 
 	return roles, nil
+}
+
+func readRole(s scannerFunc) (*datamodel.Role, errors.Error) {
+	var dm datamodel.Role
+
+	err := s(&dm.ID, &dm.Name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NotFound("role not found")
+		}
+
+		return nil, errors.InternalError(fmt.Errorf("read role: %v", err))
+	}
+
+	return &dm, nil
 }
 
 func (rr *roleRepository) EnsureExists(id string) errors.Error {

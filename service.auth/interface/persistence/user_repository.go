@@ -115,7 +115,7 @@ func (ur *userRepository) GetByUsername(username string) (*model.User, errors.Er
 
 	var userID string
 
-	err = stmt.QueryRowContext(ctx, username).Scan(&username)
+	err = stmt.QueryRowContext(ctx, username).Scan(&userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NotFound("user not found")
@@ -192,15 +192,11 @@ func readUser(s scannerFunc) (*datamodel.User, errors.Error) {
 	return &dm, nil
 }
 
-func readRole(s scannerFunc) (*datamodel.Role, errors.Error) {
+func readUserRole(s scannerFunc) (*datamodel.Role, errors.Error) {
 	var dm datamodel.Role
 
 	err := s(&dm.ID, &dm.Name)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.NotFound("role not found")
-		}
-
+	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.InternalError(fmt.Errorf("read role: %v", err))
 	}
 
@@ -217,11 +213,7 @@ func readToken(s scannerFunc) (*datamodel.Token, errors.Error) {
 		&dm.Expires,
 		&dm.TokenType,
 	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.NotFound("token not found")
-		}
-
+	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.InternalError(fmt.Errorf("read token: %v", err))
 	}
 
