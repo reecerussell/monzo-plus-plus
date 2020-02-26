@@ -115,7 +115,10 @@ func (uau *userAuthUsecase) generateToken(u *model.User) (*jwt.AccessToken, erro
 //
 // An error is returned if the token is invalid, or cannot be checked.
 func (uau *userAuthUsecase) ValidateToken(accessToken string) errors.Error {
-	t := jwt.FromToken([]byte(accessToken))
+	t, err := jwt.FromToken([]byte(accessToken))
+	if err != nil {
+		return errors.Unauthorised(fmt.Sprintf("invalid token: %v", err.Error()))
+	}
 
 	ok, err := t.Check(uau.keys.PublicKey)
 	if err != nil {

@@ -189,7 +189,11 @@ func (uu *userUsecase) Delete(ctx context.Context, id string) errors.Error {
 }
 
 func (uu *userUsecase) WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error) {
-	token := jwt.FromToken([]byte(accessToken))
+	token, tErr := jwt.FromToken([]byte(accessToken))
+	if tErr != nil {
+		return nil, errors.Unauthorised(tErr.Error())
+	}
+
 	userID, ok := token.Claims.String(jwt.ClaimUserID)
 	if !ok {
 		return ctx, errors.Unauthorised("user id not found in jwt payload")
