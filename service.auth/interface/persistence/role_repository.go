@@ -48,7 +48,7 @@ func (rr *roleRepository) GetList(term string) ([]*model.Role, errors.Error) {
 		return nil, openErr
 	}
 
-	query := "SELECT id, `name` FROM roles WHERE `name` LIKE '%?%';"
+	query := "SELECT id, `name` FROM roles WHERE `name` LIKE ?;"
 
 	ctx := context.Background()
 	stmt, err := rr.db.PrepareContext(ctx, query)
@@ -57,7 +57,7 @@ func (rr *roleRepository) GetList(term string) ([]*model.Role, errors.Error) {
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.QueryContext(ctx, term)
+	rows, err := stmt.QueryContext(ctx, fmt.Sprintf("%%%s%%", term))
 	if err != nil {
 		return nil, errors.InternalError(err)
 	}
