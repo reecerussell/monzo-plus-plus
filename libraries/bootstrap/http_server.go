@@ -35,7 +35,7 @@ func BuildServer(s *http.Server) *HTTPServer {
 
 func (hs *HTTPServer) Serve() {
 	hs.base.Addr = fmt.Sprintf(":%s", HTTPPort)
-	hs.base.Handler = panicHandler(hs.base.Handler)
+	hs.base.Handler = panicHandler(corsHandler(hs.base.Handler))
 
 	sc := make(chan struct{})
 	go hs.listenForShutdown()
@@ -92,6 +92,22 @@ func panicHandler(h http.Handler) http.Handler {
 			err := fmt.Errorf("%v", p)
 			errors.HandleHTTPError(w, r, errors.InternalError(err))
 		}()
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+func corsHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// DEVELOPMENT ONLY
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 
 		h.ServeHTTP(w, r)
 	})
