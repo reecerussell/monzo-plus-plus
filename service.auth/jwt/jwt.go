@@ -95,10 +95,11 @@ func (jwt *JWT) String() string {
 	return string(jwt.data)
 }
 
+// AccessToken returns an *AccessToken populated with data from jwt.
 func (jwt *JWT) AccessToken() *AccessToken {
 	ac := new(AccessToken)
 	ac.AccessToken = jwt.String()
-	ac.Expires = time.Now().UTC().Sub(jwt.Claims.Expires.Time()).Seconds()
+	ac.Expires = float64(*jwt.Claims.Expires)
 
 	return ac
 }

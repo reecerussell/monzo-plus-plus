@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
@@ -96,6 +97,9 @@ func (uau *userAuthUsecase) generateToken(u *model.User) (*jwt.AccessToken, erro
 		"user_id": u.GetID(),
 		"roles":   u.GetRoles(),
 	}
+
+	exp := time.Now().UTC().Add(time.Duration(uau.config.ExpiryHours) * time.Hour)
+	c.Expires = jwt.NewNumericTime(exp)
 
 	t := jwt.New(c)
 	t.Config = uau.config
