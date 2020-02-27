@@ -243,9 +243,9 @@ func (u *User) DTO() *dto.User {
 		d.Roles = make([]*dto.Role, len(u.roles))
 
 		for i, r := range u.roles {
-			d.Roles = append(d.Roles, r.DTO())
+			d.Roles[i] = r.DTO()
 		}
 	}
 
-	return u
+	return d
 }
