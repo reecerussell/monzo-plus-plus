@@ -54,6 +54,11 @@ func (u *User) GetID() string {
 	return u.id
 }
 
+// GetUsername returns the user's username.
+func (u *User) GetUsername() string {
+	return u.username
+}
+
 // IsEnabled returns whether the user is enabled or not.
 func (u *User) IsEnabled() bool {
 	return u.enabled != nil
