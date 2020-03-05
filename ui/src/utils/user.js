@@ -52,4 +52,4 @@ const getCurrentPayload = () => {
 	return JSON.parse(payloadData);
 };
 
-export { IsInRole, GetUsername };
+export { IsInRole, GetUsername, IsAuthenticated };
