@@ -1,10 +1,11 @@
 const AccessTokenCookieName = "mpp_ac";
 
 const GetAccessToken = () => {
-	var v = document.cookie.match(
+	const value = document.cookie.match(
 		"(^|;) ?" + AccessTokenCookieName + "=([^;]*)(;|$)"
 	);
-	return v ? v[2] : null;
+
+	return value ? value[2] : null;
 };
 
 const IsAuthenticated = () => {
@@ -24,6 +25,17 @@ const IsInRole = roleName => {
 	return payload.roles.indexOf(roleName) > -1;
 };
 
+const GetUsername = () => getClaim("username") ?? "User";
+
+const getClaim = claimName => {
+	const payload = getCurrentPayload();
+	if (!payload) {
+		return null;
+	}
+
+	return payload[claimName];
+};
+
 const getCurrentPayload = () => {
 	const token = GetAccessToken();
 	if (!token) {
@@ -40,4 +52,4 @@ const getCurrentPayload = () => {
 	return JSON.parse(payloadData);
 };
 
-export { IsInRole };
+export { IsInRole, GetUsername };
