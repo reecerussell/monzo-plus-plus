@@ -45,7 +45,7 @@ const Pending = ({ users, loading, error, handleDelete, handleEnable }) => {
 		<>
 			{errorMessage}
 
-			<Segment>
+			<Segment basic>
 				<Loader active={loading} />
 
 				{content}

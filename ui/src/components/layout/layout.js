@@ -7,9 +7,7 @@ const Layout = ({ children }) => (
 	<>
 		<Header />
 
-		<Container text style={{ marginTop: "7em" }}>
-			{children}
-		</Container>
+		<Container style={{ marginTop: "7em" }}>{children}</Container>
 
 		<Footer />
 	</>

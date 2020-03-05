@@ -79,7 +79,7 @@ const List = ({
 	return (
 		<>
 			{errorMessage}
-			<Segment>
+			<Segment basic>
 				<Loader active={loading} />
 
 				<Form onSubmit={onSearch}>
