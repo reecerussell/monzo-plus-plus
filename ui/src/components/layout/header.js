@@ -47,7 +47,11 @@ const UserMenu = () => {
 			}
 		>
 			<Dropdown.Menu>
-				<Dropdown.Item>My Account</Dropdown.Item>
+				<Dropdown.Item>
+					<span className="text">
+						<Link to="/account">My Account</Link>
+					</span>
+				</Dropdown.Item>
 				<Dropdown.Item>Logout</Dropdown.Item>
 				<AdminMenu />
 			</Dropdown.Menu>
