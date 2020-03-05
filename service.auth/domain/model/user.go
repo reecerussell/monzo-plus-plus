@@ -59,7 +59,7 @@ func (u *User) IsEnabled() bool {
 	return u.enabled != nil
 }
 
-// GetRoles returns an array of the user's assign role ids.
+// GetRoles returns an array of the user's assigned role ids.
 func (u *User) GetRoles() []string {
 	ids := make([]string, len(u.roles))
 
@@ -68,6 +68,17 @@ func (u *User) GetRoles() []string {
 	}
 
 	return ids
+}
+
+// GetRoleNames returns an array of the user's assigned role names.
+func (u *User) GetRoleNames() []string {
+	names := make([]string, len(u.roles))
+
+	for i, r := range u.roles {
+		names[i] = r.name
+	}
+
+	return names
 }
 
 // Update updates the user's mutable properties, such as username.

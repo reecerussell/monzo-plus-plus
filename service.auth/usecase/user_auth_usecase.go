@@ -95,7 +95,7 @@ func (uau *userAuthUsecase) generateToken(u *model.User) (*jwt.AccessToken, erro
 	c := new(jwt.Claims)
 	c.Set = map[string]interface{}{
 		"user_id": u.GetID(),
-		"roles":   u.GetRoles(),
+		"roles":   u.GetRoleNames(),
 	}
 
 	exp := time.Now().UTC().Add(time.Duration(uau.config.ExpiryHours) * time.Hour)
