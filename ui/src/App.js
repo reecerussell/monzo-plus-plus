@@ -7,9 +7,9 @@ import { Loader } from "semantic-ui-react";
 import routes from "./routes";
 
 const App = () => (
-	<Layout>
-		<Suspense fallback={<Loader active={true} />}>
-			<Router>
+	<Suspense fallback={<Loader active={true} />}>
+		<Router>
+			<Layout>
 				<Switch>
 					{routes.map((route, idx) => (
 						<Route
@@ -21,9 +21,9 @@ const App = () => (
 						/>
 					))}
 				</Switch>
-			</Router>
-		</Suspense>
-	</Layout>
+			</Layout>
+		</Router>
+	</Suspense>
 );
 
 export default App;
