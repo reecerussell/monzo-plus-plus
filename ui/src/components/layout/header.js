@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Dropdown, Image, Menu, Icon } from "semantic-ui-react";
+import { Container, Dropdown, Image, Menu } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import * as User from "../../utils/user";
 
@@ -36,16 +36,7 @@ const UserMenu = () => {
 	}
 
 	return (
-		<Dropdown
-			item
-			simple
-			text={
-				<>
-					<Icon name="user" />
-					{User.GetUsername()}
-				</>
-			}
-		>
+		<Dropdown item simple text={User.GetUsername()}>
 			<Dropdown.Menu>
 				<Dropdown.Item>
 					<span className="text">
