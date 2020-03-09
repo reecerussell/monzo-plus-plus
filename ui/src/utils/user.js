@@ -27,6 +27,8 @@ const IsInRole = roleName => {
 
 const GetUsername = () => getClaim("username") ?? "User";
 
+const GetId = () => getClaim("user_id");
+
 const getClaim = claimName => {
 	const payload = getCurrentPayload();
 	if (!payload) {
@@ -52,4 +54,4 @@ const getCurrentPayload = () => {
 	return JSON.parse(payloadData);
 };
 
-export { IsInRole, GetUsername, IsAuthenticated };
+export { IsInRole, GetUsername, GetId, IsAuthenticated };
