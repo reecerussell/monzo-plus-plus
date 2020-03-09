@@ -5,6 +5,9 @@ const UsersDetails = React.lazy(() => import("./views/users/details"));
 const UsersPending = React.lazy(() => import("./views/users/pending"));
 
 const AccountIndex = React.lazy(() => import("./views/account/account"));
+const AccountChangePassword = React.lazy(() =>
+	import("./views/account/changePassword")
+);
 
 export default [
 	{
@@ -32,7 +35,7 @@ export default [
 	{
 		name: "change password",
 		path: "/account/changepassword",
-		component: AccountIndex,
+		component: AccountChangePassword,
 	},
 	{
 		name: "account plugins",

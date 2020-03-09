@@ -14,20 +14,12 @@ const DetailsContainer = ({ id }) => {
 
 		setLoading(true);
 
-		const getAccessToken = () => {
-			const cookieName = "access_token";
-			const v = document.cookie.match(
-				"(^|;) ?" + cookieName + "=([^;]*)(;|$)"
-			);
-			return v ? v[2] : null;
-		};
-
 		const res = await Fetch("http://localhost:9789/auth/users/" + id);
 
 		if (res.ok) {
 			const data = await res.json();
 
-			if (res.status == 200) {
+			if (res.status === 200) {
 				setDetails(data);
 			} else {
 				setError(data.error);
