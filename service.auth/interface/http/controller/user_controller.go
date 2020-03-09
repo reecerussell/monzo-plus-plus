@@ -29,6 +29,7 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/{id}", c.HandleGet).Methods("GET")
 	r.HandleFunc("/users", c.HandleCreate).Methods("POST")
 	r.HandleFunc("/users", c.HandleUpdate).Methods("UPDATE")
+	r.HandleFunc("/users/changepassword", c.HandleChangePassword).Methods("POST")
 	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
 	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 
@@ -105,6 +106,22 @@ func (c *UserController) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	err := c.userUsecase.Update(ctx, &d)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *UserController) HandleChangePassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var d dto.ChangePassword
+	_ = json.NewDecoder(r.Body).Decode(&d)
+
+	ctx := r.Context()
+	err := c.userUsecase.ChangePassword(ctx, &d)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return

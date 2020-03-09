@@ -23,6 +23,7 @@ type UserUsecase interface {
 	GetList(ctx context.Context, term string) ([]*dto.User, errors.Error)
 	GetPending(ctx context.Context, term string) ([]*dto.User, errors.Error)
 	Update(ctx context.Context, d *dto.UpdateUser) errors.Error
+	ChangePassword(ctx context.Context, d *dto.ChangePassword) errors.Error
 	Enable(ctx context.Context, id string) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
@@ -133,6 +134,25 @@ func (uu *userUsecase) Update(ctx context.Context, d *dto.UpdateUser) errors.Err
 	}
 
 	err = uu.serv.ValidateUsername(u)
+	if err != nil {
+		return err
+	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ChangePassword is used to change the password for the requests user. This method
+// expected the context to be propogated with the logged in user, through the HTTP
+// authentication middleware.
+func (uu *userUsecase) ChangePassword(ctx context.Context, d *dto.ChangePassword) errors.Error {
+	u := ctx.Value(util.ContextKey("user")).(*model.User)
+
+	err := u.UpdatePassword(d.NewPassword, d.CurrentPassword, uu.ps)
 	if err != nil {
 		return err
 	}
