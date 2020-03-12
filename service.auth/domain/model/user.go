@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/base64"
 	"regexp"
 	"strings"
 	"time"
@@ -33,6 +34,7 @@ func NewUser(d *dto.CreateUser, service password.Service) (*User, errors.Error) 
 	u := new(User)
 
 	u.id = id.String()
+	u.stateToken = base64.RawURLEncoding.EncodeToString([]byte(u.id))
 
 	// TODO: initialise nav props
 
