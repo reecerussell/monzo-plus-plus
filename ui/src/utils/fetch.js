@@ -1,5 +1,5 @@
 const getAccessToken = () => {
-	const cookieName = "access_token";
+	const cookieName = "mpp_ac";
 	const v = document.cookie.match("(^|;) ?" + cookieName + "=([^;]*)(;|$)");
 	return v ? v[2] : null;
 };
