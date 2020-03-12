@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package proto;
+
+message RegisterType {
+    string Name = 1;
+    string Host = 2;
+}
+
+message UnregisterType {
+    string Name = 1;
+}
+
+message GetHostType {
+    string Name = 1;
+}
+
+message HostResponseType {
+    string Host = 1;
+}
+
+message EmptyResponse {
+}
+
+service RegistryService {
+    rpc Register(RegisterType) returns (EmptyResponse) {}
+    rpc Unregister(UnregisterType) returns (EmptyResponse) {}
+    rpc GetHost(GetHostType) returns (HostResponseType) {}
+}
