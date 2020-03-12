@@ -45,10 +45,6 @@ func NewUserUsecase(repo repository.UserRepository, serv *service.UserService, p
 }
 
 func (uu *userUsecase) Create(ctx context.Context, d *dto.CreateUser) (*dto.User, errors.Error) {
-	if !permission.Has(ctx, permission.PermissionCreateUser) {
-		return nil, errors.Forbidden()
-	}
-
 	u, err := model.NewUser(d, uu.ps)
 	if err != nil {
 		return nil, err
