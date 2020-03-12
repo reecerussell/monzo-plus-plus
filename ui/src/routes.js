@@ -10,6 +10,7 @@ const AccountChangePassword = React.lazy(() =>
 );
 
 const Login = React.lazy(() => import("./views/login/login"));
+const Register = React.lazy(() => import("./views/login/register"));
 
 export default [
 	{
@@ -53,6 +54,12 @@ export default [
 		name: "login",
 		path: "/login",
 		component: Login,
+		exact: true,
+	},
+	{
+		name: "register",
+		path: "/register",
+		component: Register,
 		exact: true,
 	},
 ];
