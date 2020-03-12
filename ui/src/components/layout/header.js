@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Dropdown, Image, Menu } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import * as User from "../../utils/user";
@@ -32,8 +32,19 @@ const AdminMenu = () => {
 
 const UserMenu = () => {
 	if (!User.IsAuthenticated()) {
-		return null;
+		return (
+			<Menu.Item as={Link} to="/login">
+				Login
+			</Menu.Item>
+		);
 	}
+
+	const handleLogout = e => {
+		e.preventDefault();
+
+		User.Logout();
+		window.location.reload();
+	};
 
 	return (
 		<Dropdown item simple text={User.GetUsername()}>
@@ -43,7 +54,13 @@ const UserMenu = () => {
 						<Link to="/account">My Account</Link>
 					</span>
 				</Dropdown.Item>
-				<Dropdown.Item>Logout</Dropdown.Item>
+				<Dropdown.Item>
+					<span className="text">
+						<a href="#" onClick={handleLogout}>
+							Logout
+						</a>
+					</span>
+				</Dropdown.Item>
 				<AdminMenu />
 			</Dropdown.Menu>
 		</Dropdown>
@@ -51,6 +68,18 @@ const UserMenu = () => {
 };
 
 const Header = () => {
+	const [_, setState] = useState();
+
+	useEffect(() => {
+		User.SubscribeLogin("header", () => setState(null));
+		User.SubscribeLogout("header", () => setState(null));
+
+		return () => {
+			User.UnsubscripeLogin("header");
+			User.UnsubscribeLogout("header");
+		};
+	});
+
 	return (
 		<Menu fixed="top" inverted>
 			<Container>
