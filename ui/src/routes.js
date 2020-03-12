@@ -9,6 +9,8 @@ const AccountChangePassword = React.lazy(() =>
 	import("./views/account/changePassword")
 );
 
+const Login = React.lazy(() => import("./views/login/login"));
+
 export default [
 	{
 		name: "users",
@@ -46,5 +48,11 @@ export default [
 		name: "delete account",
 		path: "/account/delete",
 		component: AccountIndex,
+	},
+	{
+		name: "login",
+		path: "/login",
+		component: Login,
+		exact: true,
 	},
 ];
