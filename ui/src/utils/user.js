@@ -8,6 +8,24 @@ const GetAccessToken = () => {
 	return value ? value[2] : null;
 };
 
+const SetAccessToken = (token, expires) => {
+	const d = new Date(expires);
+	document.cookie =
+		AccessTokenCookieName +
+		"=" +
+		token +
+		";path=/;expires=" +
+		d.toGMTString();
+
+	LoginSubscriptions.forEach(v => v());
+};
+
+const Logout = () => {
+	SetAccessToken(null, -1);
+
+	LogoutSubscriptions.forEach(v => v());
+};
+
 const IsAuthenticated = () => {
 	return GetAccessToken() !== null;
 };
@@ -54,4 +72,26 @@ const getCurrentPayload = () => {
 	return JSON.parse(payloadData);
 };
 
-export { IsInRole, GetUsername, GetId, IsAuthenticated };
+const LoginSubscriptions = new Map();
+const LogoutSubscriptions = new Map();
+
+const SubscribeLogin = (name, callback) =>
+	LoginSubscriptions.set(name, callback);
+const SubscribeLogout = (name, callback) =>
+	LogoutSubscriptions.set(name, callback);
+
+const UnsubscripeLogin = name => LoginSubscriptions.delete(name);
+const UnsubscribeLogout = name => LogoutSubscriptions.delete(name);
+
+export {
+	IsInRole,
+	GetUsername,
+	GetId,
+	IsAuthenticated,
+	SetAccessToken,
+	SubscribeLogin,
+	SubscribeLogout,
+	UnsubscripeLogin,
+	UnsubscribeLogout,
+	Logout,
+};
