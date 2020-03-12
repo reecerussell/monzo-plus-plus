@@ -8,6 +8,7 @@ const AccountIndex = React.lazy(() => import("./views/account/account"));
 const AccountChangePassword = React.lazy(() =>
 	import("./views/account/changePassword")
 );
+const AccountDelete = React.lazy(() => import("./views/account/delete"));
 
 const Login = React.lazy(() => import("./views/login/login"));
 const Register = React.lazy(() => import("./views/login/register"));
@@ -48,7 +49,7 @@ export default [
 	{
 		name: "delete account",
 		path: "/account/delete",
-		component: AccountIndex,
+		component: AccountDelete,
 	},
 	{
 		name: "login",
