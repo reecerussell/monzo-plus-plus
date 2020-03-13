@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/rpc"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/http"
@@ -20,6 +22,9 @@ func main() {
 	web := http.Build(ctn)
 	go web.Serve()
 
+	gRPC := rpc.Build(ctn)
+	go gRPC.Serve()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
@@ -28,6 +33,7 @@ func main() {
 
 	ctn.Clean()
 	web.Shutdown(bootstrap.ShutdownGraceful)
+	gRPC.Shutdown(bootstrap.ShutdownGraceful)
 
 	log.Println("Server shutdown!")
 }

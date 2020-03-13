@@ -25,6 +25,7 @@ const (
 	PermissionGetRoleList     = 11
 	PermissionUpdateRole      = 12
 	PermissionDeleteRole      = 13
+	PermissionPluginManager   = 14
 )
 
 var (
