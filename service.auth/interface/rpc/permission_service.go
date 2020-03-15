@@ -4,12 +4,10 @@ import (
 	"context"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
-	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
-	"github.com/reecerussell/monzo-plus-plus/service.auth/permission"
-
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/rpc/proto"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/permission"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
 )
 
