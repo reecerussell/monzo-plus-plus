@@ -22,6 +22,7 @@ var (
 	ErrPrepareFailed       = fmt.Errorf("an error occured while preparing the database")
 	ErrExecutionFailed     = fmt.Errorf("failed to execute a command on the database")
 	ErrFailedToReadResults = fmt.Errorf("failed to read the results of the database")
+	ErrScanFailed          = fmt.Errorf("failed to record data")
 )
 
 func init() {
@@ -42,6 +43,11 @@ type ReaderFunc func(s ScannerFunc) (interface{}, errors.Error)
 // sql.DB easier.
 type DB struct {
 	sql *sql.DB
+}
+
+// New returns a new instance of DB.
+func New() *DB {
+	return new(DB)
 }
 
 // EnsureConnected ensures there is an open connection to the database,
