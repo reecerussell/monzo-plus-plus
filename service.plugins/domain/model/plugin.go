@@ -12,6 +12,8 @@ type Plugin struct {
 	name        string
 	displayName string
 	description string
+
+	updated bool
 }
 
 func NewPlugin(d *dto.CreatePlugin) (*Plugin, errors.Error) {
@@ -46,6 +48,12 @@ func (p *Plugin) GetName() string {
 	return p.name
 }
 
+// HasBeenUpdated returns whether the plugin has been updated since
+// being intantiated.
+func (p *Plugin) HasBeenUpdated() bool {
+	return p.updated
+}
+
 func (p *Plugin) Update(d *dto.UpdatePlugin) errors.Error {
 	err := p.UpdateName(d.Name)
 	if err != nil {
@@ -75,6 +83,7 @@ func (p *Plugin) UpdateName(name string) errors.Error {
 	}
 
 	p.name = name
+	p.updated = true
 
 	return nil
 }
@@ -89,6 +98,7 @@ func (p *Plugin) UpdateDisplayName(name string) errors.Error {
 	}
 
 	p.displayName = name
+	p.updated = true
 
 	return nil
 }
@@ -99,6 +109,7 @@ func (p *Plugin) UpdateDescription(text string) errors.Error {
 	}
 
 	p.description = text
+	p.updated = true
 
 	return nil
 }
@@ -127,5 +138,6 @@ func PluginFromDataModel(d *datamodel.Plugin) *Plugin {
 		name:        d.Name,
 		displayName: d.DisplayName,
 		description: d.Description,
+		updated:     false,
 	}
 }
