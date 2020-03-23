@@ -1,16 +1,15 @@
 package service
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/database"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.plugins/domain/model"
 )
 
 type PluginService struct {
-	db *sql.DB
+	db *database.DB
 }
 
 func NewPluginService() *PluginService {
@@ -28,21 +27,12 @@ func (ps *PluginService) EnsureUniqueName(p *model.Plugin) errors.Error {
 		p.GetID(),
 	}
 
-	ctx := context.Background()
-	stmt, err := ps.db.PrepareContext(ctx, query)
+	exists, err := ps.db.Exists(query, args...)
 	if err != nil {
-		return errors.InternalError(err)
-	}
-	defer stmt.Close()
-
-	var count int
-
-	err = stmt.QueryRowContext(ctx, args...).Scan(&count)
-	if err != nil {
-		return errors.InternalError(err)
+		return err
 	}
 
-	if count > 0 {
+	if exists {
 		return errors.BadRequest(fmt.Sprintf("the name '%s' is already taken", p.GetName()))
 	}
 
