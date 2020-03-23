@@ -82,8 +82,8 @@ func (p *Plugin) UpdateName(name string) errors.Error {
 		return errors.BadRequest("name cannot be greater than 45 characters long")
 	}
 
+	p.updated = p.name != name || p.updated
 	p.name = name
-	p.updated = true
 
 	return nil
 }
@@ -97,8 +97,8 @@ func (p *Plugin) UpdateDisplayName(name string) errors.Error {
 		return errors.BadRequest("display name cannot be greater than 45 characters long")
 	}
 
+	p.updated = p.displayName != name || p.updated
 	p.displayName = name
-	p.updated = true
 
 	return nil
 }
@@ -108,8 +108,8 @@ func (p *Plugin) UpdateDescription(text string) errors.Error {
 		return errors.BadRequest("description cannot be empty")
 	}
 
+	p.updated = p.description != text || p.updated
 	p.description = text
-	p.updated = true
 
 	return nil
 }
