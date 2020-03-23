@@ -3,6 +3,7 @@ version: "3.7"
 networks:
     monzo:
         driver: bridge
+
 services:
     plugin.budget:
         image: reecerussell/monzo-plus-plus:plugin.budget
@@ -13,6 +14,9 @@ services:
             - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"
+            - "NAME=budget"
+            - "HOSTNAME=plugin.budget"
+            - "REGISTRY_HOST=registry"
         networks:
             - monzo
         depends_on:
@@ -40,6 +44,19 @@ services:
         networks:
             - monzo
 
+    plugins:
+        image: reecerussell/monzo-plus-plus:plugins
+        build:
+            context: .
+            dockerfile: service.plugins/Dockerfile
+        environment:
+            - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
+            - "HTTP_PORT=80"
+            - "HTTP_ERROR=DEBUG"
+            - "AUTH_RPC_ADDRESS=auth:8080"
+        networks:
+            - monzo
+
     mpp:
         image: reecerussell/monzo-plus-plus
         build:
@@ -57,6 +74,7 @@ services:
             - "HTTP_PORT=80"
             - "BUDGET_HTTP_HOST=http://plugin.budget:80"
             - "AUTH_HTTP_HOST=http://auth:80"
+            - "PLUGINS_HTTP_HOST=http://plugins:80"
             - "MONZO_WEBHOOK_URL="
         networks:
             - monzo

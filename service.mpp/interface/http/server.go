@@ -27,6 +27,7 @@ func NewServer(ctn *di.Container) *Server {
 
 	controller.NewMonzoController().Apply(ctn, mux)
 	mux.HandleFunc("/auth/", controller.AuthProxy())
+	mux.HandleFunc("/api/plugins/", controller.PluginProxy())
 	mux.Handle("/api/plugin/", plugin.Handler())
 
 	return &Server{
