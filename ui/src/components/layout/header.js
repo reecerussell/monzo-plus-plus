@@ -25,7 +25,11 @@ const AdminMenu = () => {
 					</Dropdown.Item>
 				</Dropdown.Menu>
 			</Dropdown.Item>
-			<Dropdown.Item>Roles</Dropdown.Item>
+			<Dropdown.Item>
+				<span className="text">
+					<Link to="/roles">Roles</Link>
+				</span>
+			</Dropdown.Item>
 		</>
 	);
 };

@@ -1,4 +1,5 @@
 import React from "react";
+import { Redirect } from "react-router-dom";
 import { Loader, Message, Form, Button } from "semantic-ui-react";
 
 const Login = ({
@@ -9,10 +10,15 @@ const Login = ({
 	handleSubmit,
 	loading,
 	error,
+	redirect,
 }) => {
+	if (redirect) {
+		return <Redirect to={redirect} />;
+	}
+
 	return (
 		<>
-			<Form onSubmit={handleSubmit} error={error}>
+			<Form onSubmit={handleSubmit} error={error !== null}>
 				<Loader active={loading} />
 				<Message
 					error

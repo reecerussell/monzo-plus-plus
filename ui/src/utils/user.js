@@ -40,7 +40,12 @@ const IsInRole = roleName => {
 		return false;
 	}
 
-	return payload.roles.indexOf(roleName) > -1;
+	let roles = [];
+	if (payload.roles) {
+		roles = payload.roles.map(name => name.toLowerCase());
+	}
+
+	return roles.indexOf(roleName.toLowerCase()) > -1;
 };
 
 const GetUsername = () => getClaim("username") ?? "User";

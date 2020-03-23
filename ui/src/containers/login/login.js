@@ -8,6 +8,7 @@ const LoginContainer = () => {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [redirect, setRedirect] = useState(null);
 
 	const handleUpdateUsername = e => setUsername(e.target.value);
 	const handleUpdatePassword = e => setPassword(e.target.value);
@@ -44,11 +45,12 @@ const LoginContainer = () => {
 				const { accessToken, expires } = await res.json();
 				User.SetAccessToken(accessToken, expires * 1000);
 
-				window.location.replace("/#/account");
-			} else {
-				const data = await res.json();
-				setError(data.error);
+				setRedirect("/account");
+				return;
 			}
+
+			const data = await res.json();
+			setError(data.error);
 		} catch {
 			setError(
 				"It seems like you don't have connection to the internet. Try again later!"
@@ -67,6 +69,7 @@ const LoginContainer = () => {
 			handleSubmit={handleSubmit}
 			loading={loading}
 			error={error}
+			redirect={redirect}
 		/>
 	);
 };

@@ -4,7 +4,7 @@ import * as User from "../../utils/user";
 import PropTypes from "prop-types";
 
 const canAccess = roles => {
-	for (let i = 0; i < roles.roles; i++) {
+	for (let i = 0; i < roles.length; i++) {
 		if (User.IsInRole(roles[i])) {
 			return true;
 		}
