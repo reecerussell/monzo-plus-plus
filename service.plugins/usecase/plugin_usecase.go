@@ -70,7 +70,7 @@ func (pu *pluginUsecase) Create(d *dto.CreatePlugin) (*dto.Plugin, errors.Error)
 		return nil, err
 	}
 
-	err = pu.repo.Update(p)
+	err = pu.repo.Create(p)
 	if err != nil {
 		return nil, err
 	}
