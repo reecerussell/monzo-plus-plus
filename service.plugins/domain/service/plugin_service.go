@@ -13,7 +13,9 @@ type PluginService struct {
 }
 
 func NewPluginService() *PluginService {
-	return new(PluginService)
+	return &PluginService{
+		db: database.New(),
+	}
 }
 
 // EnsureUniqueName searches the database to ensure the given plugin
