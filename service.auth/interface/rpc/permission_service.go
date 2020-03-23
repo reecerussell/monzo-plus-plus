@@ -38,5 +38,8 @@ func (ps *PermissionService) HasPermission(ctx context.Context, in *proto.Permis
 		}, nil
 	}
 
-	return nil, nil
+	return &proto.Error{
+		StatusCode: 200,
+		Message:    "",
+	}, nil
 }

@@ -56,5 +56,5 @@ func Has(accessToken string, permission int) bool {
 		return false
 	}
 
-	return pErr == nil
+	return pErr.GetStatusCode() == 200
 }
