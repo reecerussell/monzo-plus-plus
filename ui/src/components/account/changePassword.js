@@ -1,13 +1,5 @@
 import React from "react";
-import {
-	Loader,
-	Header,
-	Form,
-	Input,
-	Message,
-	Button,
-	Grid,
-} from "semantic-ui-react";
+import { Loader, Header, Form, Message, Button, Grid } from "semantic-ui-react";
 import Layout from "./layout";
 
 export default function ChangePassword({
