@@ -39,7 +39,7 @@ func (c *PluginController) HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)["id"]
 
-	p, err := c.u.Get(id)
+	p, err := c.u.Get(r.Context(), id)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
@@ -54,7 +54,7 @@ func (c *PluginController) HandleGetList(w http.ResponseWriter, r *http.Request)
 
 	term := r.URL.Query().Get("term")
 
-	plugins, err := c.u.All(term)
+	plugins, err := c.u.All(r.Context(), term)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
@@ -87,7 +87,7 @@ func (c *PluginController) HandleUpdate(w http.ResponseWriter, r *http.Request) 
 	var d dto.UpdatePlugin
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
-	err := c.u.Update(&d)
+	err := c.u.Update(r.Context(), &d)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return

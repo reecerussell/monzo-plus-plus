@@ -1,9 +1,14 @@
 package permission
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/jwt"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 )
@@ -56,6 +61,9 @@ func Middleware(h http.Handler, perm int) http.Handler {
 			return
 		}
 
+		// populates request context with jwt claim values
+		r = r.WithContext(populateContext(r.Context(), p[1]))
+
 		h.ServeHTTP(w, r)
 	})
 }
@@ -73,4 +81,17 @@ func isIgnored(path string) bool {
 	}
 
 	return false
+}
+
+func populateContext(ctx context.Context, token string) context.Context {
+	t, tErr := jwt.FromToken([]byte(token))
+	if tErr != nil {
+		return ctx
+	}
+
+	if userID, ok := t.Claims.String(jwt.ClaimUserID); ok {
+		ctx = context.WithValue(ctx, util.ContextKey("user_id"), userID)
+	}
+
+	return ctx
 }

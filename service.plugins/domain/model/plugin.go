@@ -13,7 +13,10 @@ type Plugin struct {
 	displayName string
 	description string
 
-	updated bool
+	// metadata
+	updated        bool
+	consumedBy     int
+	consumedByUser bool
 }
 
 func NewPlugin(d *dto.CreatePlugin) (*Plugin, errors.Error) {
@@ -125,19 +128,23 @@ func (p *Plugin) Datamodel() *datamodel.Plugin {
 
 func (p *Plugin) DTO() *dto.Plugin {
 	return &dto.Plugin{
-		ID:          p.id,
-		Name:        p.name,
-		DisplayName: p.displayName,
-		Description: p.description,
+		ID:             p.id,
+		Name:           p.name,
+		DisplayName:    p.displayName,
+		Description:    p.description,
+		ConsumedBy:     p.consumedBy,
+		ConsumedByUser: p.consumedByUser,
 	}
 }
 
 func PluginFromDataModel(d *datamodel.Plugin) *Plugin {
 	return &Plugin{
-		id:          d.ID,
-		name:        d.Name,
-		displayName: d.DisplayName,
-		description: d.Description,
-		updated:     false,
+		id:             d.ID,
+		name:           d.Name,
+		displayName:    d.DisplayName,
+		description:    d.Description,
+		updated:        false,
+		consumedBy:     d.ConsumedBy,
+		consumedByUser: d.ConsumedByUser,
 	}
 }

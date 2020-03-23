@@ -1,9 +1,12 @@
 package persistence
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/database"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
@@ -23,22 +26,21 @@ func NewPluginRepository() repository.PluginRepository {
 	}
 }
 
-func (pr *pluginRepository) GetList(term string) ([]*model.Plugin, errors.Error) {
-	query := `SELECT 
-					id, name, display_name, description
-				FROM
-					plugins
-				WHERE
-					name LIKE ? OR display_name LIKE ?
-						OR description LIKE ?
-				ORDER BY display_name;`
+func (pr *pluginRepository) GetList(ctx context.Context, term string) ([]*model.Plugin, errors.Error) {
+	query := `CALL get_plugins(?,?)`
 	term = fmt.Sprintf("%%%s%%", term)
-	args := []interface{}{term, term, term}
+	args := []interface{}{term, ctx.Value(util.ContextKey("user_id"))}
 
 	items, err := pr.db.Read(query, func(s database.ScannerFunc) (interface{}, errors.Error) {
 		var dm datamodel.Plugin
 
-		if err := s(&dm.ID, &dm.Name, &dm.DisplayName, &dm.Description); err != nil {
+		if err := s(
+			&dm.ID,
+			&dm.Name,
+			&dm.DisplayName,
+			&dm.Description,
+			&dm.ConsumedBy,
+			&dm.ConsumedByUser); err != nil {
 			log.Printf("ERROR: %v", err)
 			return nil, errors.InternalError(database.ErrScanFailed)
 		}
@@ -58,13 +60,14 @@ func (pr *pluginRepository) GetList(term string) ([]*model.Plugin, errors.Error)
 	return plugins, nil
 }
 
-func (pr *pluginRepository) Get(id string) (*model.Plugin, errors.Error) {
-	query := "SELECT id, `name`, display_name, `description` FROM `plugins` WHERE id = ?;"
+func (pr *pluginRepository) Get(ctx context.Context, id string) (*model.Plugin, errors.Error) {
+	query := "CALL get_plugin(?,?);"
+	args := []interface{}{id, ctx.Value(util.ContextKey("user_id"))}
 
 	item, err := pr.db.ReadOne(query, func(s database.ScannerFunc) (interface{}, errors.Error) {
 		var dm datamodel.Plugin
 
-		if err := s(&dm.ID, &dm.Name, &dm.DisplayName, &dm.Description); err != nil {
+		if err := s(&dm.ID, &dm.Name, &dm.DisplayName, &dm.Description, &dm.ConsumedBy, &dm.ConsumedByUser); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, errors.NotFound("plugin not found")
 			}
@@ -74,7 +77,7 @@ func (pr *pluginRepository) Get(id string) (*model.Plugin, errors.Error) {
 		}
 
 		return &dm, nil
-	}, id)
+	}, args...)
 	if err != nil {
 		return nil, err
 	}

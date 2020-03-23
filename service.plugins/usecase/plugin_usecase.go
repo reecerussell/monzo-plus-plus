@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.plugins/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.plugins/domain/model"
@@ -10,10 +12,10 @@ import (
 
 // PluginUsecase is a high-level usecase used to manage the plugin domain.
 type PluginUsecase interface {
-	All(term string) ([]*dto.Plugin, errors.Error)
-	Get(id string) (*dto.Plugin, errors.Error)
+	All(ctx context.Context, term string) ([]*dto.Plugin, errors.Error)
+	Get(ctx context.Context, id string) (*dto.Plugin, errors.Error)
 	Create(d *dto.CreatePlugin) (*dto.Plugin, errors.Error)
-	Update(d *dto.UpdatePlugin) errors.Error
+	Update(ctx context.Context, d *dto.UpdatePlugin) errors.Error
 	Delete(id string) errors.Error
 }
 
@@ -33,8 +35,8 @@ func NewPluginUsecase(serv *service.PluginService, repo repository.PluginReposit
 
 // All returns an array of all plugins matching the term below. The term
 // can be empty, which will result in all plugins.
-func (pu *pluginUsecase) All(term string) ([]*dto.Plugin, errors.Error) {
-	plugins, err := pu.repo.GetList(term)
+func (pu *pluginUsecase) All(ctx context.Context, term string) ([]*dto.Plugin, errors.Error) {
+	plugins, err := pu.repo.GetList(ctx, term)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +51,8 @@ func (pu *pluginUsecase) All(term string) ([]*dto.Plugin, errors.Error) {
 }
 
 // Get returns a single plugin record.
-func (pu *pluginUsecase) Get(id string) (*dto.Plugin, errors.Error) {
-	plugin, err := pu.repo.Get(id)
+func (pu *pluginUsecase) Get(ctx context.Context, id string) (*dto.Plugin, errors.Error) {
+	plugin, err := pu.repo.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +81,8 @@ func (pu *pluginUsecase) Create(d *dto.CreatePlugin) (*dto.Plugin, errors.Error)
 }
 
 // Update updates a plugin record using the data given by the dto.
-func (pu *pluginUsecase) Update(d *dto.UpdatePlugin) errors.Error {
-	p, err := pu.repo.Get(d.ID)
+func (pu *pluginUsecase) Update(ctx context.Context, d *dto.UpdatePlugin) errors.Error {
+	p, err := pu.repo.Get(ctx, d.ID)
 	if err != nil {
 		return err
 	}
