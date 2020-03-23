@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/permission/proto"
 	"google.golang.org/grpc"
 )
@@ -33,7 +35,9 @@ var AuthRPCAddress = os.Getenv("AUTH_RPC_ADDRESS")
 
 // Has returns whether the user, the access token belongs to, has the
 // given permission.
-func Has(accessToken string, permission int) bool {
+func Has(ctx context.Context, permission int) bool {
+	accessToken := ctx.Value(util.ContextKey("token")).(string)
+
 	conn, err := grpc.Dial(AuthRPCAddress, grpc.WithInsecure())
 	if err != nil {
 		log.Printf("Failed to dial auth rpc service: %v", err)

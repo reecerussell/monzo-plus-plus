@@ -19,7 +19,7 @@ func Build(ctn *di.Container) *bootstrap.HTTPServer {
 	_ = controller.NewPluginController(ctn, r)
 
 	return bootstrap.BuildServer(&http.Server{
-		Handler: permission.Middleware(r, permission.PermissionPluginManager),
+		Handler: permission.Middleware(r),
 		Addr:    fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")),
 	})
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/permission"
+
 	"github.com/reecerussell/monzo-plus-plus/service.plugins/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.plugins/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.plugins/domain/repository"
@@ -14,9 +16,9 @@ import (
 type PluginUsecase interface {
 	All(ctx context.Context, term string) ([]*dto.Plugin, errors.Error)
 	Get(ctx context.Context, id string) (*dto.Plugin, errors.Error)
-	Create(d *dto.CreatePlugin) (*dto.Plugin, errors.Error)
+	Create(ctx context.Context, d *dto.CreatePlugin) (*dto.Plugin, errors.Error)
 	Update(ctx context.Context, d *dto.UpdatePlugin) errors.Error
-	Delete(id string) errors.Error
+	Delete(ctx context.Context, id string) errors.Error
 }
 
 type pluginUsecase struct {
@@ -61,7 +63,11 @@ func (pu *pluginUsecase) Get(ctx context.Context, id string) (*dto.Plugin, error
 }
 
 // Create instansiates a new plugin record then inserts it into the database.
-func (pu *pluginUsecase) Create(d *dto.CreatePlugin) (*dto.Plugin, errors.Error) {
+func (pu *pluginUsecase) Create(ctx context.Context, d *dto.CreatePlugin) (*dto.Plugin, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionPluginManager) {
+		return nil, errors.Forbidden()
+	}
+
 	p, err := model.NewPlugin(d)
 	if err != nil {
 		return nil, err
@@ -82,6 +88,10 @@ func (pu *pluginUsecase) Create(d *dto.CreatePlugin) (*dto.Plugin, errors.Error)
 
 // Update updates a plugin record using the data given by the dto.
 func (pu *pluginUsecase) Update(ctx context.Context, d *dto.UpdatePlugin) errors.Error {
+	if !permission.Has(ctx, permission.PermissionPluginManager) {
+		return errors.Forbidden()
+	}
+
 	p, err := pu.repo.Get(ctx, d.ID)
 	if err != nil {
 		return err
@@ -110,6 +120,10 @@ func (pu *pluginUsecase) Update(ctx context.Context, d *dto.UpdatePlugin) errors
 }
 
 // Delete deletes a plugin record from the database.
-func (pu *pluginUsecase) Delete(id string) errors.Error {
+func (pu *pluginUsecase) Delete(ctx context.Context, id string) errors.Error {
+	if !permission.Has(ctx, permission.PermissionPluginManager) {
+		return errors.Forbidden()
+	}
+
 	return pu.repo.Delete(id)
 }
