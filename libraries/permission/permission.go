@@ -10,6 +10,24 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Permission keys.
+const (
+	PermissionCreateUser      = 1
+	PermissionGetUser         = 2
+	PermissionGetUserList     = 3
+	PermissionGetPendingUsers = 4
+	PermissionUpdateUser      = 5
+	PermissionEnableUser      = 6
+	PermissionDeleteUser      = 7
+	PermissionRoleManager     = 8
+	PermissionCreateRole      = 9
+	PermissionGetRole         = 10
+	PermissionGetRoleList     = 11
+	PermissionUpdateRole      = 12
+	PermissionDeleteRole      = 13
+	PermissionPluginManager   = 14
+)
+
 // AuthRPCAddress is an environment variable for the auth rpc target.
 var AuthRPCAddress = os.Getenv("AUTH_RPC_ADDRESS")
 
