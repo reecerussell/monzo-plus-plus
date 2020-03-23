@@ -8,6 +8,9 @@ import (
 	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+
+	// MySQl driver
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // ConnectionString is a connection read from the CONN_STRING
