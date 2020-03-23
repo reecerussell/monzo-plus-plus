@@ -70,7 +70,7 @@ func (c *PluginController) HandleCreate(w http.ResponseWriter, r *http.Request) 
 	var d dto.CreatePlugin
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
-	plugin, err := c.u.Create(&d)
+	plugin, err := c.u.Create(r.Context(), &d)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
@@ -102,7 +102,7 @@ func (c *PluginController) HandleDelete(w http.ResponseWriter, r *http.Request) 
 
 	id := mux.Vars(r)["id"]
 
-	err := c.u.Delete(id)
+	err := c.u.Delete(r.Context(), id)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
