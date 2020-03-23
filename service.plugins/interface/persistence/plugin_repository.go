@@ -32,7 +32,8 @@ func (pr *pluginRepository) GetList(term string) ([]*model.Plugin, errors.Error)
 					name LIKE ? OR display_name LIKE ?
 						OR description LIKE ?
 				ORDER BY display_name;`
-	args := []interface{}{fmt.Sprintf("%%%s%%", term)}
+	term = fmt.Sprintf("%%%s%%", term)
+	args := []interface{}{term, term, term}
 
 	items, err := pr.db.Read(query, func(s database.ScannerFunc) (interface{}, errors.Error) {
 		var dm datamodel.Plugin
