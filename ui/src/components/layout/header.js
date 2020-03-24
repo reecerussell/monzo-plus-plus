@@ -72,7 +72,7 @@ const UserMenu = () => {
 };
 
 const Header = () => {
-	const [state, setState] = useState(1);
+	const [state, setState] = useState(0);
 
 	useEffect(() => {
 		User.SubscribeLogin("header", () => setState(1));

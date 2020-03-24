@@ -21,8 +21,6 @@ const Send = async (url, options) => {
 		options.headers["Authorization"] = "Bearer " + getAccessToken();
 	}
 
-	console.log(options);
-
 	return await fetch(url, options);
 };
 
