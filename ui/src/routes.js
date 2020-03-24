@@ -5,6 +5,7 @@ const UsersDetails = React.lazy(() => import("./views/users/details"));
 const UsersPending = React.lazy(() => import("./views/users/pending"));
 
 const RolesList = React.lazy(() => import("./views/roles/list"));
+const RolesCreate = React.lazy(() => import("./views/roles/create"));
 
 const AccountIndex = React.lazy(() => import("./views/account/account"));
 const AccountChangePassword = React.lazy(() =>
@@ -37,6 +38,11 @@ export default [
 		path: "/roles",
 		exact: true,
 		component: RolesList,
+	},
+	{
+		name: "create role",
+		path: "/roles/create",
+		component: RolesCreate,
 	},
 	{
 		name: "account",
