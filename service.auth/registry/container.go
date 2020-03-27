@@ -91,6 +91,7 @@ func buildUserRoleUsecase(ctn *di.Container) (interface{}, error) {
 func buildRoleUsecase(ctn *di.Container) (interface{}, error) {
 	repo := persistence.NewRoleRepository()
 	serv := service.NewRoleService()
+	perms := persistence.NewPermissionRepository()
 
-	return usecase.NewRoleUsecase(repo, serv), nil
+	return usecase.NewRoleUsecase(repo, serv, perms), nil
 }

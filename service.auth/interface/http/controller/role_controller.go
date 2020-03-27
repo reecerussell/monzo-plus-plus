@@ -27,6 +27,8 @@ func NewRoleController(ctn *di.Container, r *mux.Router) *RoleController {
 	r.HandleFunc("/roles/{id}", c.HandleGet).Methods("GET")
 	r.HandleFunc("/roles", c.HandleCreate).Methods("POST")
 	r.HandleFunc("/roles", c.HandleUpdate).Methods("PUT")
+	r.HandleFunc("/roles/permission", c.HandleAddPermission).Methods("POST")
+	r.HandleFunc("/roles/permission", c.HandleRemovePermission).Methods("DELETE")
 	r.HandleFunc("/roles/{id}", c.HandleDelete).Methods("DELETE")
 
 	return c
@@ -86,6 +88,34 @@ func (c *RoleController) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	err := c.u.Update(ctx, &d)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *RoleController) HandleAddPermission(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var rp dto.RolePermission
+
+	err := c.u.AddPermission(r.Context(), &rp)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *RoleController) HandleRemovePermission(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var rp dto.RolePermission
+
+	err := c.u.RemovePermission(r.Context(), &rp)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
