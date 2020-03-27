@@ -25,7 +25,7 @@ func (rr *roleRepository) Get(id string) (*model.Role, errors.Error) {
 		return nil, openErr
 	}
 
-	query := "SELECT id, `name` FROM roles WHERE id = ?;"
+	query := "CALL get_role(?);"
 
 	ctx := context.Background()
 	stmt, err := rr.db.PrepareContext(ctx, query)
@@ -34,13 +34,47 @@ func (rr *roleRepository) Get(id string) (*model.Role, errors.Error) {
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRowContext(ctx, id)
-	dm, rErr := readRole(row.Scan)
-	if rErr != nil {
-		return nil, rErr
+	var role datamodel.Role
+	var perms []*datamodel.Permission
+
+	rows, err := stmt.QueryContext(ctx, id)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.Scan(&role.ID, &role.Name)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errors.NotFound("role not found")
+			}
+
+			return nil, errors.InternalError(err)
+		}
+
+		if rows.NextResultSet() {
+			for rows.Next() {
+				var dm datamodel.Permission
+
+				err = rows.Scan(&dm.ID, &dm.Name)
+				if err != nil {
+					return nil, errors.InternalError(err)
+				}
+
+				perms = append(perms, &dm)
+			}
+		}
+	}
+	if err = rows.Err(); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NotFound("role not found")
+		}
+
+		return nil, errors.InternalError(err)
 	}
 
-	return model.RoleFromDataModel(dm), nil
+	return model.RoleFromDataModel(&role, perms...), nil
 }
 
 func (rr *roleRepository) GetList(term string) ([]*model.Role, errors.Error) {

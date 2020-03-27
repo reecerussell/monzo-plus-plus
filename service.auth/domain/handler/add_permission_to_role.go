@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 
@@ -16,6 +17,9 @@ type AddPermissionToRole struct {
 // Invoke is used to handle a AddPermissionToRole event and assign a permission to a role.
 func (*AddPermissionToRole) Invoke(ctx context.Context, tx *sql.Tx, e interface{}) errors.Error {
 	evt := e.(*event.AddPermissionToRole)
+
+	fmt.Println(e)
+	fmt.Println(evt)
 
 	query := "CALL add_permission_to_role(?,?)"
 	args := []interface{}{evt.PermissionID, evt.RoleID}
