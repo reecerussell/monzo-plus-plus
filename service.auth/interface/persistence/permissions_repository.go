@@ -74,6 +74,10 @@ func (pr *PermissionsRepository) LoadCollections() map[int][]string {
 }
 
 func (pr *PermissionsRepository) Get(id int) (*model.Permission, errors.Error) {
+	if err := pr.openConnection(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
 	query := "SELECT id, name FROM permissions WHERE id = ?;"
 
 	ctx := context.Background()
@@ -85,7 +89,7 @@ func (pr *PermissionsRepository) Get(id int) (*model.Permission, errors.Error) {
 
 	var dm datamodel.Permission
 
-	err = stmt.QueryRowContext(ctx).Scan(&dm.ID, &dm.Name)
+	err = stmt.QueryRowContext(ctx, id).Scan(&dm.ID, &dm.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NotFound("permission not found")
