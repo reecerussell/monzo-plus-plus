@@ -100,6 +100,7 @@ func (c *RoleController) HandleAddPermission(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 
 	var rp dto.RolePermission
+	_ = json.NewDecoder(r.Body).Decode(&rp)
 
 	err := c.u.AddPermission(r.Context(), &rp)
 	if err != nil {
@@ -114,6 +115,7 @@ func (c *RoleController) HandleRemovePermission(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 
 	var rp dto.RolePermission
+	_ = json.NewDecoder(r.Body).Decode(&rp)
 
 	err := c.u.RemovePermission(r.Context(), &rp)
 	if err != nil {
