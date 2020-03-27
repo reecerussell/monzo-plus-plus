@@ -12,17 +12,17 @@ import (
 )
 
 type PermissionService struct {
-	userUsecase usecase.UserUsecase
+	userAuthUsecase usecase.UserAuthUsecase
 }
 
 func NewPermissionService(ctn *di.Container) *PermissionService {
-	uu := ctn.Resolve(registry.ServiceUserUsecase).(usecase.UserUsecase)
+	uu := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
 	return &PermissionService{uu}
 }
 
 func (ps *PermissionService) HasPermission(ctx context.Context, in *proto.PermissionData) (*proto.Error, error) {
-	ctx, err := ps.userUsecase.WithUser(ctx, in.GetAccessToken())
+	ctx, err := ps.userAuthUsecase.WithUser(ctx, in.GetAccessToken())
 	if err != nil {
 		return &proto.Error{
 			StatusCode: int32(err.ErrorCode()),
