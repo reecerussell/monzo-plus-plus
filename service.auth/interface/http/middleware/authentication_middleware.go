@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
@@ -14,11 +16,11 @@ import (
 var AnonymousRoutes = [2]string{"/token", "/users/register"}
 
 type AuthenticationMiddleware struct {
-	uu usecase.UserUsecase
+	uau usecase.UserAuthUsecase
 }
 
 func NewAuthenticationMiddleware(ctn *di.Container) *AuthenticationMiddleware {
-	uu := ctn.Resolve("user_usecase").(usecase.UserUsecase)
+	uu := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
 	return &AuthenticationMiddleware{uu}
 }
@@ -51,10 +53,9 @@ func (am *AuthenticationMiddleware) Handler(h http.Handler) http.Handler {
 			return
 		}
 
-		ctx, err := am.uu.WithUser(r.Context(), p[1])
+		ctx, err := am.uau.WithUser(r.Context(), p[1])
 		if err != nil {
-			w.WriteHeader(err.ErrorCode())
-			w.Write([]byte(err.Text()))
+			errors.HandleHTTPError(w, r, err)
 			return
 		}
 

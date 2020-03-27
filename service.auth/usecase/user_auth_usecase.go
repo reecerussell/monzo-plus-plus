@@ -1,12 +1,14 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
@@ -27,6 +29,7 @@ type UserAuthUsecase interface {
 	GenerateToken(c *dto.UserCredential) (*jwt.AccessToken, errors.Error)
 	ValidateToken(accessToken string) errors.Error
 	ValidateCredentials(c *dto.UserCredential) (*model.User, errors.Error)
+	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
 }
 
 // userAuthUsecase is an implementation of the UserAuthUsecase interface.
@@ -157,4 +160,35 @@ func (uau *userAuthUsecase) ValidateCredentials(c *dto.UserCredential) (*model.U
 	}
 
 	return u, nil
+}
+
+func (uau *userAuthUsecase) WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error) {
+	token, tErr := jwt.FromToken([]byte(accessToken))
+	if tErr != nil {
+		return nil, errors.Unauthorised(tErr.Error())
+	}
+
+	valid, validationError := token.Check(uau.keys.PublicKey)
+	if !valid {
+		if validationError != nil {
+			return ctx, errors.Unauthorised(validationError.Error())
+		}
+
+		return ctx, errors.Unauthorised("invalid token")
+	}
+
+	userID, ok := token.Claims.String(jwt.ClaimUserID)
+	if !ok {
+		return ctx, errors.Unauthorised("user id not found in jwt payload")
+	}
+
+	u, err := uau.repo.Get(userID)
+	if err != nil {
+		return ctx, errors.Unauthorised("user not found")
+	}
+
+	ctx = context.WithValue(ctx, util.ContextKey("user"), u)
+	ctx = context.WithValue(ctx, util.ContextKey("user_id"), u.GetID())
+
+	return ctx, nil
 }

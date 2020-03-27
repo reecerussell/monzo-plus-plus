@@ -10,7 +10,6 @@ import (
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/service"
-	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/permission"
 )
@@ -26,7 +25,6 @@ type UserUsecase interface {
 	ChangePassword(ctx context.Context, d *dto.ChangePassword) errors.Error
 	Enable(ctx context.Context, id string) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
-	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
 }
 
 type userUsecase struct {
@@ -202,26 +200,4 @@ func (uu *userUsecase) Delete(ctx context.Context, id string) errors.Error {
 	}
 
 	return nil
-}
-
-func (uu *userUsecase) WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error) {
-	token, tErr := jwt.FromToken([]byte(accessToken))
-	if tErr != nil {
-		return nil, errors.Unauthorised(tErr.Error())
-	}
-
-	userID, ok := token.Claims.String(jwt.ClaimUserID)
-	if !ok {
-		return ctx, errors.Unauthorised("user id not found in jwt payload")
-	}
-
-	u, err := uu.repo.Get(userID)
-	if err != nil {
-		return ctx, errors.Unauthorised("user not found")
-	}
-
-	ctx = context.WithValue(ctx, util.ContextKey("user"), u)
-	ctx = context.WithValue(ctx, util.ContextKey("user_id"), u.GetID())
-
-	return ctx, nil
 }
