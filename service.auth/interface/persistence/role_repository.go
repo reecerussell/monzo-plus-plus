@@ -162,7 +162,19 @@ func (rr *roleRepository) Update(r *model.Role) errors.Error {
 	}
 
 	ctx := context.Background()
-	stmt, err := rr.db.PrepareContext(ctx, query)
+	tx, err := rr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	if err != nil {
+		return errors.InternalError(err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		return errors.InternalError(err)
 	}
@@ -171,6 +183,10 @@ func (rr *roleRepository) Update(r *model.Role) errors.Error {
 	_, err = stmt.ExecContext(ctx, args...)
 	if err != nil {
 		return errors.InternalError(err)
+	}
+
+	if err := r.DispatchEvents(ctx, tx); err != nil {
+		return err
 	}
 
 	return nil

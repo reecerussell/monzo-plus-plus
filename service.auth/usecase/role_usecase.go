@@ -16,18 +16,22 @@ type RoleUsecase interface {
 	GetList(ctx context.Context, term string) ([]*dto.Role, errors.Error)
 	Create(ctx context.Context, d *dto.CreateRole) (*dto.Role, errors.Error)
 	Update(ctx context.Context, d *dto.Role) errors.Error
+	AddPermission(ctx context.Context, d *dto.RolePermission) errors.Error
+	RemovePermission(ctx context.Context, d *dto.RolePermission) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 }
 
 type roleUsecase struct {
-	repo repository.RoleRepository
-	serv *service.RoleService
+	repo  repository.RoleRepository
+	serv  *service.RoleService
+	perms repository.PermissionsRepository
 }
 
-func NewRoleUsecase(repo repository.RoleRepository, serv *service.RoleService) RoleUsecase {
+func NewRoleUsecase(repo repository.RoleRepository, serv *service.RoleService, perms repository.PermissionsRepository) RoleUsecase {
 	return &roleUsecase{
-		repo: repo,
-		serv: serv,
+		repo:  repo,
+		serv:  serv,
+		perms: perms,
 	}
 }
 
@@ -102,6 +106,62 @@ func (ru *roleUsecase) Update(ctx context.Context, d *dto.Role) errors.Error {
 	}
 
 	err = ru.serv.ValidateName(r)
+	if err != nil {
+		return err
+	}
+
+	err = ru.repo.Update(r)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ru *roleUsecase) AddPermission(ctx context.Context, d *dto.RolePermission) errors.Error {
+	if !permission.Has(ctx, permission.PermissionUpdateRole) {
+		return errors.Forbidden()
+	}
+
+	r, err := ru.repo.Get(d.RoleID)
+	if err != nil {
+		return err
+	}
+
+	p, err := ru.perms.Get(d.PermissionID)
+	if err != nil {
+		return err
+	}
+
+	err = r.AddPermission(p)
+	if err != nil {
+		return err
+	}
+
+	err = ru.repo.Update(r)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ru *roleUsecase) RemovePermission(ctx context.Context, d *dto.RolePermission) errors.Error {
+	if !permission.Has(ctx, permission.PermissionUpdateRole) {
+		return errors.Forbidden()
+	}
+
+	r, err := ru.repo.Get(d.RoleID)
+	if err != nil {
+		return err
+	}
+
+	p, err := ru.perms.Get(d.PermissionID)
+	if err != nil {
+		return err
+	}
+
+	err = r.RemovePermission(p)
 	if err != nil {
 		return err
 	}
