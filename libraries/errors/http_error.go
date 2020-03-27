@@ -26,6 +26,7 @@ func HandleHTTPError(w http.ResponseWriter, r *http.Request, err Error) {
 		body.StackTrace = &e
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(err.ErrorCode())
 	json.NewEncoder(w).Encode(&body)
 }
