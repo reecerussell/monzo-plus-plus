@@ -12,20 +12,20 @@ import (
 
 var (
 	mu       = sync.RWMutex{}
-	handlers = make(map[string]EventHandler)
+	handlers = make(map[reflect.Type]EventHandler)
 )
+
+type Event interface{}
 
 type EventHandler interface {
 	Invoke(ctx context.Context, tx *sql.Tx, e interface{}) errors.Error
 }
 
-func RegisterEventHandler(e interface{}, h EventHandler) {
+func RegisterEventHandler(e Event, h EventHandler) {
 	mu.RLock()
 	defer mu.RUnlock()
 
-	noe := reflect.TypeOf(e).Name()
-
-	handlers[noe] = h
+	handlers[reflect.TypeOf(e)] = h
 }
 
 type Aggregate struct {
@@ -40,14 +40,12 @@ func (a *Aggregate) GetRaisedEvents() []interface{} {
 	return a.raisedEvents
 }
 
-func (a *Aggregate) RaiseEvent(e interface{}) {
+func (a *Aggregate) RaiseEvent(e Event) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	noe := reflect.TypeOf(e).Name()
-
-	if _, ok := handlers[noe]; !ok {
-		panic(fmt.Errorf("no handler registered for event type '%s'", noe))
+	if _, ok := handlers[reflect.TypeOf(e)]; !ok {
+		panic(fmt.Errorf("no handler registered for event type '%s'", reflect.TypeOf(e)))
 	}
 
 	a.raisedEvents = append(a.raisedEvents, e)
@@ -58,8 +56,7 @@ func (a *Aggregate) DispatchEvents(ctx context.Context, tx *sql.Tx) errors.Error
 	defer mu.Unlock()
 
 	for _, e := range a.raisedEvents {
-		noe := reflect.TypeOf(e).Name()
-		h := handlers[noe]
+		h := handlers[reflect.TypeOf(e)]
 
 		err := h.Invoke(ctx, tx, e)
 		if err != nil {
