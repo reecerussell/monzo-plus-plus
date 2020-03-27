@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"os"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
+
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 )
 
@@ -67,6 +71,30 @@ func (pr *PermissionsRepository) LoadCollections() map[int][]string {
 	}
 
 	return collections
+}
+
+func (pr *PermissionsRepository) Get(id int) (*model.Permission, errors.Error) {
+	query := "SELECT id, name FROM permissions WHERE id = ?;"
+
+	ctx := context.Background()
+	stmt, err := pr.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	var dm datamodel.Permission
+
+	err = stmt.QueryRowContext(ctx).Scan(&dm.ID, &dm.Name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NotFound("permission not found")
+		}
+
+		return nil, errors.InternalError(err)
+	}
+
+	return model.PermissionFromDataModel(&dm), nil
 }
 
 func (pr *PermissionsRepository) openConnection() error {
