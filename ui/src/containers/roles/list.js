@@ -28,6 +28,14 @@ const ListContainer = () => {
 		setLoading(false);
 	};
 
+	const handleFlush = async () =>
+		await Fetch(
+			"auth/permissions/flush",
+			{ method: "POST" },
+			null,
+			setError
+		);
+
 	const handleSearchUpdate = e => setSearchTerm(e.target.value);
 
 	useEffect(() => {
@@ -44,6 +52,7 @@ const ListContainer = () => {
 			searchTerm={searchTerm}
 			updateSearchTerm={handleSearchUpdate}
 			onSearch={handleFetch}
+			handleFlush={handleFlush}
 		/>
 	);
 };

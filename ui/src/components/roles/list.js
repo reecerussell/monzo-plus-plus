@@ -1,7 +1,15 @@
 import React from "react";
-import { Table, Message, Loader, Segment, Form } from "semantic-ui-react";
+import {
+	Table,
+	Message,
+	Loader,
+	Segment,
+	Form,
+	Button,
+} from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import * as User from "../../utils/user";
 
 const propTypes = {
 	roles: PropTypes.array,
@@ -10,6 +18,7 @@ const propTypes = {
 	searchTerm: PropTypes.string,
 	updateSearchTerm: PropTypes.func,
 	onSearch: PropTypes.func,
+	handleFlush: PropTypes.func.isRequired,
 };
 const defaultProps = {
 	roles: [],
@@ -23,6 +32,7 @@ const List = ({
 	searchTerm,
 	updateSearchTerm,
 	onSearch,
+	handleFlush,
 }) => {
 	const errorMessage = error ? (
 		<Message error header="An error occured!" content={error} />
@@ -83,6 +93,17 @@ const List = ({
 							onChange={updateSearchTerm}
 						/>
 						<Form.Button content="Search" />
+						{User.IsInRole("Role Manager") ? (
+							<Form.Field>
+								<Button
+									color="link"
+									type="button"
+									onClick={handleFlush}
+								>
+									Flush Permissions
+								</Button>
+							</Form.Field>
+						) : null}
 					</Form.Group>
 				</Form>
 

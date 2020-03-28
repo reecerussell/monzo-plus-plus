@@ -2,7 +2,6 @@ package permission
 
 import (
 	"context"
-	"log"
 	"sync"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
@@ -39,15 +38,10 @@ var (
 //
 // If an error occurs, it will panic.
 func Build(repo repository.PermissionsRepository) {
+	mu.RLock()
+	defer mu.RUnlock()
+
 	perms = repo.LoadCollections()
-
-	for p, roles := range perms {
-		log.Printf("Roles with permission: %d\n", p)
-
-		for _, role := range roles {
-			log.Printf("    - %s\n", role)
-		}
-	}
 }
 
 // Has is used to determine if the current user has permssion to access a
