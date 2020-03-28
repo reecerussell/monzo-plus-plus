@@ -18,6 +18,8 @@ type RoleUsecase interface {
 	Update(ctx context.Context, d *dto.Role) errors.Error
 	AddPermission(ctx context.Context, d *dto.RolePermission) errors.Error
 	RemovePermission(ctx context.Context, d *dto.RolePermission) errors.Error
+	GetPermissions(ctx context.Context, id string) ([]*dto.Permission, errors.Error)
+	GetAvailablePermissions(ctx context.Context, id string) ([]*dto.Permission, errors.Error)
 	Delete(ctx context.Context, id string) errors.Error
 }
 
@@ -172,6 +174,44 @@ func (ru *roleUsecase) RemovePermission(ctx context.Context, d *dto.RolePermissi
 	}
 
 	return nil
+}
+
+func (ru *roleUsecase) GetPermissions(ctx context.Context, id string) ([]*dto.Permission, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionGetRole) {
+		return nil, errors.Forbidden()
+	}
+
+	perms, err := ru.perms.GetPermissionsForRole(id)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*dto.Permission, len(perms))
+
+	for i, p := range perms {
+		dtos[i] = p.DTO()
+	}
+
+	return dtos, nil
+}
+
+func (ru *roleUsecase) GetAvailablePermissions(ctx context.Context, id string) ([]*dto.Permission, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionGetRole) {
+		return nil, errors.Forbidden()
+	}
+
+	perms, err := ru.perms.GetAvailablePermissionsForRole(id)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*dto.Permission, len(perms))
+
+	for i, p := range perms {
+		dtos[i] = p.DTO()
+	}
+
+	return dtos, nil
 }
 
 func (ru *roleUsecase) Delete(ctx context.Context, id string) errors.Error {

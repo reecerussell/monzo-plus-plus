@@ -101,6 +101,84 @@ func (pr *PermissionsRepository) Get(id int) (*model.Permission, errors.Error) {
 	return model.PermissionFromDataModel(&dm), nil
 }
 
+func (pr *PermissionsRepository) GetAvailablePermissionsForRole(roleID string) ([]*model.Permission, errors.Error) {
+	if err := pr.openConnection(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	query := "CALL get_available_permissions_for_role(?);"
+
+	ctx := context.Background()
+	stmt, err := pr.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	var perms []*model.Permission
+
+	rows, err := stmt.QueryContext(ctx, roleID)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var dm datamodel.Permission
+
+		err = rows.Scan(&dm.ID, &dm.Name)
+		if err != nil {
+			return nil, errors.InternalError(err)
+		}
+
+		perms = append(perms, model.PermissionFromDataModel(&dm))
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	return perms, nil
+}
+
+func (pr *PermissionsRepository) GetPermissionsForRole(roleID string) ([]*model.Permission, errors.Error) {
+	if err := pr.openConnection(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	query := "CALL get_permissions_for_role(?);"
+
+	ctx := context.Background()
+	stmt, err := pr.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	var perms []*model.Permission
+
+	rows, err := stmt.QueryContext(ctx, roleID)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var dm datamodel.Permission
+
+		err = rows.Scan(&dm.ID, &dm.Name)
+		if err != nil {
+			return nil, errors.InternalError(err)
+		}
+
+		perms = append(perms, model.PermissionFromDataModel(&dm))
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	return perms, nil
+}
+
 func (pr *PermissionsRepository) openConnection() error {
 	if pr.db == nil {
 		db, err := sql.Open("mysql", os.Getenv("CONN_STRING"))

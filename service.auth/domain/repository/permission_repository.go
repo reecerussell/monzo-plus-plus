@@ -8,4 +8,6 @@ import (
 type PermissionsRepository interface {
 	LoadCollections() map[int][]string
 	Get(id int) (*model.Permission, errors.Error)
+	GetAvailablePermissionsForRole(roleID string) ([]*model.Permission, errors.Error)
+	GetPermissionsForRole(roleID string) ([]*model.Permission, errors.Error)
 }
