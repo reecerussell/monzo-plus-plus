@@ -134,7 +134,7 @@ func (rr *roleRepository) EnsureExists(id string) errors.Error {
 		return openErr
 	}
 
-	query := "SELECT id, `name` FROM roles WHERE id = ?;"
+	query := "SELECT id FROM roles WHERE id = ?;"
 
 	ctx := context.Background()
 	stmt, err := rr.db.PrepareContext(ctx, query)
