@@ -18,33 +18,31 @@ const Footer = () => (
 		<Container textAlign="center">
 			<Grid divided inverted stackable>
 				<Grid.Column width={3}>
-					<Header inverted as="h4" content="Group 1" />
+					<Header inverted as="h4" content="Info" />
 					<List link inverted>
-						<List.Item as="a">Link One</List.Item>
-						<List.Item as="a">Link Two</List.Item>
-						<List.Item as="a">Link Three</List.Item>
-						<List.Item as="a">Link Four</List.Item>
+						<List.Item as="a" href="/">
+							Home
+						</List.Item>
 					</List>
 				</Grid.Column>
 				<Grid.Column width={3}>
-					<Header inverted as="h4" content="Group 2" />
+					<Header inverted as="h4" content="Developer" />
 					<List link inverted>
-						<List.Item as="a">Link One</List.Item>
-						<List.Item as="a">Link Two</List.Item>
-						<List.Item as="a">Link Three</List.Item>
-						<List.Item as="a">Link Four</List.Item>
+						<List.Item as="a" href="/docs">
+							API Docs
+						</List.Item>
+						<List.Item
+							as="a"
+							href="https://github.com/reecerussell/monzo-plus-plus"
+						>
+							Source
+						</List.Item>
+						<List.Item as="a" href="https://reece-russell.co.uk">
+							Reece Russell
+						</List.Item>
 					</List>
 				</Grid.Column>
-				<Grid.Column width={3}>
-					<Header inverted as="h4" content="Group 3" />
-					<List link inverted>
-						<List.Item as="a">Link One</List.Item>
-						<List.Item as="a">Link Two</List.Item>
-						<List.Item as="a">Link Three</List.Item>
-						<List.Item as="a">Link Four</List.Item>
-					</List>
-				</Grid.Column>
-				<Grid.Column width={7}>
+				<Grid.Column width={10}>
 					<Header inverted as="h4" content="Footer Header" />
 					<p>
 						Extra space for a call to action inside the footer that
