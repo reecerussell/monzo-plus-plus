@@ -26,24 +26,21 @@ const Send = async (url, options) => {
 
 const defaultFail = err => console.error(err);
 
-const Fetch = async (
-	url,
-	options,
-	onSuccess,
-	onFail = defaultFail,
-	successStatus = 200
-) => {
+const Fetch = async (url, options, onSuccess, onFail = defaultFail) => {
 	try {
 		const res = await Send("http://localhost:9789/" + url, options);
 
-		if (res.status === successStatus) {
-			await onSuccess(res);
+		if (res.status === 200 || res.status === 201) {
+			if (onSuccess) {
+				await onSuccess(res);
+			}
 		} else {
 			const { error } = await res.json();
 
 			onFail(error);
 		}
-	} catch {
+	} catch (e) {
+		console.log(e);
 		onFail(
 			"It seems like you don't have connection to the internet. Try again later!"
 		);

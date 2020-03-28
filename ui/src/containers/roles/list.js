@@ -5,7 +5,7 @@ import List from "../../components/roles/list";
 const ListContainer = () => {
 	const [roles, setRoles] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(false);
+	const [error, setError] = useState(null);
 	const [searchTerm, setSearchTerm] = useState("");
 
 	const handleFetch = async () => {

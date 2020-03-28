@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Fetch } from "../../utils/fetch";
-import Create from "../../components/roles/create";
+import Edit from "../../components/roles/edit";
 
 const defaultData = {
 	name: "",
 };
 
-const CreateContainer = () => {
+const EditContainer = ({ id }) => {
 	const [formData, setFormData] = useState(defaultData);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
-	const [redirect, setRedirect] = useState(null);
+	const [success, setSuccess] = useState(false);
+
+	const handleFetch = async () => {
+		if (loading) {
+			return;
+		}
+
+		setLoading(true);
+
+		await Fetch(
+			`auth/roles/${id}`,
+			null,
+			async res => setFormData(await res.json()),
+			setError
+		);
+
+		setLoading(false);
+	};
 
 	const handleSubmit = async e => {
 		e.preventDefault();
@@ -24,15 +41,11 @@ const CreateContainer = () => {
 		await Fetch(
 			"auth/roles",
 			{
-				method: "POST",
+				method: "PUT",
 				body: JSON.stringify(formData),
 			},
-			async res => {
-				const { id } = await res.json();
-				setRedirect(`/roles/edit/${id}`);
-			},
-			setError,
-			201
+			() => setSuccess(true),
+			setError
 		);
 
 		setLoading(false);
@@ -45,16 +58,30 @@ const CreateContainer = () => {
 		setFormData(data);
 	};
 
+	useEffect(() => {
+		handleFetch();
+
+		return () => {};
+	}, []);
+
+	useEffect(() => {
+		if (success) {
+			setTimeout(() => setSuccess(false), 4000);
+		}
+	}, [success]);
+
 	return (
-		<Create
+		<Edit
+			id={id}
 			data={formData}
 			error={error}
+			success={success}
 			loading={loading}
-			redirect={redirect}
 			handleUpdate={handleFormUpdate}
 			handleSubmit={handleSubmit}
+			updateError={setError}
 		/>
 	);
 };
 
-export default CreateContainer;
+export default EditContainer;

@@ -53,7 +53,7 @@ const List = ({
 						/>
 					</Table.Cell>
 					<Table.Cell>
-						<Link to={"/roles/details/" + role.id}>View</Link>
+						<Link to={"/roles/edit/" + role.id}>View</Link>
 					</Table.Cell>
 				</Table.Row>
 			))
