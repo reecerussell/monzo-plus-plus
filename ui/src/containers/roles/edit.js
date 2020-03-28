@@ -7,6 +7,7 @@ const defaultData = {
 };
 
 const EditContainer = ({ id }) => {
+	const [isMounted, setIsMounted] = useState(false);
 	const [formData, setFormData] = useState(defaultData);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
@@ -59,10 +60,13 @@ const EditContainer = ({ id }) => {
 	};
 
 	useEffect(() => {
-		handleFetch();
+		if (!isMounted) {
+			handleFetch();
+			setIsMounted(true);
+		}
 
 		return () => {};
-	}, []);
+	}, [isMounted, handleFetch]);
 
 	useEffect(() => {
 		if (success) {
