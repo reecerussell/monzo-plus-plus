@@ -39,12 +39,16 @@ const Delete = ({
 			open={isModalOpen}
 			onClose={toggleModal}
 			size="small"
+			basic
 		>
 			<Header icon="trash" content="Delete" />
 			<Modal.Content>
 				<h3>Are you sure you'd like to delete this role?</h3>
 			</Modal.Content>
 			<Modal.Actions>
+				<Button onClick={toggleModal}>
+					<Icon name="close" /> Cancel
+				</Button>
 				<Button color="red" onClick={handleSubmit}>
 					<Icon name="checkmark" /> Delete
 				</Button>

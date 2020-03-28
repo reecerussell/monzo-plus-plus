@@ -12,15 +12,15 @@ const List = () => {
 		<Authorise roles={["Admin"]}>
 			<Header as="h1">Edit</Header>
 
-			<p>Use this form to manage this role.</p>
-
-			<p>
-				<Link to="/roles">Back to roles</Link>
-			</p>
-
 			<Grid stackable>
 				<Grid.Row>
 					<Grid.Column width="5">
+						<p>Use this form to manage this role.</p>
+
+						<p>
+							<Link to="/roles">Back to roles</Link>
+						</p>
+
 						<EditContainer id={id} />
 					</Grid.Column>
 					<Grid.Column width="11">
