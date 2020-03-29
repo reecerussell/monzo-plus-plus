@@ -32,6 +32,8 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users", c.HandleUpdate).Methods("UPDATE")
 	r.HandleFunc("/users/changepassword", c.HandleChangePassword).Methods("POST")
 	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
+	r.HandleFunc("/users/roles", c.HandleAddToRole).Methods("POST")
+	r.HandleFunc("/users/roles", c.HandleRemoveFromRole).Methods("DELETE")
 	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 
 	return c
@@ -144,6 +146,30 @@ func (c *UserController) HandleEnable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (c *UserController) HandleAddToRole(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var ur dto.UserRole
+	_ = json.NewDecoder(r.Body).Decode(&ur)
+
+	err := c.userUsecase.AddToRole(r.Context(), &ur)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+	}
+}
+
+func (c *UserController) HandleRemoveFromRole(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var ur dto.UserRole
+	_ = json.NewDecoder(r.Body).Decode(&ur)
+
+	err := c.userUsecase.AddToRole(r.Context(), &ur)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+	}
 }
 
 func (c *UserController) HandleDelete(w http.ResponseWriter, r *http.Request) {

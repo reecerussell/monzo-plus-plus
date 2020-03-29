@@ -272,7 +272,36 @@ func (ur *userRepository) Update(u *model.User) errors.Error {
 		dm.ID,
 	}
 
-	return ur.execute(query, args...)
+	openErr := ur.openConnection()
+	if openErr != nil {
+		return openErr
+	}
+
+	ctx := context.Background()
+	tx, err := ur.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	if err != nil {
+		return errors.InternalError(err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, args...)
+	if err != nil {
+		return errors.InternalError(err)
+	}
+
+	return u.DispatchEvents(ctx, tx)
 }
 
 func (ur *userRepository) Delete(id string) errors.Error {

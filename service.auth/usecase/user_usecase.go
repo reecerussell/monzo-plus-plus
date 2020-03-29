@@ -24,21 +24,25 @@ type UserUsecase interface {
 	Update(ctx context.Context, d *dto.UpdateUser) errors.Error
 	ChangePassword(ctx context.Context, d *dto.ChangePassword) errors.Error
 	Enable(ctx context.Context, id string) errors.Error
+	AddToRole(ctx context.Context, d *dto.UserRole) errors.Error
+	RemoveFromRole(ctx context.Context, d *dto.UserRole) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 }
 
 type userUsecase struct {
-	repo repository.UserRepository
-	serv *service.UserService
-	ps   password.Service
+	repo  repository.UserRepository
+	roles repository.RoleRepository
+	serv  *service.UserService
+	ps    password.Service
 }
 
 // NewUserUsecase instantiates a new instance of UserUsecase with the given dependencies.
-func NewUserUsecase(repo repository.UserRepository, serv *service.UserService, ps password.Service) UserUsecase {
+func NewUserUsecase(repo repository.UserRepository, roles repository.RoleRepository, serv *service.UserService, ps password.Service) UserUsecase {
 	return &userUsecase{
-		repo: repo,
-		serv: serv,
-		ps:   ps,
+		repo:  repo,
+		roles: roles,
+		serv:  serv,
+		ps:    ps,
 	}
 }
 
@@ -170,6 +174,96 @@ func (uu *userUsecase) Enable(ctx context.Context, id string) errors.Error {
 	}
 
 	err = u.Enable()
+	if err != nil {
+		return err
+	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uu *userUsecase) AddToRole(ctx context.Context, d *dto.UserRole) errors.Error {
+	uc := make(chan *model.User, 1)
+	rc := make(chan *model.Role, 1)
+
+	var eg errors.Group
+	eg.Go(func() errors.Error {
+		u, err := uu.repo.Get(d.UserID)
+		if err != nil {
+			return err
+		}
+
+		uc <- u
+
+		return nil
+	})
+	eg.Go(func() errors.Error {
+		r, err := uu.roles.Get(d.RoleID)
+		if err != nil {
+			return err
+		}
+
+		rc <- r
+
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	u, r := <-uc, <-rc
+
+	err := u.AddToRole(r)
+	if err != nil {
+		return err
+	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uu *userUsecase) RemoveFromRole(ctx context.Context, d *dto.UserRole) errors.Error {
+	uc := make(chan *model.User, 1)
+	rc := make(chan *model.Role, 1)
+
+	var eg errors.Group
+	eg.Go(func() errors.Error {
+		u, err := uu.repo.Get(d.UserID)
+		if err != nil {
+			return err
+		}
+
+		uc <- u
+
+		return nil
+	})
+	eg.Go(func() errors.Error {
+		r, err := uu.roles.Get(d.RoleID)
+		if err != nil {
+			return err
+		}
+
+		rc <- r
+
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	u, r := <-uc, <-rc
+
+	err := u.RemoveFromRole(r)
 	if err != nil {
 		return err
 	}

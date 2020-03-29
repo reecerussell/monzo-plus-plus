@@ -43,6 +43,16 @@ func NewRole(d *dto.CreateRole) (*Role, errors.Error) {
 	return r, nil
 }
 
+// GetID returns the role's id.
+func (r *Role) GetID() string {
+	return r.id
+}
+
+// GetName returns the role's name.
+func (r *Role) GetName() string {
+	return r.name
+}
+
 func (r *Role) Update(d *dto.Role) errors.Error {
 	err := r.UpdateName(d.Name)
 	if err != nil {

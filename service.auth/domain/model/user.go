@@ -2,9 +2,13 @@ package model
 
 import (
 	"encoding/base64"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/domain"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/event"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
@@ -18,6 +22,8 @@ import (
 // User is a domain model used to manage and create user, token
 // records - as well as, manage user's roles.
 type User struct {
+	domain.Aggregate
+
 	id           string
 	username     string
 	passwordHash string
@@ -188,6 +194,40 @@ func (u *User) Enable() errors.Error {
 	u.enabled = &t
 
 	return nil
+}
+
+// AddToRole adds the user to a the given role. If the user is
+// already assigned to the role, an error is returned.
+func (u *User) AddToRole(r *Role) errors.Error {
+	for _, ur := range u.roles {
+		if ur.GetID() == r.GetID() {
+			return errors.BadRequest(fmt.Sprintf("role '%s' has already been assigned", r.GetName()))
+		}
+	}
+
+	u.RaiseEvent(&event.AddUserToRole{
+		UserID: u.GetID(),
+		RoleID: r.GetID(),
+	})
+
+	return nil
+}
+
+// RemoveFromRole unassigns the user from the given role. An error is
+// returned if the user isn't already assigned.
+func (u *User) RemoveFromRole(r *Role) errors.Error {
+	for _, ur := range u.roles {
+		if ur.GetID() == r.GetID() {
+			u.RaiseEvent(&event.RemoveUserFromRole{
+				UserID: u.GetID(),
+				RoleID: r.GetID(),
+			})
+
+			return nil
+		}
+	}
+
+	return errors.BadRequest(fmt.Sprintf("role '%s' has not already been assigned", r.GetName()))
 }
 
 // DataModel returns a new instance of the User data model,

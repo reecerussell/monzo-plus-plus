@@ -14,7 +14,6 @@ const (
 	ServicePermissionsRepository = "permissions_repository"
 	ServicePasswordService       = "password_service"
 	ServiceUserAuthUsecase       = "user_auth_usecase"
-	ServiceUserRoleUsecase       = "user_role_usecase"
 	ServiceRoleUsecase           = "role_usecase"
 )
 
@@ -42,11 +41,6 @@ func Build() *di.Container {
 			Lifetime: di.LifetimeSingleton,
 		},
 		&di.Service{
-			Name:     ServiceUserRoleUsecase,
-			Builder:  buildUserRoleUsecase,
-			Lifetime: di.LifetimeSingleton,
-		},
-		&di.Service{
 			Name:     ServiceRoleUsecase,
 			Builder:  buildRoleUsecase,
 			Lifetime: di.LifetimeSingleton,
@@ -63,10 +57,11 @@ func buildPasswordService(ctn *di.Container) (interface{}, error) {
 
 func buildUserUsecase(ctn *di.Container) (interface{}, error) {
 	repo := persistence.NewUserRepository()
+	roles := persistence.NewRoleRepository()
 	serv := service.NewUserService()
 	ps := ctn.Resolve(ServicePasswordService).(password.Service)
 
-	return usecase.NewUserUsecase(repo, serv, ps), nil
+	return usecase.NewUserUsecase(repo, roles, serv, ps), nil
 }
 
 func buildPermissionRepository(ctn *di.Container) (interface{}, error) {
@@ -78,14 +73,6 @@ func buildUserAuthUsecase(ctn *di.Container) (interface{}, error) {
 	repo := persistence.NewUserRepository()
 
 	return usecase.NewUserAuthUsecase(ps, repo)
-}
-
-func buildUserRoleUsecase(ctn *di.Container) (interface{}, error) {
-	userRepo := persistence.NewUserRepository()
-	roleRepo := persistence.NewRoleRepository()
-	repo := persistence.NewUserRoleRepository()
-
-	return usecase.NewUserRoleUsecase(userRepo, roleRepo, repo), nil
 }
 
 func buildRoleUsecase(ctn *di.Container) (interface{}, error) {
