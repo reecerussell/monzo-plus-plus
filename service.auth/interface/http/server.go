@@ -19,7 +19,6 @@ func Build(ctn *di.Container) *bootstrap.HTTPServer {
 
 	_ = controller.NewTokenController(ctn, r)
 	_ = controller.NewUserController(ctn, r)
-	_ = controller.NewUserRoleController(ctn, r)
 	_ = controller.NewRoleController(ctn, r)
 	_ = controller.NewPermissionsController(ctn, r)
 

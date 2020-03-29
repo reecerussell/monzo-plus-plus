@@ -166,7 +166,7 @@ func (c *UserController) HandleRemoveFromRole(w http.ResponseWriter, r *http.Req
 	var ur dto.UserRole
 	_ = json.NewDecoder(r.Body).Decode(&ur)
 
-	err := c.userUsecase.AddToRole(r.Context(), &ur)
+	err := c.userUsecase.RemoveFromRole(r.Context(), &ur)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/reecerussell/monzo-plus-plus/libraries/domain"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/event"
 )
@@ -14,7 +13,7 @@ type RemoveUserFromRole struct{}
 
 // Invoke is used to handle the event, and call a stored proceedure to
 // unassign a user from a role.
-func (*RemoveUserFromRole) Invoke(ctx context.Context, tx *sql.Tx, e domain.Event) errors.Error {
+func (*RemoveUserFromRole) Invoke(ctx context.Context, tx *sql.Tx, e interface{}) errors.Error {
 	evt := e.(*event.RemoveUserFromRole)
 
 	query := "CALL remove_user_from_role(?,?)"

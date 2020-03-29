@@ -8,16 +8,22 @@ import (
 	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/domain"
-	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/event"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/event"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/handler"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 )
+
+func init() {
+	domain.RegisterEventHandler(&event.AddUserToRole{}, &handler.AddUserToRole{})
+	domain.RegisterEventHandler(&event.RemoveUserFromRole{}, &handler.RemoveUserFromRole{})
+}
 
 // User is a domain model used to manage and create user, token
 // records - as well as, manage user's roles.
