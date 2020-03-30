@@ -29,7 +29,7 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/{id}", c.HandleGet).Methods("GET")
 	r.HandleFunc("/users", c.HandleCreate).Methods("POST")
 	r.HandleFunc("/users/register", c.HandleCreate).Methods("POST")
-	r.HandleFunc("/users", c.HandleUpdate).Methods("UPDATE")
+	r.HandleFunc("/users", c.HandleUpdate).Methods("PUT")
 	r.HandleFunc("/users/changepassword", c.HandleChangePassword).Methods("POST")
 	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
 	r.HandleFunc("/users/roles", c.HandleAddToRole).Methods("POST")
