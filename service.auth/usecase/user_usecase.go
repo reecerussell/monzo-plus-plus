@@ -187,8 +187,11 @@ func (uu *userUsecase) Enable(ctx context.Context, id string) errors.Error {
 }
 
 func (uu *userUsecase) AddToRole(ctx context.Context, d *dto.UserRole) errors.Error {
-	uc := make(chan *model.User, 1)
-	rc := make(chan *model.Role, 1)
+	if !permission.Has(ctx, permission.PermissionRoleManager) {
+		return errors.Forbidden()
+	}
+
+	uc, rc := make(chan *model.User, 1), make(chan *model.Role, 1)
 
 	var eg errors.Group
 	eg.Go(func() errors.Error {
@@ -232,8 +235,11 @@ func (uu *userUsecase) AddToRole(ctx context.Context, d *dto.UserRole) errors.Er
 }
 
 func (uu *userUsecase) RemoveFromRole(ctx context.Context, d *dto.UserRole) errors.Error {
-	uc := make(chan *model.User, 1)
-	rc := make(chan *model.Role, 1)
+	if !permission.Has(ctx, permission.PermissionRoleManager) {
+		return errors.Forbidden()
+	}
+
+	uc, rc := make(chan *model.User, 1), make(chan *model.Role, 1)
 
 	var eg errors.Group
 	eg.Go(func() errors.Error {
