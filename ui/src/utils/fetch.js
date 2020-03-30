@@ -30,14 +30,21 @@ const Fetch = async (url, options, onSuccess, onFail = defaultFail) => {
 	try {
 		const res = await Send("http://localhost:9789/" + url, options);
 
-		if (res.status === 200 || res.status === 201) {
-			if (onSuccess) {
-				await onSuccess(res);
-			}
-		} else {
-			const { error } = await res.json();
-
-			onFail(error);
+		switch (res.status) {
+			case 200:
+			case 201:
+				if (onSuccess) {
+					await onSuccess(res);
+				}
+				break;
+			case 401:
+			case 403:
+				window.location.hash = "/login";
+				break;
+			default:
+				const { error } = await res.json();
+				onFail(error);
+				break;
 		}
 	} catch (e) {
 		console.log(e);
