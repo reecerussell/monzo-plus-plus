@@ -114,6 +114,80 @@ func (rr *roleRepository) GetList(term string) ([]*model.Role, errors.Error) {
 	return roles, nil
 }
 
+func (rr *roleRepository) GetForUser(userID string) ([]*model.Role, errors.Error) {
+	if openErr := rr.openConnection(); openErr != nil {
+		return nil, openErr
+	}
+
+	query := "CALL get_roles_for_user(?);"
+
+	ctx := context.Background()
+	stmt, err := rr.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.QueryContext(ctx, userID)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer rows.Close()
+
+	roles := []*model.Role{}
+
+	for rows.Next() {
+		dm, rErr := readRole(rows.Scan)
+		if rErr != nil {
+			return nil, rErr
+		}
+
+		roles = append(roles, model.RoleFromDataModel(dm))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	return roles, nil
+}
+
+func (rr *roleRepository) GetAvailableForUser(userID string) ([]*model.Role, errors.Error) {
+	if openErr := rr.openConnection(); openErr != nil {
+		return nil, openErr
+	}
+
+	query := "CALL get_available_roles_for_user(?);"
+
+	ctx := context.Background()
+	stmt, err := rr.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.QueryContext(ctx, userID)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer rows.Close()
+
+	roles := []*model.Role{}
+
+	for rows.Next() {
+		dm, rErr := readRole(rows.Scan)
+		if rErr != nil {
+			return nil, rErr
+		}
+
+		roles = append(roles, model.RoleFromDataModel(dm))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	return roles, nil
+}
+
 func readRole(s scannerFunc) (*datamodel.Role, errors.Error) {
 	var dm datamodel.Role
 

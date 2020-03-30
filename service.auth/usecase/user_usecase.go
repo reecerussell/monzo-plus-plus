@@ -26,6 +26,8 @@ type UserUsecase interface {
 	Enable(ctx context.Context, id string) errors.Error
 	AddToRole(ctx context.Context, d *dto.UserRole) errors.Error
 	RemoveFromRole(ctx context.Context, d *dto.UserRole) errors.Error
+	GetRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
+	GetAvailableRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
 	Delete(ctx context.Context, id string) errors.Error
 }
 
@@ -280,6 +282,45 @@ func (uu *userUsecase) RemoveFromRole(ctx context.Context, d *dto.UserRole) erro
 	}
 
 	return nil
+}
+
+func (uu *userUsecase) GetRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error) {
+	if ctx.Value(util.ContextKey("user_id")) != id &&
+		!permission.Has(ctx, permission.PermissionRoleManager) {
+		return nil, errors.Forbidden()
+	}
+
+	roles, err := uu.roles.GetForUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*dto.Role, len(roles))
+
+	for i, r := range roles {
+		dtos[i] = r.DTO()
+	}
+
+	return dtos, nil
+}
+
+func (uu *userUsecase) GetAvailableRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionRoleManager) {
+		return nil, errors.Forbidden()
+	}
+
+	roles, err := uu.roles.GetAvailableForUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*dto.Role, len(roles))
+
+	for i, r := range roles {
+		dtos[i] = r.DTO()
+	}
+
+	return dtos, nil
 }
 
 func (uu *userUsecase) Delete(ctx context.Context, id string) errors.Error {

@@ -34,6 +34,8 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
 	r.HandleFunc("/users/roles", c.HandleAddToRole).Methods("POST")
 	r.HandleFunc("/users/roles", c.HandleRemoveFromRole).Methods("DELETE")
+	r.HandleFunc("/users/roles/{id}", c.HandleGetRoles).Methods("GET")
+	r.HandleFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles).Methods("GET")
 	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 
 	return c
@@ -170,6 +172,34 @@ func (c *UserController) HandleRemoveFromRole(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 	}
+}
+
+func (c *UserController) HandleGetRoles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := mux.Vars(r)["id"]
+
+	roles, err := c.userUsecase.GetRoles(r.Context(), id)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(&roles)
+}
+
+func (c *UserController) HandleGetAvailableRoles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := mux.Vars(r)["id"]
+
+	roles, err := c.userUsecase.GetAvailableRoles(r.Context(), id)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(&roles)
 }
 
 func (c *UserController) HandleDelete(w http.ResponseWriter, r *http.Request) {
