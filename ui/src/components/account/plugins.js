@@ -76,7 +76,7 @@ const Plugins = ({
 			) : null}
 
 			<Divider horizontal>
-				<h3>Enabled</h3>
+				<h3>My Plugins</h3>
 			</Divider>
 
 			{enabledPlugins.length > 0 ? (

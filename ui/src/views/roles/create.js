@@ -5,7 +5,7 @@ import { Authorise } from "../../containers/login";
 import CreateContainer from "../../containers/roles/create";
 
 const List = () => (
-	<Authorise roles={["Admin"]}>
+	<Authorise roles={["Admin", "Role Manager"]}>
 		<Header as="h1">Create</Header>
 
 		<p>Use this form to create a new role.</p>

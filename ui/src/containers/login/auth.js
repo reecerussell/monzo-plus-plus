@@ -15,13 +15,15 @@ const canAccess = roles => {
 
 const propTypes = {
 	roles: PropTypes.array,
+	contentOnly: PropTypes.bool,
 };
 const defaultProps = {
 	roles: [],
+	contentOnly: false,
 };
 
-const Authorise = ({ children, roles }) => {
-	const loginAction = <Redirect to="/login" />;
+const Authorise = ({ children, roles, contentOnly }) => {
+	const loginAction = contentOnly ? null : <Redirect to="/login" />;
 
 	if (!User.IsAuthenticated()) {
 		return loginAction;

@@ -5,7 +5,7 @@ import ListContainer from "../../containers/users/list";
 import { Link } from "react-router-dom";
 
 const List = () => (
-	<Authorise roles={["Admin"]}>
+	<Authorise roles={["Admin", "User Manager"]}>
 		<Header as="h1">Users</Header>
 
 		<p>

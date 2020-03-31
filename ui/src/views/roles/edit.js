@@ -9,7 +9,7 @@ const List = () => {
 	const { id } = useParams();
 
 	return (
-		<Authorise roles={["Admin"]}>
+		<Authorise roles={["Admin", "Role Manager"]}>
 			<Header as="h1">Edit</Header>
 
 			<Grid stackable>

@@ -5,7 +5,7 @@ import PendingContainer from "../../containers/users/pending";
 import { Link } from "react-router-dom";
 
 const Pending = () => (
-	<Authorise roles={["Admin"]}>
+	<Authorise roles={["Admin", "User Manager"]}>
 		<Header as="h1">Pending Users</Header>
 
 		<p>

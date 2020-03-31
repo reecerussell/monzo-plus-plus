@@ -10,7 +10,7 @@ const Users = () => {
 	const { id } = useParams();
 
 	return (
-		<Authorise roles={["Admin"]}>
+		<Authorise roles={["Admin", "User Manager"]}>
 			<Header as="h1">User Details</Header>
 
 			<Grid stackable>

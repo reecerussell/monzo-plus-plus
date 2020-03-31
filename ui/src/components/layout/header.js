@@ -1,47 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Container, Dropdown, Image, Menu } from "semantic-ui-react";
 import { Link } from "react-router-dom";
+import { Authorise } from "../../containers/login";
 import * as User from "../../utils/user";
 
-const AdminMenu = () => {
-	if (!User.IsInRole("Admin")) {
-		return null;
-	}
-
-	return (
-		<>
-			<Dropdown.Divider />
-			<Dropdown.Header>Admin</Dropdown.Header>
-			<Dropdown.Item>
-				<i className="dropdown icon" />
-				<span className="text">
-					<Link to="/users">Users</Link>
-				</span>
-				<Dropdown.Menu>
-					<Dropdown.Item>
-						<span className="text">
-							<Link to="/users/pending">Pending</Link>
-						</span>
-					</Dropdown.Item>
-				</Dropdown.Menu>
-			</Dropdown.Item>
-			<Dropdown.Item>
-				<span className="text">
-					<Link to="/roles">Roles</Link>
-				</span>
-			</Dropdown.Item>
-		</>
-	);
-};
-
-const UserMenu = () => {
-	if (!User.IsAuthenticated()) {
-		return (
-			<Menu.Item as={Link} to="/login">
-				Login
-			</Menu.Item>
-		);
-	}
+const Header = () => {
+	const [state, setState] = useState(0);
 
 	const handleLogout = e => {
 		e.preventDefault();
@@ -49,30 +13,6 @@ const UserMenu = () => {
 		User.Logout();
 		window.location.reload();
 	};
-
-	return (
-		<Dropdown item simple text={User.GetUsername()}>
-			<Dropdown.Menu>
-				<Dropdown.Item>
-					<span className="text">
-						<Link to="/account">My Account</Link>
-					</span>
-				</Dropdown.Item>
-				<Dropdown.Item>
-					<span className="text">
-						<a href="#" onClick={handleLogout}>
-							Logout
-						</a>
-					</span>
-				</Dropdown.Item>
-				<AdminMenu />
-			</Dropdown.Menu>
-		</Dropdown>
-	);
-};
-
-const Header = () => {
-	const [state, setState] = useState(0);
 
 	useEffect(() => {
 		User.SubscribeLogin("header", () => setState(1));
@@ -97,7 +37,59 @@ const Header = () => {
 				</Menu.Item>
 				<Menu.Item as="a">Home</Menu.Item>
 
-				<UserMenu />
+				<Authorise>
+					<Dropdown item simple text={User.GetUsername()}>
+						<Dropdown.Menu>
+							<Dropdown.Item>
+								<span className="text">
+									<Link to="/account">My Account</Link>
+								</span>
+							</Dropdown.Item>
+							<Dropdown.Item>
+								<span className="text">
+									<a href="#" onClick={handleLogout}>
+										Logout
+									</a>
+								</span>
+							</Dropdown.Item>
+							<Authorise
+								roles={[
+									"Admin",
+									"Role Manager",
+									"User Manager",
+									"Plugin Manager",
+								]}
+							>
+								<Dropdown.Divider />
+								<Dropdown.Header>Admin</Dropdown.Header>
+							</Authorise>
+							<Authorise roles={["Admin", "User Manager"]}>
+								<Dropdown.Item>
+									<i className="dropdown icon" />
+									<span className="text">
+										<Link to="/users">Users</Link>
+									</span>
+									<Dropdown.Menu>
+										<Dropdown.Item>
+											<span className="text">
+												<Link to="/users/pending">
+													Pending
+												</Link>
+											</span>
+										</Dropdown.Item>
+									</Dropdown.Menu>
+								</Dropdown.Item>
+							</Authorise>
+							<Authorise roles={["Admin", "Role Manager"]}>
+								<Dropdown.Item>
+									<span className="text">
+										<Link to="/roles">Roles</Link>
+									</span>
+								</Dropdown.Item>
+							</Authorise>
+						</Dropdown.Menu>
+					</Dropdown>
+				</Authorise>
 			</Container>
 		</Menu>
 	);
