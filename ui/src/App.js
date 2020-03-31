@@ -12,14 +12,18 @@ import { Loader } from "semantic-ui-react";
 import routes from "./routes";
 
 const Docs = React.lazy(() => import("./views/docs/index"));
+const Home = React.lazy(() => import("./views/pages/home"));
 
 const App = () => (
 	<Suspense fallback={<Loader active={true} />}>
 		<BrowserRouter>
 			<Route path="/" exact>
 				<Router>
-					<Layout>
-						<Switch>
+					<Switch>
+						<Route path="/" exact>
+							<Home />
+						</Route>
+						<Layout>
 							{routes.map((route, idx) => (
 								<Route
 									key={idx}
@@ -31,11 +35,11 @@ const App = () => (
 									)}
 								/>
 							))}
-						</Switch>
-					</Layout>
+						</Layout>
+					</Switch>
 				</Router>
 			</Route>
-			<Route path="/docs">
+			<Route path="/docs" exact>
 				<Docs />
 			</Route>
 		</BrowserRouter>

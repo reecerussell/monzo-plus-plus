@@ -27,7 +27,7 @@ const Header = () => {
 	return (
 		<Menu fixed="top" inverted>
 			<Container>
-				<Menu.Item as="a" header>
+				<Menu.Item as="a" header href="/">
 					<Image
 						size="mini"
 						src="https://lh3.googleusercontent.com/iDeb12CKMVdgDqBD9yJ9UehaWkKXFdPMtuUA8Jt0sOvxXzOm21qNGbA6D5_gdDZtAk4=w300"
@@ -35,7 +35,9 @@ const Header = () => {
 					/>
 					Monzo++
 				</Menu.Item>
-				<Menu.Item as="a">Home</Menu.Item>
+				<Menu.Item as="a">
+					<Link to="/">Home</Link>
+				</Menu.Item>
 
 				<Authorise>
 					<Dropdown item simple text={User.GetUsername()}>
