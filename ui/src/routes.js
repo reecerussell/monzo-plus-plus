@@ -12,6 +12,7 @@ const AccountIndex = React.lazy(() => import("./views/account/account"));
 const AccountChangePassword = React.lazy(() =>
 	import("./views/account/changePassword")
 );
+const AccountPlugins = React.lazy(() => import("./views/account/plugins"));
 const AccountDelete = React.lazy(() => import("./views/account/delete"));
 
 const Login = React.lazy(() => import("./views/login/login"));
@@ -64,7 +65,7 @@ export default [
 	{
 		name: "account plugins",
 		path: "/account/plugins",
-		component: AccountIndex,
+		component: AccountPlugins,
 	},
 	{
 		name: "delete account",
