@@ -23,6 +23,8 @@ import (
 func init() {
 	domain.RegisterEventHandler(&event.AddUserToRole{}, &handler.AddUserToRole{})
 	domain.RegisterEventHandler(&event.RemoveUserFromRole{}, &handler.RemoveUserFromRole{})
+	domain.RegisterEventHandler(&event.EnablePluginForUser{}, &handler.EnablePluginForUser{})
+	domain.RegisterEventHandler(&event.DisablePluginForUser{}, &handler.DisablePluginForUser{})
 }
 
 // User is a domain model used to manage and create user, token
@@ -234,6 +236,28 @@ func (u *User) RemoveFromRole(r *Role) errors.Error {
 	}
 
 	return errors.BadRequest(fmt.Sprintf("role '%s' has not already been assigned", r.GetName()))
+}
+
+// EnablePlugin is used to enable a specific plugin for the user. A
+// domain event is raise to handle enabling it.
+func (u *User) EnablePlugin(pluginID string) errors.Error {
+	u.RaiseEvent(&event.EnablePluginForUser{
+		PluginID: pluginID,
+		UserID:   u.GetID(),
+	})
+
+	return nil
+}
+
+// DisablePlugin is used to disable a specific plugin for the user. A
+// domain event is raise to handle disabling it.
+func (u *User) DisablePlugin(pluginID string) errors.Error {
+	u.RaiseEvent(&event.DisablePluginForUser{
+		PluginID: pluginID,
+		UserID:   u.GetID(),
+	})
+
+	return nil
 }
 
 // DataModel returns a new instance of the User data model,

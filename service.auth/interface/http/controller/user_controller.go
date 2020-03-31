@@ -36,6 +36,8 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/roles", c.HandleRemoveFromRole).Methods("DELETE")
 	r.HandleFunc("/users/roles/{id}", c.HandleGetRoles).Methods("GET")
 	r.HandleFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles).Methods("GET")
+	r.HandleFunc("/users/plugin", c.HandleEnablePlugin).Methods("POST")
+	r.HandleFunc("/users/plugin", c.HandleDisablePlugin).Methods("DELETE")
 	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 
 	return c
@@ -200,6 +202,30 @@ func (c *UserController) HandleGetAvailableRoles(w http.ResponseWriter, r *http.
 	}
 
 	json.NewEncoder(w).Encode(&roles)
+}
+
+func (c *UserController) HandleEnablePlugin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var ur dto.UserPlugin
+	_ = json.NewDecoder(r.Body).Decode(&ur)
+
+	err := c.userUsecase.EnablePlugin(r.Context(), &ur)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+	}
+}
+
+func (c *UserController) HandleDisablePlugin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var ur dto.UserPlugin
+	_ = json.NewDecoder(r.Body).Decode(&ur)
+
+	err := c.userUsecase.DisablePlugin(r.Context(), &ur)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+	}
 }
 
 func (c *UserController) HandleDelete(w http.ResponseWriter, r *http.Request) {

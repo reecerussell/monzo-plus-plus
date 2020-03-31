@@ -28,6 +28,8 @@ type UserUsecase interface {
 	RemoveFromRole(ctx context.Context, d *dto.UserRole) errors.Error
 	GetRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
 	GetAvailableRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
+	EnablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
+	DisablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 }
 
@@ -321,6 +323,58 @@ func (uu *userUsecase) GetAvailableRoles(ctx context.Context, id string) ([]*dto
 	}
 
 	return dtos, nil
+}
+
+// EnablePlugin enables a plugin for a specific user. This method can only be executed
+// if the current user is the target user or has the PluginManager permission.
+func (uu *userUsecase) EnablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error {
+	if ctx.Value(util.ContextKey("user_id")) != d.UserID &&
+		!permission.Has(ctx, permission.PermissionPluginManager) {
+		return errors.Forbidden()
+	}
+
+	u, err := uu.repo.Get(d.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = u.EnablePlugin(d.PluginID)
+	if err != nil {
+		return err
+	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DisablePlugin disables a plugin for a specific user. This method can only be executed
+// if the current user is the target user or has the PluginManager permission.
+func (uu *userUsecase) DisablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error {
+	if ctx.Value(util.ContextKey("user_id")) != d.UserID &&
+		!permission.Has(ctx, permission.PermissionPluginManager) {
+		return errors.Forbidden()
+	}
+
+	u, err := uu.repo.Get(d.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = u.DisablePlugin(d.PluginID)
+	if err != nil {
+		return err
+	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (uu *userUsecase) Delete(ctx context.Context, id string) errors.Error {
