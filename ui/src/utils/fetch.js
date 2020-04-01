@@ -26,9 +26,17 @@ const Send = async (url, options) => {
 
 const defaultFail = err => console.error(err);
 
-const Fetch = async (url, options, onSuccess, onFail = defaultFail) => {
+const BaseUrl = "http://localhost:9789/";
+
+const Fetch = async (
+	url,
+	options,
+	onSuccess,
+	onFail = defaultFail,
+	baseUrl = BaseUrl
+) => {
 	try {
-		const res = await Send("http://localhost:9789/" + url, options);
+		const res = await Send(baseUrl + url, options);
 
 		switch (res.status) {
 			case 200:
@@ -55,4 +63,4 @@ const Fetch = async (url, options, onSuccess, onFail = defaultFail) => {
 };
 
 export default Send;
-export { Fetch };
+export { Fetch, BaseUrl };

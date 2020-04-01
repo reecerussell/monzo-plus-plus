@@ -8,6 +8,8 @@ const RolesList = React.lazy(() => import("./views/roles/list"));
 const RolesCreate = React.lazy(() => import("./views/roles/create"));
 const RolesEdit = React.lazy(() => import("./views/roles/edit"));
 
+const PluginsList = React.lazy(() => import("./views/plugins/list"));
+
 const AccountIndex = React.lazy(() => import("./views/account/account"));
 const AccountChangePassword = React.lazy(() =>
 	import("./views/account/changePassword")
@@ -50,6 +52,12 @@ export default [
 		name: "edit role",
 		path: "/roles/edit/:id",
 		component: RolesEdit,
+	},
+	{
+		name: "plugins",
+		path: "/plugins",
+		component: PluginsList,
+		exact: true,
 	},
 	{
 		name: "account",

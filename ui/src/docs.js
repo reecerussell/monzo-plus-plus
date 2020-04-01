@@ -81,12 +81,131 @@ export default {
 				responses: {
 					"401": {
 						description: "Unauthorized request.",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
 					},
 					"403": {
 						description: "Insufficient permissions",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
 					},
 					"404": {
 						description: "No user with the id was found.",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
+					},
+					"200": {
+						description: "Successful request.",
+						schema: {
+							$ref: "#/definitions/User",
+						},
+					},
+				},
+			},
+			delete: {
+				tags: ["Users"],
+				summary: "Deletes a user.",
+				description: "Deletes an individual user with the given id.",
+				operationId: "deleteUser",
+				produces: ["application/json"],
+				parameters: [
+					{
+						in: "id",
+						name: "id",
+						description: "A user's id.",
+						required: true,
+					},
+				],
+				responses: {
+					"401": {
+						description: "Unauthorized request.",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
+					},
+					"403": {
+						description: "Insufficient permissions",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
+					},
+					"404": {
+						description: "No user with the id was found.",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
+					},
+					"200": {
+						description: "Successful request.",
+					},
+				},
+			},
+		},
+		"/auth/users": {
+			get: {
+				tags: ["Users"],
+				summary: "A list of users.",
+				description:
+					"Returns a list of users, matching the search term (if any).",
+				operationId: "listUser",
+				produces: ["application/json"],
+				parameters: [
+					{
+						in: "query",
+						name: "term",
+						description: "A search term",
+						required: false,
+					},
+				],
+				responses: {
+					"401": {
+						description: "Unauthorized request.",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
+					},
+					"403": {
+						description: "Insufficient permissions",
+						schema: {
+							$ref: "#/definitions/Error",
+						},
+					},
+					"200": {
+						description: "Successful request.",
+						schema: {
+							type: "array",
+							items: {
+								$ref: "#/definitions/User",
+							},
+						},
+					},
+				},
+			},
+			post: {
+				tags: ["Users"],
+				summary: "Create a user",
+				description:
+					"Uses the data in the request body to create a new user.",
+				operationId: "authToken",
+				consumes: ["application/json"],
+				produces: ["application/json"],
+				parameters: [
+					{
+						in: "body",
+						name: "body",
+						description: "New user data.",
+						required: true,
+						schema: {
+							$ref: "#/definitions/UserCredential",
+						},
+					},
+				],
+				responses: {
+					"400": {
+						description: "Invalid input data.",
 					},
 					"200": {
 						description: "Successful request.",
@@ -95,23 +214,22 @@ export default {
 			},
 		},
 	},
-	securityDefinitions: {
-		petstore_auth: {
-			type: "oauth2",
-			authorizationUrl: "http://petstore.swagger.io/oauth/dialog",
-			flow: "implicit",
-			scopes: {
-				"write:pets": "modify pets in your account",
-				"read:pets": "read your pets",
-			},
-		},
-		api_key: {
-			type: "apiKey",
-			name: "api_key",
-			in: "header",
+	securitySchemes: {
+		BearerAuth: {
+			type: "http",
+			scheme: "bearer",
+			bearerFormat: "JWT",
 		},
 	},
 	definitions: {
+		Error: {
+			type: "object",
+			properties: {
+				error: {
+					type: "string",
+				},
+			},
+		},
 		UserCredential: {
 			type: "object",
 			properties: {
@@ -119,6 +237,57 @@ export default {
 					type: "string",
 				},
 				password: {
+					type: "string",
+				},
+			},
+		},
+		UpdateUser: {
+			type: "object",
+			properties: {
+				id: {
+					type: "string",
+				},
+				username: {
+					type: "string",
+				},
+			},
+		},
+		User: {
+			type: "object",
+			properties: {
+				id: {
+					type: "string",
+				},
+				username: {
+					type: "string",
+				},
+				enabled: {
+					type: "boolean",
+				},
+				dateEnabled: {
+					type: "string",
+					nullable: true,
+				},
+			},
+		},
+		UserPlugin: {
+			type: "object",
+			properties: {
+				userId: {
+					type: "string",
+				},
+				pluginId: {
+					type: "string",
+				},
+			},
+		},
+		UserRole: {
+			type: "object",
+			properties: {
+				userId: {
+					type: "string",
+				},
+				roleId: {
 					type: "string",
 				},
 			},
