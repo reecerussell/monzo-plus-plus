@@ -1,5 +1,5 @@
 import React from "react";
-import { Header } from "semantic-ui-react";
+import { Header, Grid } from "semantic-ui-react";
 import { Authorise } from "../../containers/login";
 import ListContainer from "../../containers/plugins/list";
 
@@ -9,7 +9,11 @@ const List = () => (
 
 		<p>View and manage all plugins.</p>
 
-		<ListContainer />
+		<Grid stackable>
+			<Grid.Column width="8">
+				<ListContainer />
+			</Grid.Column>
+		</Grid>
 	</Authorise>
 );
 

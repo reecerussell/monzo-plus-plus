@@ -1,5 +1,13 @@
 import React from "react";
-import { Item, Form, Loader, Button, Message, Icon } from "semantic-ui-react";
+import {
+	Item,
+	Form,
+	Loader,
+	Button,
+	Message,
+	Icon,
+	Label,
+} from "semantic-ui-react";
 import { Link } from "react-router-dom";
 
 const List = ({
@@ -21,11 +29,16 @@ const List = ({
 				<Item.Meta>{plugin.name}</Item.Meta>
 				<Item.Description>{plugin.description}</Item.Description>
 				<Item.Extra>
+					<Label>
+						<Icon name="user"></Icon>
+						{plugin.consumedBy}
+					</Label>
 					<Button
 						as={Link}
 						to={"/plugins/edit/" + plugin.id}
 						color="blue"
 						size="small"
+						floated="right"
 					>
 						View <Icon name="arrow right" />
 					</Button>
@@ -76,7 +89,7 @@ const List = ({
 						/>
 					</Form.Field>
 					<Form.Field>
-						<Button color="grey" type="submit" floated="right">
+						<Button color="grey" type="submit">
 							<Icon name="search" />
 							Search
 						</Button>
