@@ -38,7 +38,7 @@ const HomepageHeading = ({ mobile }) => (
 		/>
 		<Header
 			as="h2"
-			content="Adding enhanced feature to Monzo"
+			content="Adding enhanced features to Monzo"
 			inverted
 			style={{
 				fontSize: mobile ? "1.5em" : "1.7em",
@@ -323,7 +323,7 @@ const HomepageLayout = () => (
 				<p style={{ fontSize: "1.33em" }}>
 					A user's Monzo API credentials are never exposed to the
 					client, and each user's Monzo++ account is secured using
-					short-leved OAuth2 tokens that are signed with RSA encoded
+					short-lived OAuth2 tokens that are signed with RSA encoded
 					asymmetric keys.
 				</p>
 			</Container>
