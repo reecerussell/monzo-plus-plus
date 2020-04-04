@@ -34,10 +34,10 @@ const (
 	ResponseTypeCode = "code"
 
 	// LoginBaseURL is the base url for the Monzo login page.
-	LoginBaseURL = "https://auth.monzo.com/"
+	LoginBaseURL = `https://auth.monzo.com/`
 
 	// APIBaseURL is the base url for Monzo's API.
-	APIBaseURL = "https://api.monzo.com/"
+	APIBaseURL = `https://api.monzo.com/`
 
 	// The default HTTP request timeout.
 	requestTimeoutSeconds = 5
@@ -76,6 +76,38 @@ type Client interface {
 
 	// RegisterHook is used to register a webhook to Monz++, on the user's account.
 	RegisterHook(accountID string) error
+}
+
+var (
+	defaultClient Client
+)
+
+func RequestAccessToken(code string) (*AccessToken, error) {
+	return mustUseDefaultClient().RequestAccessToken(code)
+}
+
+func RefreshAccessToken(refreshToken string) (*AccessToken, error) {
+	return mustUseDefaultClient().RefreshAccessToken(refreshToken)
+}
+
+func Login(w http.ResponseWriter, r *http.Request, state string) {
+	mustUseDefaultClient().Login(w, r, state)
+}
+
+func WhoAmI(accessToken string) (*AuthenticationData, error) {
+	return mustUseDefaultClient().WhoAmI(accessToken)
+}
+
+func RegisterHook(accountID string) error {
+	return mustUseDefaultClient().RegisterHook(accountID)
+}
+
+func mustUseDefaultClient() Client {
+	if defaultClient == nil {
+		defaultClient = NewClient()
+	}
+
+	return defaultClient
 }
 
 // client is an implementation of the Client interface.
@@ -117,18 +149,19 @@ func (c *client) RefreshAccessToken(refreshToken string) (*AccessToken, error) {
 
 // makeTokenRequest contains common logic which can be used to request an access token.
 func (c *client) makeTokenRequest(body url.Values) (*AccessToken, error) {
-	target := path.Join(APIBaseURL, "oauth2/token")
-	resp, err := c.http.PostForm(target, body)
-	if err == nil {
-		defer resp.Body.Close()
+	target, _ := url.Parse(APIBaseURL + "oauth2/token")
+	resp, err := c.http.PostForm(target.String(), body)
+	if err != nil {
+		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, readResponseError(resp)
 	}
 
 	var data AccessToken
-	_ = json.NewDecoder(resp.Body).Decode(&body)
+	_ = json.NewDecoder(resp.Body).Decode(&data)
 
 	return &data, nil
 }

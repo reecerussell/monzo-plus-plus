@@ -38,6 +38,12 @@ const Fetch = async (
 	try {
 		const res = await Send(baseUrl + url, options);
 
+		if (res.type === "opaqueredirect") {
+			const location = res.headers.get("Location");
+			window.location.replace(location);
+			return;
+		}
+
 		switch (res.status) {
 			case 200:
 			case 201:
@@ -50,8 +56,12 @@ const Fetch = async (
 				window.location.hash = "/login";
 				break;
 			default:
-				const { error } = await res.json();
-				onFail(error);
+				try {
+					const { error } = await res.json();
+					onFail(error);
+				} catch {
+					onFail("An error occured while reading the response.");
+				}
 				break;
 		}
 	} catch (e) {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/domain"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
@@ -39,6 +40,7 @@ type User struct {
 	enabled      *time.Time
 
 	roles []*Role
+	token *UserToken
 }
 
 // NewUser is used to create a new User domain model. Given the data in d,
@@ -49,8 +51,6 @@ func NewUser(d *dto.CreateUser, service password.Service) (*User, errors.Error) 
 
 	u.id = id.String()
 	u.stateToken = base64.RawURLEncoding.EncodeToString([]byte(u.id))
-
-	// TODO: initialise nav props
 
 	err := u.UpdateUsername(d.Username)
 	if err != nil {
@@ -73,6 +73,11 @@ func (u *User) GetID() string {
 // GetUsername returns the user's username.
 func (u *User) GetUsername() string {
 	return u.username
+}
+
+// GetStateToken returns the user's state token.
+func (u *User) GetStateToken() string {
+	return u.stateToken
 }
 
 // IsEnabled returns whether the user is enabled or not.
@@ -100,6 +105,11 @@ func (u *User) GetRoleNames() []string {
 	}
 
 	return names
+}
+
+// GetToken returns the user's UserToken.
+func (u *User) GetToken() *UserToken {
+	return u.token
 }
 
 // Update updates the user's mutable properties, such as username.
@@ -188,6 +198,11 @@ func (u *User) setPassword(pwd string, service password.Service) errors.Error {
 	u.passwordHash = ph
 
 	return nil
+}
+
+// UpdateToken resets the user's token data with the AccessToken given.
+func (u *User) UpdateToken(d *monzo.AccessToken) {
+	u.token = NewUserToken(d)
 }
 
 // Enable marks the user as enabled, by setting the enabled date
@@ -291,7 +306,7 @@ func (u *User) DataModel() *datamodel.User {
 // The data in the data model should be of that from the database.
 // No data should be modified in the process of reading from the
 // database and calling this method.
-func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel.Token) *User {
+func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel.UserToken) *User {
 	u := &User{
 		id:           dm.ID,
 		username:     dm.Username,
@@ -313,7 +328,9 @@ func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel
 		}
 	}
 
-	// TODO: add token
+	if tdm != nil {
+		u.token = UserTokenFromDataModal(tdm)
+	}
 
 	return u
 }

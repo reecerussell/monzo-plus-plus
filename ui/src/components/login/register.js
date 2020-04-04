@@ -1,5 +1,4 @@
 import React from "react";
-import { Redirect, Link } from "react-router-dom";
 import { Loader, Message, Form, Button } from "semantic-ui-react";
 
 const Register = ({
@@ -12,15 +11,10 @@ const Register = ({
 	handleSubmit,
 	loading,
 	error,
-	redirect,
 }) => {
-	if (redirect) {
-		return <Redirect to={redirect} />;
-	}
-
 	return (
 		<>
-			<Form onSubmit={handleSubmit} error={error}>
+			<Form onSubmit={handleSubmit} error={error !== null}>
 				<Loader active={loading} />
 				<Message
 					error

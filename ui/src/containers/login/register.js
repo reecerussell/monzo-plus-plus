@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Fetch from "../../utils/fetch";
+import { Fetch } from "../../utils/fetch";
 import Register from "../../components/login/register";
 
 const RegisterContainer = () => {
@@ -8,7 +8,6 @@ const RegisterContainer = () => {
 	const [confirm, setConfirm] = useState("");
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [redirect, setRedirect] = useState(null);
 
 	const handleUpdateUsername = e => setUsername(e.target.value);
 	const handleUpdatePassword = e => setPassword(e.target.value);
@@ -36,31 +35,25 @@ const RegisterContainer = () => {
 
 		setLoading(true);
 
-		try {
-			const res = await Fetch(
-				"http://localhost:9789/auth/users/register",
-				{
-					method: "POST",
-					body: JSON.stringify({
-						username,
-						password,
-					}),
-				}
-			);
+		await Fetch(
+			"auth/users/register",
+			{
+				method: "POST",
+				redirect: "manual",
+				body: JSON.stringify({
+					username,
+					password,
+				}),
+			},
+			async res => {
+				const stateToken = await res.text();
 
-			if (res.status === 201) {
-				setError(null);
-
-				setRedirect("/login");
-			} else {
-				const data = await res.json();
-				setError(data.error);
-			}
-		} catch {
-			setError(
-				"It seems like you don't have connection to the internet. Try again later!"
-			);
-		}
+				window.location.replace(
+					"http://localhost:9789/auth/monzo/login?state=" + stateToken
+				);
+			},
+			setError
+		);
 
 		setLoading(false);
 	};
@@ -70,7 +63,6 @@ const RegisterContainer = () => {
 			username={username}
 			password={password}
 			confirm={confirm}
-			redirect={redirect}
 			handleUpdateUsername={handleUpdateUsername}
 			handleUpdatePassword={handleUpdatePassword}
 			handleUpdateConfirm={handleUpdateConfirm}

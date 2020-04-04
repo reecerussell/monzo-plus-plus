@@ -50,7 +50,7 @@ func (ur *userRepository) Get(id string) (*model.User, errors.Error) {
 
 	var user *datamodel.User
 	var roles []*datamodel.Role
-	var token *datamodel.Token
+	var token *datamodel.UserToken
 
 	if rows.Next() {
 		u, readErr := readUser(rows.Scan)
@@ -116,6 +116,34 @@ func (ur *userRepository) GetByUsername(username string) (*model.User, errors.Er
 	var userID string
 
 	err = stmt.QueryRowContext(ctx, username).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.NotFound("user not found")
+		}
+
+		return nil, errors.InternalError(fmt.Errorf("read: %v", err))
+	}
+
+	return ur.Get(userID)
+}
+
+func (ur *userRepository) GetByStateToken(stateToken string) (*model.User, errors.Error) {
+	if openErr := ur.openConnection(); openErr != nil {
+		return nil, openErr
+	}
+
+	query := "CALL get_user_id_by_state_token(?);"
+
+	ctx := context.Background()
+	stmt, err := ur.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
+	}
+	defer stmt.Close()
+
+	var userID string
+
+	err = stmt.QueryRowContext(ctx, stateToken).Scan(&userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NotFound("user not found")
@@ -203,11 +231,10 @@ func readUserRole(s scannerFunc) (*datamodel.Role, errors.Error) {
 	return &dm, nil
 }
 
-func readToken(s scannerFunc) (*datamodel.Token, errors.Error) {
-	var dm datamodel.Token
+func readToken(s scannerFunc) (*datamodel.UserToken, errors.Error) {
+	var dm datamodel.UserToken
 
 	err := s(
-		&dm.UserID,
 		&dm.AccessToken,
 		&dm.RefreshToken,
 		&dm.Expires,
@@ -301,7 +328,43 @@ func (ur *userRepository) Update(u *model.User) errors.Error {
 		return errors.InternalError(err)
 	}
 
+	err = updateToken(ctx, tx, u)
+	if err != nil {
+		return errors.InternalError(err)
+	}
+
 	return u.DispatchEvents(ctx, tx)
+}
+
+func updateToken(ctx context.Context, tx *sql.Tx, u *model.User) error {
+	ut := u.GetToken()
+	if ut == nil {
+		return nil
+	}
+
+	dm := ut.DataModel()
+
+	query := "CALL update_user_token(?,?,?,?,?);"
+	args := []interface{}{
+		u.GetID(),
+		dm.AccessToken,
+		dm.RefreshToken,
+		dm.Expires,
+		dm.TokenType,
+	}
+
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ur *userRepository) Delete(id string) errors.Error {

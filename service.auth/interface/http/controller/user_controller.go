@@ -28,7 +28,7 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/pending", c.HandleGetPending).Methods("GET")
 	r.HandleFunc("/users/{id}", c.HandleGet).Methods("GET")
 	r.HandleFunc("/users", c.HandleCreate).Methods("POST")
-	r.HandleFunc("/users/register", c.HandleCreate).Methods("POST")
+	r.HandleFunc("/users/register", c.HandleRegister).Methods("POST")
 	r.HandleFunc("/users", c.HandleUpdate).Methods("PUT")
 	r.HandleFunc("/users/changepassword", c.HandleChangePassword).Methods("POST")
 	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
@@ -103,6 +103,20 @@ func (c *UserController) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&user)
+}
+
+func (c *UserController) HandleRegister(w http.ResponseWriter, r *http.Request) {
+	var d dto.CreateUser
+	_ = json.NewDecoder(r.Body).Decode(&d)
+
+	stateToken, err := c.userUsecase.Register(&d)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(stateToken))
 }
 
 func (c *UserController) HandleUpdate(w http.ResponseWriter, r *http.Request) {

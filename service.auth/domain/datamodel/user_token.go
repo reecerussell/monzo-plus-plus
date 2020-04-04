@@ -2,8 +2,7 @@ package datamodel
 
 import "time"
 
-type Token struct {
-	UserID       string
+type UserToken struct {
 	AccessToken  string
 	RefreshToken string
 	Expires      time.Time

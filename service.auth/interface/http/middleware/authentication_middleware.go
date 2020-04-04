@@ -13,7 +13,7 @@ import (
 
 // AnonymousRoutes is an array of url paths, that can bypass
 // the authentication middleware.
-var AnonymousRoutes = [2]string{"/token", "/users/register"}
+var AnonymousRoutes = [3]string{"/token", "/users/register", "/monzo"}
 
 type AuthenticationMiddleware struct {
 	uau usecase.UserAuthUsecase

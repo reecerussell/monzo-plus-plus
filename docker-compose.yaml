@@ -37,6 +37,10 @@ services:
             context: .
             dockerfile: service.auth/Dockerfile
         environment:
+            - "MONZO_CLIENT_ID=oauth2client_00009s8M2iOG06xOrzfwVm"
+            - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
+            - "OAUTH_CALLBACK_URL=http://localhost:9789/auth/monzo/callback"
+            - "SUCCESS_CALLBACK_URL=http://localhost:3000/#login"
             - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"

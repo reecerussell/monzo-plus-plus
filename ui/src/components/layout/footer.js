@@ -54,11 +54,11 @@ const Footer = () => (
 			<Divider inverted section />
 			<Image centered size="mini" src="/logo.png" />
 			<List horizontal inverted divided link size="small">
-				<List.Item as="a" href="#">
-					Site Map
-				</List.Item>
-				<List.Item as="a" href="#">
-					Contact Us
+				<List.Item
+					as="a"
+					href="https://github.com/reecerussell/monzo-plus-plus/issues"
+				>
+					Found a bug?
 				</List.Item>
 				<List.Item as="a" href="#">
 					Terms and Conditions

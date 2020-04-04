@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
@@ -18,6 +19,7 @@ import (
 // CRUD operations, as well as, more specific operations on the User domain.
 type UserUsecase interface {
 	Create(ctx context.Context, d *dto.CreateUser) (*dto.User, errors.Error)
+	Register(d *dto.CreateUser) (string, errors.Error)
 	Get(ctx context.Context, id string) (*dto.User, errors.Error)
 	GetList(ctx context.Context, term string) ([]*dto.User, errors.Error)
 	GetPending(ctx context.Context, term string) ([]*dto.User, errors.Error)
@@ -30,6 +32,7 @@ type UserUsecase interface {
 	GetAvailableRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
 	EnablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
 	DisablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
+	Login(code, state string) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 }
 
@@ -51,6 +54,10 @@ func NewUserUsecase(repo repository.UserRepository, roles repository.RoleReposit
 }
 
 func (uu *userUsecase) Create(ctx context.Context, d *dto.CreateUser) (*dto.User, errors.Error) {
+	if !permission.Has(ctx, permission.PermissionCreateUser) {
+		return nil, errors.Forbidden()
+	}
+
 	u, err := model.NewUser(d, uu.ps)
 	if err != nil {
 		return nil, err
@@ -67,6 +74,25 @@ func (uu *userUsecase) Create(ctx context.Context, d *dto.CreateUser) (*dto.User
 	}
 
 	return u.DTO(), nil
+}
+
+func (uu *userUsecase) Register(d *dto.CreateUser) (string, errors.Error) {
+	u, err := model.NewUser(d, uu.ps)
+	if err != nil {
+		return "", err
+	}
+
+	err = uu.serv.ValidateUsername(u)
+	if err != nil {
+		return "", err
+	}
+
+	err = uu.repo.Insert(u)
+	if err != nil {
+		return "", err
+	}
+
+	return u.GetStateToken(), nil
 }
 
 func (uu *userUsecase) Get(ctx context.Context, id string) (*dto.User, errors.Error) {
@@ -368,6 +394,27 @@ func (uu *userUsecase) DisablePlugin(ctx context.Context, d *dto.UserPlugin) err
 	if err != nil {
 		return err
 	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uu *userUsecase) Login(code, stateToken string) errors.Error {
+	u, err := uu.repo.GetByStateToken(stateToken)
+	if err != nil {
+		return nil
+	}
+
+	ac, tErr := monzo.RequestAccessToken(code)
+	if tErr != nil {
+		return errors.InternalError(tErr)
+	}
+
+	u.UpdateToken(ac)
 
 	err = uu.repo.Update(u)
 	if err != nil {

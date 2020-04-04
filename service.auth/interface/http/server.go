@@ -21,6 +21,7 @@ func Build(ctn *di.Container) *bootstrap.HTTPServer {
 	_ = controller.NewUserController(ctn, r)
 	_ = controller.NewRoleController(ctn, r)
 	_ = controller.NewPermissionsController(ctn, r)
+	_ = controller.NewMonzoController(ctn, r)
 
 	return bootstrap.BuildServer(&http.Server{
 		Handler: am.Handler(r),
