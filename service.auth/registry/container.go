@@ -71,8 +71,9 @@ func buildPermissionRepository(ctn *di.Container) (interface{}, error) {
 func buildUserAuthUsecase(ctn *di.Container) (interface{}, error) {
 	ps := ctn.Resolve(ServicePasswordService).(password.Service)
 	repo := persistence.NewUserRepository()
+	serv := service.NewUserService()
 
-	return usecase.NewUserAuthUsecase(ps, repo)
+	return usecase.NewUserAuthUsecase(ps, repo, serv)
 }
 
 func buildRoleUsecase(ctn *di.Container) (interface{}, error) {

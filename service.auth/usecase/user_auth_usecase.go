@@ -8,10 +8,13 @@ import (
 	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
+
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/service"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/jwt"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
 )
@@ -30,6 +33,8 @@ type UserAuthUsecase interface {
 	ValidateToken(accessToken string) errors.Error
 	ValidateCredentials(c *dto.UserCredential) (*model.User, errors.Error)
 	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
+	Login(code, stateToken string) errors.Error
+	Register(d *dto.CreateUser) (string, errors.Error)
 }
 
 // userAuthUsecase is an implementation of the UserAuthUsecase interface.
@@ -38,6 +43,7 @@ type userAuthUsecase struct {
 	config *jwt.Config
 	ps     password.Service
 	repo   repository.UserRepository
+	serv   *service.UserService
 }
 
 // NewUserAuthUsecase returns a new instance of the UserAuthusecase interface,
@@ -46,7 +52,7 @@ type userAuthUsecase struct {
 // This method expects the environment variables "JWT_PRIVATE_KEY" and "JWT_CONFIG",
 // to be set and valid. In the event that either of which are invalid, an error
 // will be returned with the relavent message.
-func NewUserAuthUsecase(ps password.Service, repo repository.UserRepository) (UserAuthUsecase, error) {
+func NewUserAuthUsecase(ps password.Service, repo repository.UserRepository, serv *service.UserService) (UserAuthUsecase, error) {
 	keys, err := jwt.NewKeyRegisterFromFile(PrivateKeyFilepath, []byte(PrivateKeyPassword))
 	if err != nil {
 		return nil, fmt.Errorf("jwt: key: %v", err)
@@ -63,6 +69,7 @@ func NewUserAuthUsecase(ps password.Service, repo repository.UserRepository) (Us
 		config: &config,
 		ps:     ps,
 		repo:   repo,
+		serv:   serv,
 	}, nil
 }
 
@@ -162,6 +169,9 @@ func (uau *userAuthUsecase) ValidateCredentials(c *dto.UserCredential) (*model.U
 	return u, nil
 }
 
+// WithUser is used to propogate the given context with a user's
+// id and domain object using the given access token. If the accessToken is
+// invalid, an error will be returned with an appropriate message.
 func (uau *userAuthUsecase) WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error) {
 	token, tErr := jwt.FromToken([]byte(accessToken))
 	if tErr != nil {
@@ -191,4 +201,50 @@ func (uau *userAuthUsecase) WithUser(ctx context.Context, accessToken string) (c
 	ctx = context.WithValue(ctx, util.ContextKey("user_id"), u.GetID())
 
 	return ctx, nil
+}
+
+// Login is used to request an access token from Monzo, for the user
+// with the given state token. Used in the authenticate flow to
+// complete the Monzo authentication process.
+func (uau *userAuthUsecase) Login(code, stateToken string) errors.Error {
+	u, err := uau.repo.GetByStateToken(stateToken)
+	if err != nil {
+		return nil
+	}
+
+	ac, tErr := monzo.RequestAccessToken(code)
+	if tErr != nil {
+		return errors.InternalError(tErr)
+	}
+
+	u.UpdateToken(ac)
+
+	err = uau.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Register is used create a new user then return the newly created user's
+// state token. This is used by the frontend, to register a user then
+// used the state token to state the Monzo authentication flow.
+func (uau *userAuthUsecase) Register(d *dto.CreateUser) (string, errors.Error) {
+	u, err := model.NewUser(d, uau.ps)
+	if err != nil {
+		return "", err
+	}
+
+	err = uau.serv.ValidateUsername(u)
+	if err != nil {
+		return "", err
+	}
+
+	err = uau.repo.Insert(u)
+	if err != nil {
+		return "", err
+	}
+
+	return u.GetStateToken(), nil
 }

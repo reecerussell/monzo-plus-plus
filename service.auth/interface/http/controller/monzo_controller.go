@@ -15,14 +15,14 @@ import (
 )
 
 type MonzoController struct {
-	userUsecase usecase.UserUsecase
+	userAuthUsecase usecase.UserAuthUsecase
 }
 
 func NewMonzoController(ctn *di.Container, r *mux.Router) *MonzoController {
-	userUsecase := ctn.Resolve(registry.ServiceUserUsecase).(usecase.UserUsecase)
+	userAuthUsecase := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
 	c := &MonzoController{
-		userUsecase: userUsecase,
+		userAuthUsecase: userAuthUsecase,
 	}
 
 	r.HandleFunc("/monzo/login", c.HandleLogin).Methods("GET")
@@ -51,7 +51,7 @@ func (c *MonzoController) HandleCallback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err := c.userUsecase.Login(code, state)
+	err := c.userAuthUsecase.Login(code, state)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
