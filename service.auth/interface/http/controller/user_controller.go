@@ -14,14 +14,17 @@ import (
 )
 
 type UserController struct {
-	userUsecase usecase.UserUsecase
+	userUsecase     usecase.UserUsecase
+	userAuthUsecase usecase.UserAuthUsecase
 }
 
 func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	uu := ctn.Resolve(registry.ServiceUserUsecase).(usecase.UserUsecase)
+	uau := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
 	c := &UserController{
-		userUsecase: uu,
+		userUsecase:     uu,
+		userAuthUsecase: uau,
 	}
 
 	r.HandleFunc("/users", c.HandleGetList).Methods("GET")
@@ -109,7 +112,7 @@ func (c *UserController) HandleRegister(w http.ResponseWriter, r *http.Request) 
 	var d dto.CreateUser
 	_ = json.NewDecoder(r.Body).Decode(&d)
 
-	stateToken, err := c.userUsecase.Register(&d)
+	stateToken, err := c.userAuthUsecase.Register(&d)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
