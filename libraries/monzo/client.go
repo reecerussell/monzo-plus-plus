@@ -199,7 +199,7 @@ func (c *client) WhoAmI(accessToken string) (*AuthenticationData, error) {
 
 // RegisterHook is used to regsiter a web hook to Monzo++, on the given account.
 func (c *client) RegisterHook(accountID string) error {
-	target := path.Join(APIBaseURL, "webhooks")
+	target, _ := url.Parse(APIBaseURL + "webhooks")
 	body := url.Values{
 		"account_id": {accountID},
 		"url":        {getEnvVar(VarWebhookURL)},
