@@ -205,7 +205,7 @@ func (c *client) RegisterHook(accountID string) error {
 		"url":        {getEnvVar(VarWebhookURL)},
 	}
 
-	resp, err := c.http.PostForm(target, body)
+	resp, err := c.http.PostForm(target.String(), body)
 	if err == nil {
 		defer resp.Body.Close()
 	}
