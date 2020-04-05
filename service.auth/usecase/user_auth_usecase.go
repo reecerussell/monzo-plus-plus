@@ -104,10 +104,11 @@ func (uau *userAuthUsecase) GenerateToken(c *dto.UserCredential) (*jwt.AccessTok
 func (uau *userAuthUsecase) generateToken(u *model.User) (*jwt.AccessToken, errors.Error) {
 	c := new(jwt.Claims)
 	c.Set = map[string]interface{}{
-		"user_id":  u.GetID(),
-		"username": u.GetUsername(),
-		"enabled":  u.IsEnabled(),
-		"roles":    u.GetRoleNames(),
+		"user_id":     u.GetID(),
+		"username":    u.GetUsername(),
+		"enabled":     u.IsEnabled(),
+		"roles":       u.GetRoleNames(),
+		"ma_complete": u.GetToken() != nil,
 	}
 
 	exp := time.Now().UTC().Add(time.Duration(uau.config.ExpiryHours) * time.Hour)
