@@ -1,8 +1,21 @@
 import React from "react";
-import { Header, Loader, Message, List, Grid } from "semantic-ui-react";
+import {
+	Header,
+	Loader,
+	Message,
+	List,
+	Grid,
+	Button,
+	Divider,
+} from "semantic-ui-react";
 import Layout from "./layout";
+import * as User from "../../utils/user";
 
 export default function Index({ data, error, loading }) {
+	if (data === null) {
+		return null;
+	}
+
 	const dateEnabled =
 		data && data.enabled ? new Date(data.dateEnabled) : null;
 
@@ -24,6 +37,32 @@ export default function Index({ data, error, loading }) {
 
 	return (
 		<Layout>
+			{data.monzoLinked ? null : (
+				<>
+					<Message>
+						<h3>Your account is not linked to Monzo.</h3>
+						<p>
+							For plugins to work, you need to link your Monzo
+							account.
+						</p>
+						<p>
+							<Button
+								as="a"
+								href={
+									"http://localhost:9789/auth/monzo/login?id=" +
+									User.GetId()
+								}
+								style={{
+									backgroundColor: "#14233c",
+									color: "#fff",
+								}}
+							>
+								Link Monzo
+							</Button>
+						</p>
+					</Message>
+				</>
+			)}
 			<Loader active={loading} />
 			<Header as="h2">Account</Header>
 			<Grid stackable>

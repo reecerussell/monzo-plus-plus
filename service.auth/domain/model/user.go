@@ -112,6 +112,19 @@ func (u *User) GetToken() *UserToken {
 	return u.token
 }
 
+// HasValidToken returns whether the user has a valid Monzo token.
+func (u *User) HasValidToken() bool {
+	if u.token == nil {
+		return false
+	}
+
+	if u.token.accessToken == "" {
+		return false
+	}
+
+	return true
+}
+
 // Update updates the user's mutable properties, such as username.
 func (u *User) Update(d *dto.UpdateUser) errors.Error {
 	err := u.UpdateUsername(d.Username)
@@ -342,6 +355,7 @@ func (u *User) DTO() *dto.User {
 		Username:    u.username,
 		DateEnabled: u.enabled,
 		Enabled:     u.enabled != nil,
+		MonzoLinked: u.HasValidToken(),
 	}
 
 	if u.roles != nil {

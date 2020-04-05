@@ -7,6 +7,7 @@ type User struct {
 	Username    string     `json:"username"`
 	DateEnabled *time.Time `json:"dateEnabled,omitempty"`
 	Enabled     bool       `json:"enabled"`
+	MonzoLinked bool       `json:"monzoLinked"`
 
 	Roles []*Role `json:"roles,omitempty"`
 }
