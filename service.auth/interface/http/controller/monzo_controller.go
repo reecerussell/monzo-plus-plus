@@ -32,10 +32,20 @@ func NewMonzoController(ctn *di.Container, r *mux.Router) *MonzoController {
 }
 
 func (c *MonzoController) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	state := r.URL.Query().Get("state")
-	if state == "" {
+	query := r.URL.Query()
+	state, id := query.Get("state"), query.Get("id")
+	if state == "" && id == "" {
 		http.NotFound(w, r)
 		return
+	}
+
+	if id != "" {
+		var err errors.Error
+		state, err = c.userAuthUsecase.GetStateToken(id)
+		if err != nil {
+			errors.HandleHTTPError(w, r, err)
+			return
+		}
 	}
 
 	monzo.Login(w, r, state)

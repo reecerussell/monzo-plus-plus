@@ -35,6 +35,7 @@ type UserAuthUsecase interface {
 	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
 	Login(code, stateToken string) errors.Error
 	Register(d *dto.CreateUser) (string, errors.Error)
+	GetStateToken(id string) (string, errors.Error)
 }
 
 // userAuthUsecase is an implementation of the UserAuthUsecase interface.
@@ -243,6 +244,17 @@ func (uau *userAuthUsecase) Register(d *dto.CreateUser) (string, errors.Error) {
 	}
 
 	err = uau.repo.Insert(u)
+	if err != nil {
+		return "", err
+	}
+
+	return u.GetStateToken(), nil
+}
+
+// GetStateToken returns a user's state token. An error is returned
+// if the user does not exist.
+func (uau *userAuthUsecase) GetStateToken(id string) (string, errors.Error) {
+	u, err := uau.repo.Get(id)
 	if err != nil {
 		return "", err
 	}
