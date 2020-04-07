@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/gorilla/mux"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
@@ -19,56 +21,16 @@ type MonzoController struct {
 	usecase usecase.UserUsecase
 }
 
-func NewMonzoController() *MonzoController {
-	return &MonzoController{}
-}
+func NewMonzoController(ctn *di.Container, r *mux.Router) *MonzoController {
+	u := ctn.Resolve(registry.UserUsecaseService).(usecase.UserUsecase)
 
-func (c *MonzoController) Apply(ctn *di.Container, m *http.ServeMux) {
-	c.usecase = ctn.Resolve(registry.UserUsecaseService).(usecase.UserUsecase)
-
-	m.HandleFunc("/monzo", c.Login)
-	m.HandleFunc("/monzo/callback", c.LoginCallback)
-	m.HandleFunc("/monzo/success", c.Success)
-	m.HandleFunc("/monzo/hook", c.HandleEvent)
-}
-
-func (c *MonzoController) Login(w http.ResponseWriter, r *http.Request) {
-	log.Println("Before new user")
-	u, err := c.usecase.New()
-	if err != nil {
-		panic(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
+	c := &MonzoController{
+		usecase: u,
 	}
 
-	log.Println("Before monzo login")
+	r.HandleFunc("/monzo/hook", c.HandleEvent).Methods("POST")
 
-	mc := monzo.NewClient()
-	mc.Login(w, r, u.GetStateToken())
-}
-
-func (c *MonzoController) LoginCallback(w http.ResponseWriter, r *http.Request) {
-	vals := r.URL.Query()
-	code := vals.Get("code")
-	state := vals.Get("state")
-
-	log.Printf("[%s] /monzo/callback\n", r.Method)
-	log.Printf("\t code: %s\n", code)
-	log.Printf("\t state: %s\n", state)
-
-	err := c.usecase.Login(code, state)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	http.Redirect(w, r, "/monzo/success", http.StatusPermanentRedirect)
-}
-
-func (c *MonzoController) Success(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("success"))
+	return c
 }
 
 func (c *MonzoController) HandleEvent(w http.ResponseWriter, r *http.Request) {

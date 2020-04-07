@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/service.mpp/interface/http/controller"
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/plugin"
 )
 
 // Environemt variables
@@ -18,26 +19,25 @@ var (
 )
 
 type Server struct {
-	mux *http.ServeMux
-	s   *http.Server
+	r *mux.Router
+	s *http.Server
 }
 
 func NewServer(ctn *di.Container) *Server {
-	mux := &http.ServeMux{}
+	r := mux.NewRouter().StrictSlash(false)
 
-	controller.NewMonzoController().Apply(ctn, mux)
-	mux.HandleFunc("/auth/", controller.AuthProxy())
-	mux.HandleFunc("/api/plugins/", controller.PluginProxy())
-	mux.Handle("/api/plugin/", plugin.Handler())
+	_ = controller.NewMonzoController(ctn, r)
+	_ = controller.NewAuthController(r)
+	_ = controller.NewPluginController(r)
 
 	return &Server{
-		mux: mux,
-		s:   &http.Server{},
+		r: r,
+		s: &http.Server{},
 	}
 }
 
 func (s *Server) Serve() {
-	s.s.Handler = s.mux
+	s.s.Handler = s.r
 	s.s.Addr = fmt.Sprintf(":%s", HTTPPort)
 
 	log.Fatal(s.s.ListenAndServe())

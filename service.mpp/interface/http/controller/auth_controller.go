@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // Environment variables.
@@ -13,14 +15,25 @@ var (
 	AuthHTTPHost = os.Getenv("AUTH_HTTP_HOST")
 )
 
-// AuthProxy is a http.HandlerFunc that returns a handler to reverse proxy to the auth service.
-func AuthProxy() http.HandlerFunc {
-	remote, _ := url.Parse(AuthHTTPHost)
-	proxy := httputil.NewSingleHostReverseProxy(remote)
+type AuthController struct {
+	auth *httputil.ReverseProxy
+}
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.Replace(r.URL.Path, "/auth", "", 1)
+func NewAuthController(r *mux.Router) *AuthController {
+	host, _ := url.Parse(AuthHTTPHost)
 
-		proxy.ServeHTTP(w, r)
-	})
+	c := &AuthController{
+		auth: httputil.NewSingleHostReverseProxy(host),
+	}
+
+	r.HandleFunc("/auth/", c.HandleAuthAPI)
+
+	return c
+}
+
+// HandleAuthAPI handles request to the Auth service using a reverse proxy.
+func (c *AuthController) HandleAuthAPI(w http.ResponseWriter, r *http.Request) {
+	r.URL.Path = strings.Replace(r.URL.Path, "/auth", "", 1)
+
+	c.auth.ServeHTTP(w, r)
 }
