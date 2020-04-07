@@ -57,5 +57,7 @@ func (rs *RegistryService) GetHost(ctx context.Context, in *proto.GetHostType) (
 		}, nil
 	}
 
-	return nil, nil
+	return &proto.HostResponseType{
+		Host: "",
+	}, nil
 }
