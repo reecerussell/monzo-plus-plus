@@ -41,6 +41,16 @@ func (r *Route) getVars(path string) map[string]string {
 	return vars
 }
 
+// Vars returns a set of variables for a given request.
+func Vars(r *http.Request) map[string]string {
+	route := r.Context().Value(routeContextKey).(*Route)
+	if route == nil {
+		return nil
+	}
+
+	return route.getVars(r.URL.Path)
+}
+
 // Router is used to handle incoming HTTP requests and map them to
 // a matching route.
 type Router struct {
