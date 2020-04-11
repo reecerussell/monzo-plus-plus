@@ -1,6 +1,8 @@
 package model
 
-import "fmt"
+import (
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+)
 
 type Preferences struct {
 	userID string
@@ -26,9 +28,9 @@ func (p *Preferences) GetMonthlyBudget() int {
 }
 
 // UpdateMonthlyBudget updates the monthly budget.
-func (p *Preferences) UpdateMonthlyBudget(budget int) error {
+func (p *Preferences) UpdateMonthlyBudget(budget int) errors.Error {
 	if budget < 100 {
-		return fmt.Errorf("monthly budget cannot be less than 100")
+		return errors.BadRequest("monthly budget cannot be less than 100")
 	}
 
 	p.monthlyBudget = budget
