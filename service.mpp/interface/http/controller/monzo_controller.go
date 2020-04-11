@@ -28,7 +28,7 @@ func NewMonzoController(ctn *di.Container, r *routing.Router) *MonzoController {
 		usecase: u,
 	}
 
-	r.GetFunc("/monzo/hook", c.HandleEvent)
+	r.PostFunc("/monzo/hook", c.HandleEvent)
 
 	return c
 }
