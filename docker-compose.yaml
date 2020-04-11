@@ -16,7 +16,7 @@ services:
             - "RPC_PORT=8080"
             - "NAME=budget"
             - "HOSTNAME=plugin.budget"
-            - "REGISTRY_HOST=registry"
+            - "REGISTRY_HOST=registry:8080"
         networks:
             - monzo
         depends_on:
@@ -27,7 +27,7 @@ services:
             context: .
             dockerfile: service.registry/Dockerfile
         environment:
-            - "RPC_PORT:8080"
+            - "RPC_PORT=8080"
         networks:
             - monzo
 
@@ -80,6 +80,7 @@ services:
             - "AUTH_HTTP_HOST=http://auth:80"
             - "PLUGINS_HTTP_HOST=http://plugins:80"
             - "MONZO_WEBHOOK_URL="
+            - "REGISTRY_HOST=registry:8080"
         networks:
             - monzo
         depends_on:
