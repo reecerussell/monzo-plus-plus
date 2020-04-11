@@ -9,15 +9,15 @@ import (
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/libraries/jwt"
+	"github.com/reecerussell/monzo-plus-plus/libraries/permission/proto"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
-	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/rpc/proto"
+
 	"google.golang.org/grpc"
 )
 
 var (
-	mu          = sync.RWMutex{}
-	urls        = []string{}
-	validTokens = make(map[string]time.Time)
+	mu   = sync.RWMutex{}
+	urls = []string{}
 
 	errNoAuthHeader          = errors.Unauthorised("no authorization header")
 	errMalformedAuthHeader   = errors.Unauthorised("malformed authorization header")
@@ -102,14 +102,6 @@ func populateContext(ctx context.Context, token string) context.Context {
 }
 
 func validateToken(accessToken string) bool {
-	if expires, ok := validTokens[accessToken]; ok {
-		if time.Now().Unix() < expires.Unix() {
-			return true
-		}
-
-		delete(validTokens, accessToken)
-	}
-
 	conn, err := grpc.Dial(AuthRPCAddress, grpc.WithInsecure())
 	if err != nil {
 		return false
@@ -129,11 +121,5 @@ func validateToken(accessToken string) bool {
 		return false
 	}
 
-	if pErr.GetStatusCode() != 200 {
-		return false
-	}
-
-	validTokens[accessToken] = time.Now().Add(time.Minute * 5)
-
-	return true
+	return pErr.GetStatusCode() == 200
 }
