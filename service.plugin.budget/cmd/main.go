@@ -11,7 +11,10 @@ import (
 )
 
 func main() {
-	bootstrap.Register(os.Getenv("NAME"), os.Getenv("HOSTNAME"))
+	err := bootstrap.Register(os.Getenv("NAME"), os.Getenv("HOSTNAME"))
+	if err != nil {
+		panic(err)
+	}
 	defer bootstrap.Unregister(os.Getenv("NAME"))
 
 	ctn := registry.Build()
