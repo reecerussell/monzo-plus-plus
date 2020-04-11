@@ -50,9 +50,9 @@ func (bs *BudgetService) Calculate(ctx context.Context, data *proto.CalculateDat
 	}
 	log.Printf("Spent today: %d\n", spentToday)
 
-	monthlyBudget, err := bs.pu.GetMonthlyBudget(data.GetUserID())
-	if err != nil {
-		return nil, fmt.Errorf("mb: %v", err)
+	monthlyBudget, mbErr := bs.pu.GetMonthlyBudget(data.GetUserID())
+	if mbErr != nil {
+		return nil, fmt.Errorf("mb: %v", mbErr.Text())
 	}
 	log.Printf("Monthly budget: %d\n", monthlyBudget)
 
@@ -170,7 +170,7 @@ func (bs *BudgetService) getSpentToday(accountID, accessToken string) (int, erro
 
 func (bs *BudgetService) sendFeedItem(accountID, accessToken string, budget float64) error {
 	var message, more string
-	var textColour string = "#333333"
+	textColour := "#333333"
 	switch true {
 	case budget < 0:
 		budget = budget * -1

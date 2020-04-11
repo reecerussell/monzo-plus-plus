@@ -4,49 +4,34 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/domain/dto"
+	"github.com/reecerussell/monzo-plus-plus/libraries/di"
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 
+	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/usecase"
-
-	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 )
 
 type PreferencesController struct {
 	pu usecase.PreferencesUsecase
 }
 
-func NewPreferencesController(ctn *di.Container, m *http.ServeMux) *PreferencesController {
+func NewPreferencesController(ctn *di.Container, r *routing.Router) *PreferencesController {
 	pu := ctn.Resolve(registry.PreferencesUsecaseService).(usecase.PreferencesUsecase)
 
-	pc := &PreferencesController{
+	c := &PreferencesController{
 		pu: pu,
 	}
 
-	m.HandleFunc("/preferences", pc.router)
+	r.GetFunc("/preferences", c.HandleGet)
+	r.PutFunc("/preferences", c.HandleUpdate)
 
-	return pc
-}
-
-func (pc *PreferencesController) router(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		pc.HandleGet(w, r)
-		break
-	case http.MethodPut:
-		pc.HandleUpdate(w, r)
-		break
-	default:
-		w.WriteHeader(http.StatusNotFound)
-		break
-	}
+	return c
 }
 
 func (pc *PreferencesController) HandleGet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+	w.Header().Set("Content-Type", "application/json")
 
 	userID := r.URL.Query().Get("userId")
 	if userID == "" {
@@ -54,10 +39,9 @@ func (pc *PreferencesController) HandleGet(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	p, err := pc.pu.Get(userID)
+	p, err := pc.pu.Get(r.Context(), userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		errors.HandleHTTPError(w, r, err)
 		return
 	}
 
@@ -65,18 +49,13 @@ func (pc *PreferencesController) HandleGet(w http.ResponseWriter, r *http.Reques
 }
 
 func (pc *PreferencesController) HandleUpdate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+	w.Header().Set("Content-Type", "application/json")
 
 	var data dto.Preferences
 	_ = json.NewDecoder(r.Body).Decode(&data)
 
-	err := pc.pu.Update(&data)
+	err := pc.pu.Update(r.Context(), &data)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
+		errors.HandleHTTPError(w, r, err)
 	}
 }

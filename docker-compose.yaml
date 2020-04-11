@@ -17,6 +17,8 @@ services:
             - "NAME=budget"
             - "HOSTNAME=plugin.budget"
             - "REGISTRY_HOST=registry:8080"
+            - "HTTP_ERROR=DEBUG"
+            - "AUTH_RPC_ADDRESS=auth:8080"
         networks:
             - monzo
         depends_on:
