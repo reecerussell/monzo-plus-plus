@@ -6,7 +6,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 
@@ -60,6 +59,6 @@ func (c *PluginController) HandlePlugin(w http.ResponseWriter, r *http.Request) 
 		proxy = c.hosts[name]
 	}
 
-	r.URL.Path = strings.Replace(r.URL.Path, fmt.Sprintf("/api/plugin/%s", name), "", 1)
-	proxy.ServeHTTP(w, r)
+	handler := http.StripPrefix(fmt.Sprintf("/api/plugin/%s", name), proxy)
+	handler.ServeHTTP(w, r)
 }
