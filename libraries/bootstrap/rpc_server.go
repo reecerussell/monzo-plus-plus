@@ -35,6 +35,7 @@ func (rs *RPCServer) Serve() {
 	s := make(chan struct{})
 	go rs.listenForShutdown()
 
+	log.Printf("RPC Server listening on: %s\n", lis.Addr().String())
 	if err := rs.base.Serve(lis); err != nil {
 		log.Fatalf("rpc: serve: %v", err)
 	}
