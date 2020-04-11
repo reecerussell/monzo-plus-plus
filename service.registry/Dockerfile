@@ -3,6 +3,7 @@ FROM golang:alpine as builder
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh ca-certificates
 
+COPY libraries/ /go/src/github.com/reecerussell/monzo-plus-plus/libraries/
 COPY service.registry/ /go/src/github.com/reecerussell/monzo-plus-plus/service.registry/
 
 WORKDIR /go/src/github.com/reecerussell/monzo-plus-plus/service.registry
