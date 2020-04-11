@@ -21,6 +21,18 @@ func NewPermissionService(ctn *di.Container) *PermissionService {
 	return &PermissionService{uu}
 }
 
+func (ps *PermissionService) ValidateToken(ctx context.Context, in *proto.TokenData) (*proto.Error, error) {
+	err := ps.userAuthUsecase.ValidateToken(in.GetAccessToken())
+	if err != nil {
+		return &proto.Error{
+			Message:    err.Text(),
+			StatusCode: int32(err.ErrorCode()),
+		}, nil
+	}
+
+	return &proto.Error{StatusCode: 200}, nil
+}
+
 func (ps *PermissionService) HasPermission(ctx context.Context, in *proto.PermissionData) (*proto.Error, error) {
 	ctx, err := ps.userAuthUsecase.WithUser(ctx, in.GetAccessToken())
 	if err != nil {
