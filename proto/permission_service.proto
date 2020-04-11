@@ -7,11 +7,16 @@ message PermissionData {
     int32 Permission = 2;
 }
 
+message TokenData {
+    string AccessToken = 1;
+}
+
 message Error {
     string Message = 1;
     int32 StatusCode = 2;
 }
 
 service PermissionService {
+    rpc ValidateToken(TokenData) returns (Error) {}
     rpc HasPermission(PermissionData) returns (Error) {}
 }
