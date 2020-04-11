@@ -7,7 +7,7 @@ import (
 )
 
 var testRoutes = map[string]string{
-	"/api/plugin/{name}/": "/api/plugin/budget/he",
+	"/api/plugin/{name}/": "/api/plugin/budget/preferences",
 }
 
 var testHandler = func(w http.ResponseWriter, r *http.Request) {
@@ -30,12 +30,12 @@ func TestMatch(t *testing.T) {
 }
 
 func TestVars(t *testing.T) {
-	r := &Route{Template: "/api/user"}
-	id := "hello"
-	vars := r.getVars(fmt.Sprintf("/api/user/%s", id))
+	r := &Route{Template: "/api/plugin/{name}/"}
+	name := "budget"
+	vars := r.getVars(fmt.Sprintf("/api/plugin/%s/preferences", name))
 
-	if v, ok := vars["id"]; !ok || v != id {
-		t.Errorf("expected '%s' but got '%s'", id, v)
+	if v, ok := vars["name"]; !ok || v != name {
+		t.Errorf("expected '%s' but got '%s'", name, v)
 		return
 	}
 }
