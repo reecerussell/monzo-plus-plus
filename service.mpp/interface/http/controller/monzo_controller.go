@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/gorilla/mux"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
@@ -21,14 +21,14 @@ type MonzoController struct {
 	usecase usecase.UserUsecase
 }
 
-func NewMonzoController(ctn *di.Container, r *mux.Router) *MonzoController {
+func NewMonzoController(ctn *di.Container, r *routing.Router) *MonzoController {
 	u := ctn.Resolve(registry.UserUsecaseService).(usecase.UserUsecase)
 
 	c := &MonzoController{
 		usecase: u,
 	}
 
-	r.HandleFunc("/monzo/hook", c.HandleEvent).Methods("POST")
+	r.GetFunc("/monzo/hook", c.HandleEvent)
 
 	return c
 }

@@ -8,7 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 )
@@ -23,7 +24,7 @@ type PluginController struct {
 	plugins *httputil.ReverseProxy
 }
 
-func NewPluginController(r *mux.Router) *PluginController {
+func NewPluginController(r *routing.Router) *PluginController {
 	pluginsURL, _ := url.Parse(PluginsHTTPHost)
 
 	c := &PluginController{
@@ -31,26 +32,15 @@ func NewPluginController(r *mux.Router) *PluginController {
 		plugins: httputil.NewSingleHostReverseProxy(pluginsURL),
 	}
 
-	r.HandleFunc("/api/plugins/", c.HandlePlugins)
-	r.HandleFunc("/api/plguin/{name}", c.HandlePluginAPI)
+	r.Handle("/api/plugins/", http.StripPrefix("/api/plugins/", c.plugins))
+	r.HandleFunc("/api/plugin/{name}/", c.HandlePlugin)
 
 	return c
 }
 
-// HandlePlugins handles HTTP requests to /api/plugins and forwards the requests to the plugins api.
-func (c *PluginController) HandlePlugins(w http.ResponseWriter, r *http.Request) {
-	r.URL.Path = strings.Replace(r.URL.Path, "/api/plugins", "", 1)
-
-	c.plugins.ServeHTTP(w, r)
-}
-
-// HandlePluginAPI acts as a reverse proxy to internal plugin APIs.
-func (c *PluginController) HandlePluginAPI(w http.ResponseWriter, r *http.Request) {
-	name := mux.Vars(r)["name"]
-	if name == "" {
-		http.NotFound(w, r)
-		return
-	}
+// HandlePlugin acts as a reverse proxy to internal plugin APIs.
+func (c *PluginController) HandlePlugin(w http.ResponseWriter, r *http.Request) {
+	name := routing.Vars(r)["name"]
 
 	proxy, ok := c.hosts[name]
 	if !ok {
@@ -61,11 +51,11 @@ func (c *PluginController) HandlePluginAPI(w http.ResponseWriter, r *http.Reques
 		}
 
 		if host == "" {
-			http.NotFound(w, r)
+			errors.HandleHTTPError(w, r, errors.NotFound("host is empty"))
 			return
 		}
 
-		url, _ := url.Parse(host)
+		url, _ := url.Parse(fmt.Sprintf("http://%s", host))
 		c.hosts[name] = httputil.NewSingleHostReverseProxy(url)
 		proxy = c.hosts[name]
 	}
