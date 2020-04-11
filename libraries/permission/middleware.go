@@ -5,21 +5,24 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-
-	"github.com/reecerussell/monzo-plus-plus/libraries/util"
-
-	"github.com/reecerussell/monzo-plus-plus/libraries/jwt"
+	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/jwt"
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
+	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/rpc/proto"
+	"google.golang.org/grpc"
 )
 
 var (
-	mu   = sync.RWMutex{}
-	urls = []string{}
+	mu          = sync.RWMutex{}
+	urls        = []string{}
+	validTokens = make(map[string]time.Time)
 
 	errNoAuthHeader          = errors.Unauthorised("no authorization header")
 	errMalformedAuthHeader   = errors.Unauthorised("malformed authorization header")
 	errUnsupportedAuthScheme = errors.Unauthorised("unsupported authorization scheme")
+	errInvalidAuthToken      = errors.Unauthorised("invalid auth token")
 )
 
 // IgnoreURL adds a string to the ignore list.
@@ -53,6 +56,11 @@ func Middleware(h http.Handler) http.Handler {
 
 		if p[0] != "Bearer" {
 			errors.HandleHTTPError(w, r, errUnsupportedAuthScheme)
+			return
+		}
+
+		if !validateToken(p[1]) {
+			errors.HandleHTTPError(w, r, errInvalidAuthToken)
 			return
 		}
 
@@ -91,4 +99,41 @@ func populateContext(ctx context.Context, token string) context.Context {
 	}
 
 	return ctx
+}
+
+func validateToken(accessToken string) bool {
+	if expires, ok := validTokens[accessToken]; ok {
+		if time.Now().Unix() < expires.Unix() {
+			return true
+		}
+
+		delete(validTokens, accessToken)
+	}
+
+	conn, err := grpc.Dial(AuthRPCAddress, grpc.WithInsecure())
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+
+	client := proto.NewPermissionServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	data := &proto.TokenData{
+		AccessToken: accessToken,
+	}
+
+	pErr, err := client.ValidateToken(ctx, data)
+	if err != nil {
+		return false
+	}
+
+	if pErr.GetStatusCode() != 200 {
+		return false
+	}
+
+	validTokens[accessToken] = time.Now().Add(time.Minute * 5)
+
+	return true
 }
