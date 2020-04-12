@@ -218,10 +218,11 @@ func (c *client) RegisterHook(accountID, accessToken string) error {
 
 	req, _ := http.NewRequest(http.MethodPost, target.String(), strings.NewReader(body.Encode()))
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to make request: %v", err)
 	}
 	defer resp.Body.Close()
 

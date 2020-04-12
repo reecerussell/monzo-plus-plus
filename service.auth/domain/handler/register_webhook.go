@@ -19,7 +19,7 @@ type RegisterWebhook struct{}
 func (*RegisterWebhook) Invoke(ctx context.Context, tx *sql.Tx, e interface{}) errors.Error {
 	evt := e.(*event.RegisterWebhook)
 
-	err := monzo.RegisterHook(evt.AccessToken, evt.AccountID)
+	err := monzo.RegisterHook(evt.AccountID, evt.AccessToken)
 	if err != nil {
 		return errors.InternalError(fmt.Errorf("register webhook: %v", err))
 	}

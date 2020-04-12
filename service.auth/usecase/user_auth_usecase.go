@@ -279,7 +279,7 @@ func (uau *userAuthUsecase) GetMonzoAccessToken(id string) (string, errors.Error
 
 	accessToken := td.GetAccessToken()
 
-	if time.Now().UTC().Unix() > td.GetExpiryDate().UTC().Unix() {
+	if td.GetExpiryDate().Before(time.Now().UTC()) {
 		ac, err := monzo.RefreshAccessToken(td.GetRefreshToken())
 		if err != nil {
 			u.ClearToken()
