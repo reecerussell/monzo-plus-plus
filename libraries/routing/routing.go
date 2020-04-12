@@ -116,6 +116,12 @@ func (rtr *Router) HandleFunc(tpl string, hlr http.HandlerFunc, mtds ...string) 
 	return rtr.newRoute(tpl, http.Handler(hlr), mtds...)
 }
 
+// HandleProxy creates a new route with handles HTTP request for methods:
+// GET, POST, PUT, DELETE, OPTIONS. This is idea for reverse proxies.
+func (rtr *Router) HandleProxy(tlp string, hlr http.Handler) *Route {
+	return rtr.newRoute(tlp, hlr, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions)
+}
+
 // newRoute adds a new route to the router.
 func (rtr *Router) newRoute(tpl string, hlr http.Handler, mtds ...string) *Route {
 	rtr.mu.RLock()

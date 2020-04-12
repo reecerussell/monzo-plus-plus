@@ -31,8 +31,8 @@ func NewPluginController(r *routing.Router) *PluginController {
 		plugins: httputil.NewSingleHostReverseProxy(pluginsURL),
 	}
 
-	r.Handle("/api/plugins/", http.StripPrefix("/api/plugins/", c.plugins), http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete)
-	r.HandleFunc("/api/plugin/{name}/", c.HandlePlugin, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete)
+	r.HandleProxy("/api/plugins/", http.StripPrefix("/api/plugins/", c.plugins))
+	r.HandleProxy("/api/plugin/{name}/", http.Handler(http.HandlerFunc(c.HandlePlugin)))
 
 	return c
 }

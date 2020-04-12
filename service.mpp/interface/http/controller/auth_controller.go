@@ -22,7 +22,7 @@ func NewAuthController(r *routing.Router) *AuthController {
 	host, _ := url.Parse(AuthHTTPHost)
 	proxy := httputil.NewSingleHostReverseProxy(host)
 
-	r.Handle("/auth/", http.StripPrefix("/auth/", proxy), http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete)
+	r.HandleProxy("/auth/", http.StripPrefix("/auth/", proxy))
 
 	return new(AuthController)
 }
