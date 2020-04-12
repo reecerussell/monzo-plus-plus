@@ -23,19 +23,30 @@ const (
 
 type HTTPServer struct {
 	base     *http.Server
+	cors     bool
 	shutdown chan int
 }
 
 func BuildServer(s *http.Server) *HTTPServer {
 	return &HTTPServer{
 		base:     s,
+		cors:     true,
 		shutdown: make(chan int),
 	}
 }
 
+func (hs *HTTPServer) CORS(enabled bool) {
+	hs.cors = enabled
+}
+
 func (hs *HTTPServer) Serve() {
 	hs.base.Addr = fmt.Sprintf(":%s", HTTPPort)
-	hs.base.Handler = panicHandler(corsHandler(hs.base.Handler))
+
+	if hs.cors {
+		hs.base.Handler = panicHandler(corsHandler(hs.base.Handler))
+	} else {
+		hs.base.Handler = panicHandler(hs.base.Handler)
+	}
 
 	sc := make(chan struct{})
 	go hs.listenForShutdown()

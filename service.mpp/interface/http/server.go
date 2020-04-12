@@ -19,8 +19,11 @@ func Build(ctn *di.Container) *bootstrap.HTTPServer {
 	_ = controller.NewAuthController(r)
 	_ = controller.NewPluginController(r)
 
-	return bootstrap.BuildServer(&http.Server{
+	s := bootstrap.BuildServer(&http.Server{
 		Handler: r,
 		Addr:    fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")),
 	})
+	s.CORS(false)
+
+	return s
 }
