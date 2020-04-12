@@ -1,6 +1,8 @@
 package datamodel
 
 import (
+	"database/sql"
+
 	"github.com/go-sql-driver/mysql"
 )
 
@@ -12,4 +14,5 @@ type User struct {
 	PasswordHash string
 	StateToken   string
 	Enabled      mysql.NullTime
+	AccountID    sql.NullString
 }

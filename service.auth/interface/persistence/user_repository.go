@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
@@ -208,6 +209,7 @@ func readUser(s scannerFunc) (*datamodel.User, errors.Error) {
 		&dm.PasswordHash,
 		&dm.StateToken,
 		&dm.Enabled,
+		&dm.AccountID,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -290,13 +292,14 @@ func (ur *userRepository) Insert(u *model.User) errors.Error {
 
 func (ur *userRepository) Update(u *model.User) errors.Error {
 	dm := u.DataModel()
-	query := "UPDATE users SET username = ?, state_token = ?, password_hash = ?, enabled = ? WHERE id = ?;"
+	query := "CALL update_user(?,?,?,?,?,?);"
 	args := []interface{}{
+		dm.ID,
 		dm.Username,
+		dm.AccountID,
 		dm.StateToken,
 		dm.PasswordHash,
 		dm.Enabled,
-		dm.ID,
 	}
 
 	openErr := ur.openConnection()

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"regexp"
@@ -38,6 +39,7 @@ type User struct {
 	passwordHash string
 	stateToken   string
 	enabled      *time.Time
+	accountID    *string
 
 	roles []*Role
 	token *UserToken
@@ -309,6 +311,17 @@ func (u *User) DataModel() *datamodel.User {
 		}
 	}
 
+	if u.accountID == nil {
+		dm.AccountID = sql.NullString{
+			Valid: false,
+		}
+	} else {
+		dm.AccountID = sql.NullString{
+			Valid:  true,
+			String: *u.accountID,
+		}
+	}
+
 	return dm
 }
 
@@ -331,6 +344,12 @@ func UserFromDataModel(dm *datamodel.User, rdm []*datamodel.Role, tdm *datamodel
 		u.enabled = &dm.Enabled.Time
 	} else {
 		u.enabled = nil
+	}
+
+	if dm.AccountID.Valid {
+		u.accountID = &dm.AccountID.String
+	} else {
+		u.accountID = nil
 	}
 
 	if rdm != nil {
@@ -356,6 +375,7 @@ func (u *User) DTO() *dto.User {
 		DateEnabled: u.enabled,
 		Enabled:     u.enabled != nil,
 		MonzoLinked: u.HasValidToken(),
+		AccountID:   u.accountID,
 	}
 
 	if u.roles != nil {

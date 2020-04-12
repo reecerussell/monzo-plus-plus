@@ -8,6 +8,7 @@ type User struct {
 	DateEnabled *time.Time `json:"dateEnabled,omitempty"`
 	Enabled     bool       `json:"enabled"`
 	MonzoLinked bool       `json:"monzoLinked"`
+	AccountID   *string    `json:"accountId"`
 
 	Roles []*Role `json:"roles,omitempty"`
 }
