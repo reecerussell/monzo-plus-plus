@@ -30,6 +30,7 @@ var (
 // validate JSON-Web tokens.
 type UserAuthUsecase interface {
 	GenerateToken(c *dto.UserCredential) (*jwt.AccessToken, errors.Error)
+	RefreshToken(ctx context.Context) (*jwt.AccessToken, errors.Error)
 	ValidateToken(accessToken string) errors.Error
 	ValidateCredentials(c *dto.UserCredential) (*model.User, errors.Error)
 	WithUser(ctx context.Context, accessToken string) (context.Context, errors.Error)
@@ -92,6 +93,14 @@ func (uau *userAuthUsecase) GenerateToken(c *dto.UserCredential) (*jwt.AccessTok
 	}
 
 	return uau.generateToken(u)
+}
+
+// RefreshToken is used to regenerate an access token to either extend its
+// life or refresh its claims payload.
+//
+// An error will be returned if there was an issue with generating a fresh token.
+func (uau *userAuthUsecase) RefreshToken(ctx context.Context) (*jwt.AccessToken, errors.Error) {
+	return uau.generateToken(ctx.Value(util.ContextKey("user")).(*model.User))
 }
 
 // generateToken is used to generate the given user, u, an OAuth2

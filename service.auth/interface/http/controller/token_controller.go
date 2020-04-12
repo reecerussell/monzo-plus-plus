@@ -25,14 +25,13 @@ func NewTokenController(ctn *di.Container, r *mux.Router) *TokenController {
 	}
 
 	r.HandleFunc("/token", c.HandleToken).Methods("POST")
+	r.HandleFunc("/refresh", c.HandleRefresh).Methods("GET")
 
 	return c
 }
 
 // HandleToken handles HTTP POST requests to generate a JSON-Web token, for the
 // given credentials.
-//
-// TODO: create a token struct, to include expiry dates etc.
 func (c *TokenController) HandleToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -40,6 +39,19 @@ func (c *TokenController) HandleToken(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&cred)
 
 	token, err := c.uau.GenerateToken(&cred)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(&token)
+}
+
+// HandleRefresh is used to refresh an access token.
+func (c *TokenController) HandleRefresh(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	token, err := c.uau.RefreshToken(r.Context())
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 		return
