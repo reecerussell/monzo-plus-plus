@@ -17,20 +17,20 @@ const SetAccessToken = (token, expires) => {
 		";path=/;expires=" +
 		d.toGMTString();
 
-	LoginSubscriptions.forEach(v => v());
+	LoginSubscriptions.forEach((v) => v());
 };
 
 const Logout = () => {
 	SetAccessToken(null, -1);
 
-	LogoutSubscriptions.forEach(v => v());
+	LogoutSubscriptions.forEach((v) => v());
 };
 
 const IsAuthenticated = () => {
 	return GetAccessToken() !== null;
 };
 
-const IsInRole = roleName => {
+const IsInRole = (roleName) => {
 	if (!IsAuthenticated()) {
 		return false;
 	}
@@ -42,7 +42,7 @@ const IsInRole = roleName => {
 
 	let roles = [];
 	if (payload.roles) {
-		roles = payload.roles.map(name => name.toLowerCase());
+		roles = payload.roles.map((name) => name.toLowerCase());
 	}
 
 	return roles.indexOf(roleName.toLowerCase()) > -1;
@@ -52,7 +52,9 @@ const GetUsername = () => getClaim("username") ?? "User";
 
 const GetId = () => getClaim("user_id");
 
-const getClaim = claimName => {
+const HasAccount = () => getClaim("has_account") == true;
+
+const getClaim = (claimName) => {
 	const payload = getCurrentPayload();
 	if (!payload) {
 		return null;
@@ -85,13 +87,14 @@ const SubscribeLogin = (name, callback) =>
 const SubscribeLogout = (name, callback) =>
 	LogoutSubscriptions.set(name, callback);
 
-const UnsubscripeLogin = name => LoginSubscriptions.delete(name);
-const UnsubscribeLogout = name => LogoutSubscriptions.delete(name);
+const UnsubscripeLogin = (name) => LoginSubscriptions.delete(name);
+const UnsubscribeLogout = (name) => LogoutSubscriptions.delete(name);
 
 export {
 	IsInRole,
 	GetUsername,
 	GetId,
+	HasAccount,
 	IsAuthenticated,
 	SetAccessToken,
 	SubscribeLogin,

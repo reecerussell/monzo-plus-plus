@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createRef } from "react";
 import { Menu, Sticky, Ref, Grid, Header, Divider } from "semantic-ui-react";
 import { Redirect, useLocation } from "react-router-dom";
+import * as User from "../../utils/user";
 
 const Layout = ({ children }) => {
 	const { pathname } = useLocation();
@@ -30,40 +31,57 @@ const Layout = ({ children }) => {
 						<Ref innerRef={contextRef}>
 							<Sticky context={contextRef}>
 								<Menu vertical fluid>
-									<Menu.Item
-										name={"Details"}
-										active={activePath === "/account"}
-										onClick={() => setPath("/account")}
-									/>
-									<Menu.Item
-										name={"Change Password"}
-										active={
-											activePath ===
-											"/account/changepassword"
-										}
-										onClick={() =>
-											setPath("/account/changepassword")
-										}
-									/>
-									<Menu.Item
-										name={"Plugins"}
-										active={
-											activePath === "/account/plugins"
-										}
-										onClick={() =>
-											setPath("/account/plugins")
-										}
-									/>
-									<Menu.Item
-										name={"Delete"}
-										color="red"
-										active={
-											activePath === "/account/delete"
-										}
-										onClick={() =>
-											setPath("/account/delete")
-										}
-									/>
+									{User.HasAccount() ? (
+										<>
+											<Menu.Item
+												name={"Details"}
+												active={
+													activePath === "/account"
+												}
+												onClick={() =>
+													setPath("/account")
+												}
+											/>
+											<Menu.Item
+												name={"Change Password"}
+												active={
+													activePath ===
+													"/account/changepassword"
+												}
+												onClick={() =>
+													setPath(
+														"/account/changepassword"
+													)
+												}
+											/>
+											<Menu.Item
+												name={"Plugins"}
+												active={
+													activePath ===
+													"/account/plugins"
+												}
+												onClick={() =>
+													setPath("/account/plugins")
+												}
+											/>
+											<Menu.Item
+												name={"Delete"}
+												color="red"
+												active={
+													activePath ===
+													"/account/delete"
+												}
+												onClick={() =>
+													setPath("/account/delete")
+												}
+											/>
+										</>
+									) : (
+										<Menu.Item
+											name="Select an account"
+											active={true}
+										/>
+									)}
 								</Menu>
 							</Sticky>
 						</Ref>

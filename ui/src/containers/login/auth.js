@@ -1,9 +1,9 @@
 import React from "react";
-import { Redirect } from "react-router-dom";
+import { Redirect, useLocation } from "react-router-dom";
 import * as User from "../../utils/user";
 import PropTypes from "prop-types";
 
-const canAccess = roles => {
+const canAccess = (roles) => {
 	for (let i = 0; i < roles.length; i++) {
 		if (User.IsInRole(roles[i])) {
 			return true;
@@ -23,14 +23,29 @@ const defaultProps = {
 };
 
 const Authorise = ({ children, roles, contentOnly }) => {
-	const loginAction = contentOnly ? null : <Redirect to="/login" />;
+	const { pathname } = useLocation();
+	let canProceed = true;
 
 	if (!User.IsAuthenticated()) {
-		return loginAction;
+		canProceed = false;
 	}
 
 	if (roles.length > 0 && !canAccess(roles)) {
-		return loginAction;
+		canProceed = false;
+	}
+
+	if (!canProceed) {
+		if (contentOnly) {
+			return null;
+		}
+
+		return <Redirect to="/login" />;
+	}
+
+	if (!contentOnly && !User.HasAccount()) {
+		if (pathname.toLowerCase() !== "/setaccount") {
+			return <Redirect to="/setAccount" />;
+		}
 	}
 
 	return children;
