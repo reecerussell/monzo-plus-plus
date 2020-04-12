@@ -54,7 +54,17 @@ const SetAccountContainer = () => {
 				setError(null);
 				setSuccess("Your changes have been saved successfully!");
 
-				setTimeout(() => setRedirect("/account"), 1500);
+				await Fetch(
+					"auth/refresh",
+					null,
+					async (res) => {
+						const { accessToken, expires } = await res.json();
+						User.SetAccessToken(accessToken, expires * 1000);
+					},
+					setError
+				);
+
+				setTimeout(() => setRedirect("/account"), 750);
 			},
 			setError
 		);
