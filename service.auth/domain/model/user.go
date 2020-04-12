@@ -28,6 +28,7 @@ func init() {
 	domain.RegisterEventHandler(&event.EnablePluginForUser{}, &handler.EnablePluginForUser{})
 	domain.RegisterEventHandler(&event.DisablePluginForUser{}, &handler.DisablePluginForUser{})
 	domain.RegisterEventHandler(&event.RegisterWebhook{}, &handler.RegisterWebhook{})
+	domain.RegisterEventHandler(&event.DeleteToken{}, &handler.DeleteToken{})
 }
 
 // User is a domain model used to manage and create user, token
@@ -224,6 +225,17 @@ func (u *User) setPassword(pwd string, service password.Service) errors.Error {
 // UpdateToken resets the user's token data with the AccessToken given.
 func (u *User) UpdateToken(d *monzo.AccessToken) {
 	u.token = NewUserToken(d)
+}
+
+// ClearToken delete the user's Monzo access token data. This is typically
+// used if it is discovered the token data is invalid and requires a user's
+// reauthentication.
+func (u *User) ClearToken() {
+	u.token = nil
+
+	u.RaiseEvent(&event.DeleteToken{
+		UserID: u.id,
+	})
 }
 
 // Enable marks the user as enabled, by setting the enabled date

@@ -282,6 +282,12 @@ func (uau *userAuthUsecase) GetMonzoAccessToken(id string) (string, errors.Error
 	if time.Now().UTC().Unix() > td.GetExpiryDate().UTC().Unix() {
 		ac, err := monzo.RefreshAccessToken(td.GetRefreshToken())
 		if err != nil {
+			u.ClearToken()
+
+			if err := uau.repo.Update(u); err != nil {
+				return "", err
+			}
+
 			return "", errors.InternalError(fmt.Errorf("failed to refresh access token: %v", err))
 		}
 
