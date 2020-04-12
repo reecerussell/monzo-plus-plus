@@ -88,6 +88,11 @@ func (u *User) IsEnabled() bool {
 	return u.enabled != nil
 }
 
+// HasAccount returns whether the user has specified an account or not.
+func (u *User) HasAccount() bool {
+	return u.accountID != nil
+}
+
 // GetRoles returns an array of the user's assigned role ids.
 func (u *User) GetRoles() []string {
 	ids := make([]string, len(u.roles))
