@@ -41,8 +41,9 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles).Methods("GET")
 	r.HandleFunc("/users/plugin", c.HandleEnablePlugin).Methods("POST")
 	r.HandleFunc("/users/plugin", c.HandleDisablePlugin).Methods("DELETE")
-	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 	r.HandleFunc("/users/account", c.HandleSetAccount).Methods("POST")
+	r.HandleFunc("/users/accounts/{id}", c.HandleGetAccounts).Methods("GET")
+	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
 
 	return c
 }
@@ -244,6 +245,20 @@ func (c *UserController) HandleDisablePlugin(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 	}
+}
+
+func (c *UserController) HandleGetAccounts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := mux.Vars(r)["id"]
+
+	accounts, err := c.userUsecase.GetAccounts(r.Context(), id)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(&accounts)
 }
 
 func (c *UserController) HandleSetAccount(w http.ResponseWriter, r *http.Request) {

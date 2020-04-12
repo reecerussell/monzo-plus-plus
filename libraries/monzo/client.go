@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -29,6 +30,8 @@ const (
 	GrantTypeAuthCode = "authorization_code"
 	// GrantTypeRefreshToken is the grant required for refreshing an access token.
 	GrantTypeRefreshToken = "refresh_token"
+
+	AccountTypeUKRetail = "uk_retail"
 
 	// ResponseTypeCode is the response type required for the authenticating a used.
 	ResponseTypeCode = "code"
@@ -75,7 +78,11 @@ type Client interface {
 	WhoAmI(accessToken string) (*AuthenticationData, error)
 
 	// RegisterHook is used to register a webhook to Monz++, on the user's account.
-	RegisterHook(accountID string) error
+	RegisterHook(accountID, accessToken string) error
+
+	// Accounts returns an array of a user's personal accounts. Only a user's
+	// own accounts will be returned; joint accounts will not be found.
+	Accounts(accessToken string) ([]*AccountData, error)
 }
 
 var (
@@ -98,8 +105,12 @@ func WhoAmI(accessToken string) (*AuthenticationData, error) {
 	return mustUseDefaultClient().WhoAmI(accessToken)
 }
 
-func RegisterHook(accountID string) error {
-	return mustUseDefaultClient().RegisterHook(accountID)
+func RegisterHook(accountID, accessToken string) error {
+	return mustUseDefaultClient().RegisterHook(accountID, accessToken)
+}
+
+func Accounts(accessToken string) ([]*AccountData, error) {
+	return mustUseDefaultClient().Accounts(accessToken)
 }
 
 func mustUseDefaultClient() Client {
@@ -198,23 +209,48 @@ func (c *client) WhoAmI(accessToken string) (*AuthenticationData, error) {
 }
 
 // RegisterHook is used to regsiter a web hook to Monzo++, on the given account.
-func (c *client) RegisterHook(accountID string) error {
+func (c *client) RegisterHook(accountID, accessToken string) error {
 	target, _ := url.Parse(APIBaseURL + "webhooks")
 	body := url.Values{
 		"account_id": {accountID},
 		"url":        {getEnvVar(VarWebhookURL)},
 	}
 
-	resp, err := c.http.PostForm(target.String(), body)
-	if err == nil {
-		defer resp.Body.Close()
+	req, _ := http.NewRequest(http.MethodPost, target.String(), strings.NewReader(body.Encode()))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return readResponseError(resp)
 	}
 
 	return nil
+}
+
+func (c *client) Accounts(accessToken string) ([]*AccountData, error) {
+	target, _ := url.Parse(APIBaseURL + fmt.Sprintf("accounts?account_type=%s", AccountTypeUKRetail))
+	req, _ := http.NewRequest(http.MethodGet, target.String(), nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, readResponseError(resp)
+	}
+
+	var list AccountList
+	_ = json.NewDecoder(resp.Body).Decode(&list)
+
+	return list.Accounts, nil
 }
 
 // reads the standard Monzo error response and returns a detailed error.

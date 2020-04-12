@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
+
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 
@@ -30,6 +32,7 @@ type UserUsecase interface {
 	GetAvailableRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
 	EnablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
 	DisablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
+	GetAccounts(ctx context.Context, id string) ([]*monzo.AccountData, errors.Error)
 	SetAccount(ctx context.Context, d *dto.UserAccount) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 }
@@ -386,6 +389,25 @@ func (uu *userUsecase) DisablePlugin(ctx context.Context, d *dto.UserPlugin) err
 	}
 
 	return nil
+}
+
+func (uu *userUsecase) GetAccounts(ctx context.Context, id string) ([]*monzo.AccountData, errors.Error) {
+	currentUserID := ctx.Value(util.ContextKey("user_id"))
+	if id != currentUserID && !permission.Has(ctx, permission.PermissionUpdateUser) {
+		return nil, errors.Forbidden()
+	}
+
+	ac, err := uu.auth.GetMonzoAccessToken(id)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts, aErr := monzo.Accounts(ac)
+	if aErr != nil {
+		return nil, errors.InternalError(aErr)
+	}
+
+	return accounts, nil
 }
 
 // SetAccount is used to configure a user's desired account. This will
