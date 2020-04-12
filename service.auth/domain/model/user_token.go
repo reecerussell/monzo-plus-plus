@@ -25,6 +25,21 @@ func NewUserToken(d *monzo.AccessToken) *UserToken {
 	}
 }
 
+// GetAccessToken returns the token's access token.
+func (ut *UserToken) GetAccessToken() string {
+	return ut.accessToken
+}
+
+// GetRefreshToken returns the token's refresh token.
+func (ut *UserToken) GetRefreshToken() string {
+	return ut.refreshToken
+}
+
+// GetExpiryDate returns the token's expiry date.
+func (ut *UserToken) GetExpiryDate() time.Time {
+	return ut.expires
+}
+
 func (ut *UserToken) DataModel() *datamodel.UserToken {
 	return &datamodel.UserToken{
 		AccessToken:  ut.accessToken,

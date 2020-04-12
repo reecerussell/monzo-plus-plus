@@ -36,6 +36,7 @@ type UserAuthUsecase interface {
 	Login(code, stateToken string) errors.Error
 	Register(d *dto.CreateUser) (string, errors.Error)
 	GetStateToken(id string) (string, errors.Error)
+	GetMonzoAccessToken(id string) (string, errors.Error)
 }
 
 // userAuthUsecase is an implementation of the UserAuthUsecase interface.
@@ -259,4 +260,38 @@ func (uau *userAuthUsecase) GetStateToken(id string) (string, errors.Error) {
 	}
 
 	return u.GetStateToken(), nil
+}
+
+// GetMonzoAccessToken is used to get a user's Monzo access token. If the user does
+// not have a Monzo access token an error is returned. However, if they do and it's
+// expired, the refresh token will be used to request a new one, which is then saved.
+func (uau *userAuthUsecase) GetMonzoAccessToken(id string) (string, errors.Error) {
+	u, err := uau.repo.Get(id)
+	if err != nil {
+		return "", err
+	}
+
+	td := u.GetToken()
+	if td == nil {
+		return "", errors.BadRequest("user is not linked to monzo")
+	}
+
+	accessToken := td.GetAccessToken()
+
+	if time.Now().UTC().Unix() > td.GetExpiryDate().UTC().Unix() {
+		ac, err := monzo.RefreshAccessToken(td.GetRefreshToken())
+		if err != nil {
+			return "", errors.InternalError(fmt.Errorf("failed to refresh access token: %v", err))
+		}
+
+		u.UpdateToken(ac)
+
+		if err := uau.repo.Update(u); err != nil {
+			return "", err
+		}
+
+		accessToken = ac.AccessToken
+	}
+
+	return accessToken, nil
 }

@@ -42,6 +42,7 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 	r.HandleFunc("/users/plugin", c.HandleEnablePlugin).Methods("POST")
 	r.HandleFunc("/users/plugin", c.HandleDisablePlugin).Methods("DELETE")
 	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
+	r.HandleFunc("/users/account", c.HandleSetAccount).Methods("POST")
 
 	return c
 }
@@ -240,6 +241,18 @@ func (c *UserController) HandleDisablePlugin(w http.ResponseWriter, r *http.Requ
 	_ = json.NewDecoder(r.Body).Decode(&ur)
 
 	err := c.userUsecase.DisablePlugin(r.Context(), &ur)
+	if err != nil {
+		errors.HandleHTTPError(w, r, err)
+	}
+}
+
+func (c *UserController) HandleSetAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var ua dto.UserAccount
+	_ = json.NewDecoder(r.Body).Decode(&ua)
+
+	err := c.userUsecase.SetAccount(r.Context(), &ua)
 	if err != nil {
 		errors.HandleHTTPError(w, r, err)
 	}

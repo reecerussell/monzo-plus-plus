@@ -30,6 +30,7 @@ type UserUsecase interface {
 	GetAvailableRoles(ctx context.Context, id string) ([]*dto.Role, errors.Error)
 	EnablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
 	DisablePlugin(ctx context.Context, d *dto.UserPlugin) errors.Error
+	SetAccount(ctx context.Context, d *dto.UserAccount) errors.Error
 	Delete(ctx context.Context, id string) errors.Error
 }
 
@@ -38,15 +39,21 @@ type userUsecase struct {
 	roles repository.RoleRepository
 	serv  *service.UserService
 	ps    password.Service
+	auth  UserAuthUsecase
 }
 
 // NewUserUsecase instantiates a new instance of UserUsecase with the given dependencies.
-func NewUserUsecase(repo repository.UserRepository, roles repository.RoleRepository, serv *service.UserService, ps password.Service) UserUsecase {
+func NewUserUsecase(repo repository.UserRepository,
+	roles repository.RoleRepository,
+	serv *service.UserService,
+	ps password.Service,
+	auth UserAuthUsecase) UserUsecase {
 	return &userUsecase{
 		repo:  repo,
 		roles: roles,
 		serv:  serv,
 		ps:    ps,
+		auth:  auth,
 	}
 }
 
@@ -369,6 +376,37 @@ func (uu *userUsecase) DisablePlugin(ctx context.Context, d *dto.UserPlugin) err
 	}
 
 	err = u.DisablePlugin(d.PluginID)
+	if err != nil {
+		return err
+	}
+
+	err = uu.repo.Update(u)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetAccount is used to configure a user's desired account. This will
+// also register a webhook with the given account.
+func (uu *userUsecase) SetAccount(ctx context.Context, d *dto.UserAccount) errors.Error {
+	currentUserID := ctx.Value(util.ContextKey("user_id"))
+	if d.UserID != currentUserID && !permission.Has(ctx, permission.PermissionUpdateUser) {
+		return errors.Forbidden()
+	}
+
+	ac, err := uu.auth.GetMonzoAccessToken(d.UserID)
+	if err != nil {
+		return err
+	}
+
+	u, err := uu.repo.Get(d.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = u.UpdateAccountID(d.AccountID, ac)
 	if err != nil {
 		return err
 	}

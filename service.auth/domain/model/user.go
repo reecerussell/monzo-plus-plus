@@ -27,6 +27,7 @@ func init() {
 	domain.RegisterEventHandler(&event.RemoveUserFromRole{}, &handler.RemoveUserFromRole{})
 	domain.RegisterEventHandler(&event.EnablePluginForUser{}, &handler.EnablePluginForUser{})
 	domain.RegisterEventHandler(&event.DisablePluginForUser{}, &handler.DisablePluginForUser{})
+	domain.RegisterEventHandler(&event.RegisterWebhook{}, &handler.RegisterWebhook{})
 }
 
 // User is a domain model used to manage and create user, token
@@ -285,6 +286,26 @@ func (u *User) DisablePlugin(pluginID string) errors.Error {
 	u.RaiseEvent(&event.DisablePluginForUser{
 		PluginID: pluginID,
 		UserID:   u.GetID(),
+	})
+
+	return nil
+}
+
+// UpdateAccountID sets the user's Monzo account id, then raises a domain
+// event to register a webhook with the given account.
+func (u *User) UpdateAccountID(accountID, accessToken string) errors.Error {
+	switch true {
+	case accountID == "":
+		return errors.BadRequest("account id cannot be empty")
+	case len(accountID) > 128:
+		return errors.BadRequest("account id cannot be greater than 128 characters long")
+	}
+
+	u.accountID = &accountID
+
+	u.RaiseEvent(&event.RegisterWebhook{
+		AccessToken: accessToken,
+		AccountID:   accountID,
 	})
 
 	return nil
