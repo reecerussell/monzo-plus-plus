@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
+
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/service"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/persistence"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/password"
@@ -26,11 +27,6 @@ func Build() *di.Container {
 			Lifetime: di.LifetimeSingleton,
 		},
 		&di.Service{
-			Name:     ServiceUserUsecase,
-			Builder:  buildUserUsecase,
-			Lifetime: di.LifetimeSingleton,
-		},
-		&di.Service{
 			Name:     ServicePermissionsRepository,
 			Builder:  buildPermissionRepository,
 			Lifetime: di.LifetimeSingleton,
@@ -38,6 +34,11 @@ func Build() *di.Container {
 		&di.Service{
 			Name:     ServiceUserAuthUsecase,
 			Builder:  buildUserAuthUsecase,
+			Lifetime: di.LifetimeSingleton,
+		},
+		&di.Service{
+			Name:     ServiceUserUsecase,
+			Builder:  buildUserUsecase,
 			Lifetime: di.LifetimeSingleton,
 		},
 		&di.Service{
@@ -55,15 +56,6 @@ func buildPasswordService(ctn *di.Container) (interface{}, error) {
 	return s, nil
 }
 
-func buildUserUsecase(ctn *di.Container) (interface{}, error) {
-	repo := persistence.NewUserRepository()
-	roles := persistence.NewRoleRepository()
-	serv := service.NewUserService()
-	ps := ctn.Resolve(ServicePasswordService).(password.Service)
-
-	return usecase.NewUserUsecase(repo, roles, serv, ps), nil
-}
-
 func buildPermissionRepository(ctn *di.Container) (interface{}, error) {
 	return persistence.NewPermissionRepository(), nil
 }
@@ -74,6 +66,16 @@ func buildUserAuthUsecase(ctn *di.Container) (interface{}, error) {
 	serv := service.NewUserService()
 
 	return usecase.NewUserAuthUsecase(ps, repo, serv)
+}
+
+func buildUserUsecase(ctn *di.Container) (interface{}, error) {
+	repo := persistence.NewUserRepository()
+	roles := persistence.NewRoleRepository()
+	serv := service.NewUserService()
+	ps := ctn.Resolve(ServicePasswordService).(password.Service)
+	auth := ctn.Resolve(ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
+
+	return usecase.NewUserUsecase(repo, roles, serv, ps, auth), nil
 }
 
 func buildRoleUsecase(ctn *di.Container) (interface{}, error) {
