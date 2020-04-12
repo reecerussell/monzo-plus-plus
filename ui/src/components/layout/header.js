@@ -7,7 +7,7 @@ import * as User from "../../utils/user";
 const Header = () => {
 	const [state, setState] = useState(0);
 
-	const handleLogout = e => {
+	const handleLogout = (e) => {
 		e.preventDefault();
 
 		User.Logout();
@@ -35,8 +35,8 @@ const Header = () => {
 					/>
 					Monzo++
 				</Menu.Item>
-				<Menu.Item as="a">
-					<Link to="/">Home</Link>
+				<Menu.Item as={Link} to="/">
+					Home
 				</Menu.Item>
 
 				<Authorise>

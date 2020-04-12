@@ -12,9 +12,9 @@ const ListContainer = () => {
 		reload,
 	] = useListState("api/plugins/");
 
-	const handleUpdateSearch = e => updateSearchTerm(e.target.value);
+	const handleUpdateSearch = (e) => updateSearchTerm(e.target.value);
 
-	const handleSearch = async e => {
+	const handleSearch = async (e) => {
 		e.preventDefault();
 
 		await reload();

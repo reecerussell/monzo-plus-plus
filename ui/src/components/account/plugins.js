@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, Suspense } from "react";
 import {
 	Item,
 	Button,
@@ -6,8 +6,24 @@ import {
 	Form,
 	Message,
 	Divider,
-	Grid,
+	Label,
+	ButtonGroup,
+	Modal,
 } from "semantic-ui-react";
+import * as User from "../../utils/user";
+
+const Preferences = React.lazy(() =>
+	import("../../containers/plugins/budget/preferences")
+);
+
+const getPluginModal = (name) => {
+	switch (name) {
+		case "budget":
+			return <Preferences id={User.GetId()} />;
+		default:
+			return null;
+	}
+};
 
 const Plugins = ({
 	error,
@@ -15,59 +31,61 @@ const Plugins = ({
 	plugins,
 	searchTerm,
 	updateSearchTerm,
-	showMore,
-	toggleMore,
 	handleSearch,
 	handleEnablePlugin,
 	handleDisablePlugin,
 }) => {
 	const PluginItem = ({
 		displayName,
+		name,
 		id,
 		description,
 		consumedBy,
 		consumedByUser,
 	}) => (
-		<Item>
-			<Item.Content>
-				<Item.Header as="h4">{displayName}</Item.Header>
-				<Item.Meta>Description</Item.Meta>
-				<Item.Description>{description}</Item.Description>
-				<Item.Extra>
-					{consumedBy > 0
-						? `This plugin is being used by ${consumedBy} other users.`
-						: "There are currently no users using this plugin."}
+		<>
+			<Item>
+				<Item.Content>
+					<Item.Header as="h4">{displayName}</Item.Header>
+					<Item.Meta>Description</Item.Meta>
+					<Item.Description>{description}</Item.Description>
+					<Item.Extra>
+						<Label>
+							{consumedBy} <Icon name="users" />
+						</Label>
 
-					{consumedByUser ? (
-						<Button
-							type="button"
-							color="grey"
-							size="small"
-							floated="right"
-							onClick={() => handleDisablePlugin(id)}
-						>
-							<Icon name="minus" />
-							Disable Plugin
-						</Button>
-					) : (
-						<Button
-							type="button"
-							size="small"
-							floated="right"
-							color="blue"
-							onClick={() => handleEnablePlugin(id)}
-						>
-							<Icon name="plus" />
-							Enable Plugin
-						</Button>
-					)}
-				</Item.Extra>
-			</Item.Content>
-		</Item>
+						<ButtonGroup size="small" floated="right">
+							{consumedByUser ? (
+								<>
+									<Suspense>{getPluginModal(name)}</Suspense>
+									<Button
+										type="button"
+										color="grey"
+										onClick={() => handleDisablePlugin(id)}
+									>
+										<Icon name="minus" />
+										Disable Plugin
+									</Button>
+								</>
+							) : (
+								<Button
+									type="button"
+									color="blue"
+									onClick={() => handleEnablePlugin(id)}
+								>
+									<Icon name="plus" />
+									Enable Plugin
+								</Button>
+							)}
+						</ButtonGroup>
+					</Item.Extra>
+				</Item.Content>
+			</Item>
+		</>
 	);
 
-	const enabledPlugins = plugins.filter(x => x.consumedByUser);
-	const disabledPlugins = plugins.filter(x => !x.consumedByUser);
+	const enabledPlugins = plugins.filter((x) => x.consumedByUser);
+	const disabledPlugins = plugins.filter((x) => !x.consumedByUser);
 
 	return (
 		<>
