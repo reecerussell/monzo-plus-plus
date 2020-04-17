@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
 	"strconv"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/sse"
 
@@ -20,14 +24,23 @@ func main() {
 	mb := sse.NewBroker()
 
 	repo := persistence.NewJobRepository()
-	processor := processing.NewJobProcessor(repo, getLimit())
-	go processor.Start()
+	processor := processing.NewJobProcessor(repo, getLimit(), mb)
+	pctx, cancelProcessing := context.WithCancel(context.Background())
+	go processor.Start(pctx)
 
 	web := http.Build(mb)
 	go web.Serve()
 
 	rpc := rpc.Build(processor)
 	go rpc.Serve()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+
+	web.Shutdown(bootstrap.ShutdownGraceful)
+	rpc.Shutdown(bootstrap.ShutdownGraceful)
+	cancelProcessing()
 }
 
 func getLimit() int {

@@ -19,7 +19,7 @@ import (
 )
 
 type JobProcessor interface {
-	Start() errors.Error
+	Start(ctx context.Context) errors.Error
 	Push(j *model.Job) errors.Error
 }
 
@@ -45,10 +45,17 @@ func NewJobProcessor(repo repository.JobRepository, workerLimit int, mb *sse.Bro
 	}
 }
 
-func (jp *jobProcessor) Start() errors.Error {
+func (jp *jobProcessor) Start(ctx context.Context) errors.Error {
 	var wg sync.WaitGroup
 
 	for true {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			break
+		}
+
 		jobs, err := jp.jobs.GetN(jp.WorkerLimit)
 		if err != nil {
 			return err
