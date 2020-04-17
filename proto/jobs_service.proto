@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package proto;
+
+message PushRequest {
+    string UserID = 1;
+    string PluginID = 2;
+    string Data = 3;
+}
+
+message EmptyResponse {
+}
+
+service JobsService {
+    rpc Push(PushRequest) returns (EmptyResponse) {}
+}

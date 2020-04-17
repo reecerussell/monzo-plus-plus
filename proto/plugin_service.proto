@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto;
+
+message SendRequest {
+    string UserID = 1;
+    string JSONData = 2;
+}
+
+message EmptyResponse {
+}
+
+service PluginService {
+    rpc Send(SendRequest) returns (EmptyResponse) {}
+}
