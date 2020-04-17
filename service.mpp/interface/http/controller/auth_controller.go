@@ -14,9 +14,7 @@ var (
 	AuthHTTPHost = os.Getenv("AUTH_HTTP_HOST")
 )
 
-type AuthController struct {
-	auth *httputil.ReverseProxy
-}
+type AuthController struct{}
 
 func NewAuthController(r *routing.Router) *AuthController {
 	host, _ := url.Parse(AuthHTTPHost)
