@@ -6,7 +6,7 @@ package password
 // methods require.
 type Service interface {
 	Validate(pwd string) error
-	Hash(pwd string) (string, error)
+	Hash(pwd string) string
 	Verify(pwd, pwdHash string) bool
 }
 
@@ -33,7 +33,7 @@ func (s *service) Validate(pwd string) error {
 
 // Hash takes a given password and hashes it using SHA256
 // algorithm, a 256 bit key and a 64 bit sub-key.
-func (s *service) Hash(pwd string) (string, error) {
+func (s *service) Hash(pwd string) string {
 	return s.hasher.Hash(pwd)
 }
 

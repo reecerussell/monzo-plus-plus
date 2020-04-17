@@ -212,12 +212,7 @@ func (u *User) setPassword(pwd string, service password.Service) errors.Error {
 		return errors.BadRequest(err.Error())
 	}
 
-	ph, err := service.Hash(pwd)
-	if err != nil {
-		return errors.InternalError(err)
-	}
-
-	u.passwordHash = ph
+	u.passwordHash = service.Hash(pwd)
 
 	return nil
 }

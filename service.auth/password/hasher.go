@@ -29,11 +29,7 @@ func NewHasher() *Hasher {
 
 // Hash takes a password and hashes it using a SHA256 algorithm.
 // The password hash is provided in a format of <hash>.<salt>
-func (*Hasher) Hash(pwd string) (string, error) {
-	if pwd == "" {
-		return "", fmt.Errorf("password cannot be empty")
-	}
-
+func (*Hasher) Hash(pwd string) string {
 	saltBytes := make([]byte, saltSize)
 	rand.Read(saltBytes)
 
@@ -44,7 +40,7 @@ func (*Hasher) Hash(pwd string) (string, error) {
 
 	cipherText := base64.StdEncoding.EncodeToString(df)
 
-	return fmt.Sprintf("%s.%s", cipherText, saltString), nil
+	return fmt.Sprintf("%s.%s", cipherText, saltString)
 }
 
 // Verify validates a password with a given hash. Hashes the given
