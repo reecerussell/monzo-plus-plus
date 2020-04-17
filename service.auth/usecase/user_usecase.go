@@ -352,10 +352,7 @@ func (uu *userUsecase) EnablePlugin(ctx context.Context, d *dto.UserPlugin) erro
 		return err
 	}
 
-	err = u.EnablePlugin(d.PluginID)
-	if err != nil {
-		return err
-	}
+	u.EnablePlugin(d.PluginID)
 
 	err = uu.repo.Update(u)
 	if err != nil {
@@ -378,10 +375,7 @@ func (uu *userUsecase) DisablePlugin(ctx context.Context, d *dto.UserPlugin) err
 		return err
 	}
 
-	err = u.DisablePlugin(d.PluginID)
-	if err != nil {
-		return err
-	}
+	u.DisablePlugin(d.PluginID)
 
 	err = uu.repo.Update(u)
 	if err != nil {

@@ -261,18 +261,22 @@ func (u *User) AddToRole(r *Role) errors.Error {
 		RoleID: r.GetID(),
 	})
 
+	u.roles = append(u.roles, r)
+
 	return nil
 }
 
 // RemoveFromRole unassigns the user from the given role. An error is
 // returned if the user isn't already assigned.
 func (u *User) RemoveFromRole(r *Role) errors.Error {
-	for _, ur := range u.roles {
+	for i, ur := range u.roles {
 		if ur.GetID() == r.GetID() {
 			u.RaiseEvent(&event.RemoveUserFromRole{
 				UserID: u.GetID(),
 				RoleID: r.GetID(),
 			})
+
+			u.roles = append(u.roles[:i], u.roles[i:]...)
 
 			return nil
 		}
@@ -283,24 +287,20 @@ func (u *User) RemoveFromRole(r *Role) errors.Error {
 
 // EnablePlugin is used to enable a specific plugin for the user. A
 // domain event is raise to handle enabling it.
-func (u *User) EnablePlugin(pluginID string) errors.Error {
+func (u *User) EnablePlugin(pluginID string) {
 	u.RaiseEvent(&event.EnablePluginForUser{
 		PluginID: pluginID,
 		UserID:   u.GetID(),
 	})
-
-	return nil
 }
 
 // DisablePlugin is used to disable a specific plugin for the user. A
 // domain event is raise to handle disabling it.
-func (u *User) DisablePlugin(pluginID string) errors.Error {
+func (u *User) DisablePlugin(pluginID string) {
 	u.RaiseEvent(&event.DisablePluginForUser{
 		PluginID: pluginID,
 		UserID:   u.GetID(),
 	})
-
-	return nil
 }
 
 // UpdateAccountID sets the user's Monzo account id, then raises a domain
