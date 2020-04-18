@@ -22,7 +22,7 @@ func NewJobsService(jp processing.JobProcessor) *JobsService {
 }
 
 // Push handles RPCs to add a new job to the queue.
-func (js *JobsService) Push(ctx context.Context, in *proto.PushRequest) (*proto.EmptyResponse, error) {
+func (js *JobsService) Push(ctx context.Context, in *proto.PushRequest) (*proto.EmptyPushResponse, error) {
 	j := model.NewJob(in.GetUserID(), in.GetPluginID(), in.GetData())
 
 	err := js.jp.Push(j)
@@ -30,5 +30,5 @@ func (js *JobsService) Push(ctx context.Context, in *proto.PushRequest) (*proto.
 		return nil, errors.New(err.Text())
 	}
 
-	return &proto.EmptyResponse{}, nil
+	return &proto.EmptyPushResponse{}, nil
 }

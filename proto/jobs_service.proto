@@ -8,9 +8,9 @@ message PushRequest {
     string Data = 3;
 }
 
-message EmptyResponse {
+message EmptyPushResponse {
 }
 
 service JobsService {
-    rpc Push(PushRequest) returns (EmptyResponse) {}
+    rpc Push(PushRequest) returns (EmptyPushResponse) {}
 }

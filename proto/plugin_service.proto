@@ -7,9 +7,9 @@ message SendRequest {
     string JSONData = 2;
 }
 
-message EmptyResponse {
+message EmptySendResponse {
 }
 
 service PluginService {
-    rpc Send(SendRequest) returns (EmptyResponse) {}
+    rpc Send(SendRequest) returns (EmptySendResponse) {}
 }
