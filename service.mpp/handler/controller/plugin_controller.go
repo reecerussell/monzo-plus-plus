@@ -7,10 +7,9 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 )
 
 // Environment variables.
