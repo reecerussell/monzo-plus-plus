@@ -18,11 +18,15 @@ var (
 	PluginsHTTPHost = os.Getenv("PLUGINS_HTTP_HOST")
 )
 
+// PluginController is used to handle HTTP requests and manage
+// reverse proxies for the plugin APIs.
 type PluginController struct {
 	hosts   map[string]*httputil.ReverseProxy
 	plugins *httputil.ReverseProxy
 }
 
+// NewPluginController returns a new instance of PluginController and
+// instantiates the plugin reverse proxy and routes.
 func NewPluginController(r *routing.Router) *PluginController {
 	pluginsURL, _ := url.Parse(PluginsHTTPHost)
 
