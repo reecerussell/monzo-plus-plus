@@ -1,21 +1,20 @@
-package http
+package handler
 
 import (
 	"fmt"
 	"net/http"
 	"os"
 
-	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
-	"github.com/reecerussell/monzo-plus-plus/libraries/di"
-	"github.com/reecerussell/monzo-plus-plus/service.mpp/interface/http/controller"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
+	"github.com/reecerussell/monzo-plus-plus/service.mpp/handler/controller"
 )
 
-func Build(ctn *di.Container) *bootstrap.HTTPServer {
+func Build() *bootstrap.HTTPServer {
 	r := routing.NewRouter()
 
-	_ = controller.NewMonzoController(ctn, r)
+	controller.UI(r)
+	_ = controller.NewMonzoController(r)
 	_ = controller.NewAuthController(r)
 	_ = controller.NewPluginController(r)
 
