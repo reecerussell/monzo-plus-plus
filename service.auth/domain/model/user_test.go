@@ -107,6 +107,117 @@ func TestCreateUserWithInvalidPassword(t *testing.T) {
 	}
 }
 
+func TestUserGetMethods(t *testing.T) {
+	u, err := createUser("hello_user", "my-testPass1")
+	if err != nil {
+		t.Errorf("expected nil but got error: %s", err.Text())
+		return
+	}
+
+	if u.GetID() != u.id {
+		t.Errorf("expected %s but got %s", u.id, u.GetID())
+		return
+	}
+
+	if u.GetUsername() != u.username {
+		t.Errorf("expected %s but got %s", u.username, u.GetUsername())
+		return
+	}
+
+	if u.GetStateToken() != u.stateToken {
+		t.Errorf("expected %s but got %s", u.stateToken, u.GetStateToken())
+		return
+	}
+
+	if u.IsEnabled() != (u.enabled != nil) {
+		t.Errorf("expected %v but got %v", (u.enabled != nil), u.IsEnabled())
+		return
+	}
+
+	if u.HasAccount() != (u.accountID != nil) {
+		t.Errorf("expected %v but got %v", (u.accountID != nil), u.HasAccount())
+		return
+	}
+
+	// Test Get Role Methods
+
+	r, err := NewRole(&dto.CreateRole{Name: "role"})
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Text())
+		return
+	}
+
+	err = u.AddToRole(r)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Text())
+		return
+	}
+
+	roles := u.GetRoles()
+	if len(roles) < 1 {
+		t.Errorf("expected 1 role but got none")
+		return
+	}
+
+	if roles[0] != u.roles[0].id {
+		t.Errorf("expected %s but got %s", u.roles[0].id, roles[0])
+		return
+	}
+
+	roles = u.GetRoleNames()
+	if len(roles) < 1 {
+		t.Errorf("expected 1 role but got none")
+		return
+	}
+
+	if roles[0] != u.roles[0].name {
+		t.Errorf("expected %s but got %s", u.roles[0].name, roles[0])
+		return
+	}
+
+	if u.GetToken() != u.token {
+		t.Errorf("expected %v but got %v", u.token, u.GetToken())
+		return
+	}
+}
+
+func TestHasValidToken(t *testing.T) {
+	u, err := createUser("hello_user", "my-testPass1")
+	if err != nil {
+		t.Errorf("expected nil but got error: %s", err.Text())
+		return
+	}
+
+	// nil token
+	u.token = nil
+	if u.HasValidToken() {
+		t.Errorf("expected false but got true")
+		return
+	}
+
+	data := &monzo.AccessToken{
+		AccessToken:  "", // empty token
+		TokenType:    "bearer",
+		ExpiresIn:    26300,
+		RefreshToken: "secure oauth refresh token",
+	}
+
+	u.UpdateToken(data)
+
+	if u.HasValidToken() {
+		t.Errorf("expected false but got true")
+		return
+	}
+
+	data.AccessToken = "valid token"
+	u.UpdateToken(data)
+
+	if !u.HasValidToken() {
+		t.Errorf("expected true but got false")
+		return
+	}
+}
+
 func TestUpdateUser(t *testing.T) {
 	u, err := createUser("test_user", "test-Password1")
 	if err != nil {
