@@ -3,9 +3,9 @@ package controller
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/permission"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
@@ -15,12 +15,12 @@ type PermissionsController struct {
 	repo repository.PermissionsRepository
 }
 
-func NewPermissionsController(ctn *di.Container, r *mux.Router) *PermissionsController {
+func NewPermissionsController(ctn *di.Container, r *routing.Router) *PermissionsController {
 	repo := ctn.Resolve(registry.ServicePermissionsRepository).(repository.PermissionsRepository)
 
 	c := &PermissionsController{repo}
 
-	r.HandleFunc("/permissions/flush", c.HandleFlush).Methods("POST")
+	r.PostFunc("/permissions/flush", c.HandleFlush)
 
 	return c
 }

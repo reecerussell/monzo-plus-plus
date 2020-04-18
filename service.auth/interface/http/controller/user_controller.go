@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
@@ -18,7 +17,7 @@ type UserController struct {
 	userAuthUsecase usecase.UserAuthUsecase
 }
 
-func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
+func NewUserController(ctn *di.Container, r *routing.Router) *UserController {
 	uu := ctn.Resolve(registry.ServiceUserUsecase).(usecase.UserUsecase)
 	uau := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
@@ -27,23 +26,23 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 		userAuthUsecase: uau,
 	}
 
-	r.HandleFunc("/users", c.HandleGetList).Methods("GET")
-	r.HandleFunc("/users/pending", c.HandleGetPending).Methods("GET")
-	r.HandleFunc("/users/{id}", c.HandleGet).Methods("GET")
-	r.HandleFunc("/users", c.HandleCreate).Methods("POST")
-	r.HandleFunc("/users/register", c.HandleRegister).Methods("POST")
-	r.HandleFunc("/users", c.HandleUpdate).Methods("PUT")
-	r.HandleFunc("/users/changepassword", c.HandleChangePassword).Methods("POST")
-	r.HandleFunc("/users/enable/{id}", c.HandleEnable).Methods("POST")
-	r.HandleFunc("/users/roles", c.HandleAddToRole).Methods("POST")
-	r.HandleFunc("/users/roles", c.HandleRemoveFromRole).Methods("DELETE")
-	r.HandleFunc("/users/roles/{id}", c.HandleGetRoles).Methods("GET")
-	r.HandleFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles).Methods("GET")
-	r.HandleFunc("/users/plugin", c.HandleEnablePlugin).Methods("POST")
-	r.HandleFunc("/users/plugin", c.HandleDisablePlugin).Methods("DELETE")
-	r.HandleFunc("/users/account", c.HandleSetAccount).Methods("POST")
-	r.HandleFunc("/users/accounts/{id}", c.HandleGetAccounts).Methods("GET")
-	r.HandleFunc("/users/{id}", c.HandleDelete).Methods("DELETE")
+	r.GetFunc("/users", c.HandleGetList)
+	r.GetFunc("/users/pending", c.HandleGetPending)
+	r.GetFunc("/users/{id}", c.HandleGet)
+	r.PostFunc("/users", c.HandleCreate)
+	r.PostFunc("/users/register", c.HandleRegister)
+	r.PutFunc("/users", c.HandleUpdate)
+	r.PostFunc("/users/changepassword", c.HandleChangePassword)
+	r.PostFunc("/users/enable/{id}", c.HandleEnable)
+	r.PostFunc("/users/roles", c.HandleAddToRole)
+	r.DeleteFunc("/users/roles", c.HandleRemoveFromRole)
+	r.GetFunc("/users/roles/{id}", c.HandleGetRoles)
+	r.GetFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles)
+	r.PostFunc("/users/plugin", c.HandleEnablePlugin)
+	r.DeleteFunc("/users/plugin", c.HandleDisablePlugin)
+	r.PostFunc("/users/account", c.HandleSetAccount)
+	r.GetFunc("/users/accounts/{id}", c.HandleGetAccounts)
+	r.DeleteFunc("/users/{id}", c.HandleDelete)
 
 	return c
 }
@@ -51,7 +50,7 @@ func NewUserController(ctn *di.Container, r *mux.Router) *UserController {
 func (c *UserController) HandleGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	ctx := r.Context()
 	user, err := c.userUsecase.Get(ctx, id)
@@ -159,7 +158,7 @@ func (c *UserController) HandleChangePassword(w http.ResponseWriter, r *http.Req
 func (c *UserController) HandleEnable(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	ctx := r.Context()
 	err := c.userUsecase.Enable(ctx, id)
@@ -198,7 +197,7 @@ func (c *UserController) HandleRemoveFromRole(w http.ResponseWriter, r *http.Req
 func (c *UserController) HandleGetRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	roles, err := c.userUsecase.GetRoles(r.Context(), id)
 	if err != nil {
@@ -212,7 +211,7 @@ func (c *UserController) HandleGetRoles(w http.ResponseWriter, r *http.Request) 
 func (c *UserController) HandleGetAvailableRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	roles, err := c.userUsecase.GetAvailableRoles(r.Context(), id)
 	if err != nil {
@@ -250,7 +249,7 @@ func (c *UserController) HandleDisablePlugin(w http.ResponseWriter, r *http.Requ
 func (c *UserController) HandleGetAccounts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	accounts, err := c.userUsecase.GetAccounts(r.Context(), id)
 	if err != nil {
@@ -276,7 +275,7 @@ func (c *UserController) HandleSetAccount(w http.ResponseWriter, r *http.Request
 func (c *UserController) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	ctx := r.Context()
 	err := c.userUsecase.Delete(ctx, id)

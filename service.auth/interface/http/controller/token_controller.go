@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
@@ -17,15 +16,15 @@ type TokenController struct {
 	uau usecase.UserAuthUsecase
 }
 
-func NewTokenController(ctn *di.Container, r *mux.Router) *TokenController {
+func NewTokenController(ctn *di.Container, r *routing.Router) *TokenController {
 	uau := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
 	c := &TokenController{
 		uau: uau,
 	}
 
-	r.HandleFunc("/token", c.HandleToken).Methods("POST")
-	r.HandleFunc("/refresh", c.HandleRefresh).Methods("GET")
+	r.PostFunc("/token", c.HandleToken)
+	r.GetFunc("/refresh", c.HandleRefresh)
 
 	return c
 }

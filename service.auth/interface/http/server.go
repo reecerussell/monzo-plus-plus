@@ -5,17 +5,16 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/http/controller"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/interface/http/middleware"
 )
 
 func Build(ctn *di.Container) *bootstrap.HTTPServer {
 	am := middleware.NewAuthenticationMiddleware(ctn)
-	r := mux.NewRouter()
+	r := routing.NewRouter()
 
 	_ = controller.NewTokenController(ctn, r)
 	_ = controller.NewUserController(ctn, r)

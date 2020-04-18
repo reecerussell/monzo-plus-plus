@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/dto"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
@@ -16,22 +16,22 @@ type RoleController struct {
 	u usecase.RoleUsecase
 }
 
-func NewRoleController(ctn *di.Container, r *mux.Router) *RoleController {
+func NewRoleController(ctn *di.Container, r *routing.Router) *RoleController {
 	u := ctn.Resolve(registry.ServiceRoleUsecase).(usecase.RoleUsecase)
 
 	c := &RoleController{
 		u: u,
 	}
 
-	r.HandleFunc("/roles", c.HandleGetList).Methods("GET")
-	r.HandleFunc("/roles/{id}", c.HandleGet).Methods("GET")
-	r.HandleFunc("/roles", c.HandleCreate).Methods("POST")
-	r.HandleFunc("/roles", c.HandleUpdate).Methods("PUT")
-	r.HandleFunc("/roles/permission", c.HandleAddPermission).Methods("POST")
-	r.HandleFunc("/roles/permission", c.HandleRemovePermission).Methods("DELETE")
-	r.HandleFunc("/roles/permissions/{id}", c.HandleGetPermissions).Methods("GET")
-	r.HandleFunc("/roles/availablePermissions/{id}", c.HandleGetAvailablePermissions).Methods("GET")
-	r.HandleFunc("/roles/{id}", c.HandleDelete).Methods("DELETE")
+	r.GetFunc("/roles", c.HandleGetList)
+	r.GetFunc("/roles/{id}", c.HandleGet)
+	r.PostFunc("/roles", c.HandleCreate)
+	r.PutFunc("/roles", c.HandleUpdate)
+	r.PostFunc("/roles/permission", c.HandleAddPermission)
+	r.DeleteFunc("/roles/permission", c.HandleRemovePermission)
+	r.GetFunc("/roles/permissions/{id}", c.HandleGetPermissions)
+	r.GetFunc("/roles/availablePermissions/{id}", c.HandleGetAvailablePermissions)
+	r.DeleteFunc("/roles/{id}", c.HandleDelete)
 
 	return c
 }
@@ -39,7 +39,7 @@ func NewRoleController(ctn *di.Container, r *mux.Router) *RoleController {
 func (c *RoleController) HandleGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	ctx := r.Context()
 	role, err := c.u.Get(ctx, id)
@@ -131,7 +131,7 @@ func (c *RoleController) HandleRemovePermission(w http.ResponseWriter, r *http.R
 func (c *RoleController) HandleGetPermissions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	perms, err := c.u.GetPermissions(r.Context(), id)
 	if err != nil {
@@ -144,7 +144,7 @@ func (c *RoleController) HandleGetPermissions(w http.ResponseWriter, r *http.Req
 func (c *RoleController) HandleGetAvailablePermissions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	perms, err := c.u.GetAvailablePermissions(r.Context(), id)
 	if err != nil {
@@ -157,7 +157,7 @@ func (c *RoleController) HandleGetAvailablePermissions(w http.ResponseWriter, r 
 func (c *RoleController) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	id := routing.Vars(r)["id"]
 
 	ctx := r.Context()
 	err := c.u.Delete(ctx, id)

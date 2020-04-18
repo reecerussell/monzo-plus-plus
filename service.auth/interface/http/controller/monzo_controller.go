@@ -3,30 +3,27 @@ package controller
 import (
 	"net/http"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
-
+	"github.com/reecerussell/monzo-plus-plus/libraries/routing"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/usecase"
-
-	"github.com/gorilla/mux"
-	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 )
 
 type MonzoController struct {
 	userAuthUsecase usecase.UserAuthUsecase
 }
 
-func NewMonzoController(ctn *di.Container, r *mux.Router) *MonzoController {
+func NewMonzoController(ctn *di.Container, r *routing.Router) *MonzoController {
 	userAuthUsecase := ctn.Resolve(registry.ServiceUserAuthUsecase).(usecase.UserAuthUsecase)
 
 	c := &MonzoController{
 		userAuthUsecase: userAuthUsecase,
 	}
 
-	r.HandleFunc("/monzo/login", c.HandleLogin).Methods("GET")
-	r.HandleFunc("/monzo/callback", c.HandleCallback).Methods("GET")
+	r.GetFunc("/monzo/login", c.HandleLogin)
+	r.GetFunc("/monzo/callback", c.HandleCallback)
 
 	return c
 }

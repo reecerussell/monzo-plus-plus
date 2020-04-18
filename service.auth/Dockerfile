@@ -12,7 +12,6 @@ WORKDIR /go/src/github.com/reecerussell/monzo-plus-plus/service.auth
 RUN go get github.com/google/uuid
 RUN go get github.com/go-sql-driver/mysql
 RUN go get google.golang.org/grpc
-RUN go get github.com/gorilla/mux
 RUN go get golang.org/x/crypto/pbkdf2
 
 ARG JWT_PRIVATE_KEY_PASS=v3rYS3cR3tKEY
