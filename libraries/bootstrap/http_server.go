@@ -110,15 +110,27 @@ func panicHandler(h http.Handler) http.Handler {
 
 func corsHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
 		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+			w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
 			w.WriteHeader(http.StatusOK)
 			return
 		}
 
 		h.ServeHTTP(w, r)
+
+		if _, ok := w.Header()["Access-Control-Allow-Origin"]; !ok {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		}
+
+		if _, ok := w.Header()["Access-Control-Allow-Methods"]; !ok {
+			w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
+		}
+
+		if _, ok := w.Header()["Access-Control-Allow-Headers"]; !ok {
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
 	})
 }
