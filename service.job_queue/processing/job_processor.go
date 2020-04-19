@@ -76,7 +76,12 @@ func (jp *jobProcessor) Start(ctx context.Context) errors.Error {
 
 				err := j.Execute(jp.process)
 				if err != nil {
-					log.Printf("[ERROR]: %v", err)
+					log.Printf("[ERROR]: %v", err.Text())
+				}
+
+				err = jp.jobs.Update(j)
+				if err != nil {
+					log.Printf("[ERROR]: %v", err.Text())
 				}
 
 				jp.mb.Notifier <- []byte(strconv.Itoa(c - idx))
@@ -142,7 +147,11 @@ func (jp *jobProcessor) getPluginHost(pluginName string) (string, errors.Error) 
 			return "", errors.InternalError(err)
 		}
 
-		jp.hosts[pluginName] = host
+		if host == "" {
+			return "", errors.InternalError(fmt.Errorf("host not found for %s", pluginName))
+		}
+
+		jp.hosts[pluginName] = fmt.Sprintf("%s:8080", host)
 	}
 
 	return host, nil
