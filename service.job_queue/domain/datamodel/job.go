@@ -11,6 +11,7 @@ import (
 type Job struct {
 	ID           int
 	UserID       string
+	AccountID    string
 	PluginID     string
 	PluginName   string
 	RetryCount   int

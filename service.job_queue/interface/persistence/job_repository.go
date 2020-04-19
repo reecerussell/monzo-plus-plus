@@ -56,6 +56,7 @@ func (jr *jobRepository) GetN(n int) ([]*model.Job, errors.Error) {
 		err := s(
 			&dm.ID,
 			&dm.UserID,
+			&dm.AccountID,
 			&dm.PluginID,
 			&dm.PluginName,
 			&dm.RetryCount,

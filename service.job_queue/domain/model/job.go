@@ -9,13 +9,15 @@ import (
 	"github.com/reecerussell/monzo-plus-plus/service.job_queue/domain/datamodel"
 )
 
-type ProcessFunc func(userID, pluginName, data string) errors.Error
+// ProcessFunc is a standard function used to handle the execution of a job.
+type ProcessFunc func(userID, accountID, pluginName, data string) errors.Error
 
 // Job is a domain object for job records which is used to create,
 // read and execute jobs in the queue.
 type Job struct {
 	id           int
 	userID       string
+	accountID    string
 	pluginID     string
 	pluginName   string
 	retryCount   int
@@ -25,6 +27,7 @@ type Job struct {
 	data         string
 }
 
+// NewJob is used to create a new Job domain object.
 func NewJob(userID, pluginID, data string) *Job {
 	return &Job{
 		userID:       userID,
@@ -69,7 +72,7 @@ func (j *Job) Execute(p ProcessFunc) errors.Error {
 		return errors.BadRequest("this job has already been execute the maximum number of times")
 	}
 
-	err := p(j.userID, j.pluginName, j.data)
+	err := p(j.userID, j.accountID, j.pluginName, j.data)
 	if err != nil {
 		j.retryCount++
 		j.setLastExecutedDate()
@@ -129,6 +132,7 @@ func JobFromDataModel(dm *datamodel.Job) *Job {
 	j := &Job{
 		id:         dm.ID,
 		userID:     dm.UserID,
+		accountID:  dm.AccountID,
 		pluginID:   dm.PluginID,
 		pluginName: dm.PluginName,
 		retryCount: dm.RetryCount,
