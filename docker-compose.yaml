@@ -37,11 +37,12 @@ services:
         build:
             context: .
             dockerfile: service.job_queue/Dockerfile
-        enviroment:
+        environment:
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"
             - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
             - "REGISTRY_HOST=registry:8080"
+            - "AUTH_RPC_HOST=auth:8080"
         networks:
             - monzo
         depends_on:
@@ -96,6 +97,7 @@ services:
             - "BUDGET_HTTP_HOST=http://plugin.budget:80"
             - "AUTH_HTTP_HOST=http://auth:80"
             - "PLUGINS_HTTP_HOST=http://plugins:80"
+            - "JOBS_HOST=job_queue:8080"
             - "MONZO_WEBHOOK_URL="
             - "REGISTRY_HOST=registry:8080"
         networks:
