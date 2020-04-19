@@ -84,6 +84,10 @@ type Client interface {
 	// Accounts returns an array of a user's personal accounts. Only a user's
 	// own accounts will be returned; joint accounts will not be found.
 	Accounts(accessToken string) ([]*AccountData, error)
+
+	CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...FeedItemOpts) errors.Error
+	GetBalance(accountID, accessToken string) (*Balance, errors.Error)
+	GetTransactions(accountID, accessToken string, opts ...TransactionOpts) ([]*Transaction, errors.Error)
 }
 
 var (
@@ -112,6 +116,18 @@ func RegisterHook(accountID, accessToken string) error {
 
 func Accounts(accessToken string) ([]*AccountData, error) {
 	return mustUseDefaultClient().Accounts(accessToken)
+}
+
+func CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...FeedItemOpts) errors.Error {
+	return mustUseDefaultClient().CreateFeedItem(accountID, accessToken, title, imageURL, opts...)
+}
+
+func GetBalance(accountID, accessToken string) (*Balance, errors.Error) {
+	return mustUseDefaultClient().GetBalance(accountID, accessToken)
+}
+
+func GetTransactions(accountID, accessToken string, opts ...TransactionOpts) ([]*Transaction, errors.Error) {
+	return mustUseDefaultClient().GetTransactions(accountID, accessToken, opts...)
 }
 
 func mustUseDefaultClient() Client {
