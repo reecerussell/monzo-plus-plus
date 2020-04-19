@@ -8,7 +8,7 @@ const PendingContainer = () => {
 	const [loading, setLoading] = useState(false);
 
 	const handleFetchUsers = async () => {
-		const res = await Fetch("http://localhost:9789/auth/users/pending");
+		const res = await Fetch("http://localhost:9789/api/auth/users/pending");
 
 		if (res.status === 200) {
 			const data = await res.json();
@@ -35,7 +35,7 @@ const PendingContainer = () => {
 
 		setLoading(true);
 
-		const res = await Fetch("http://localhost:9789/auth/users/" + id, {
+		const res = await Fetch("http://localhost:9789/api/auth/users/" + id, {
 			method: "DELETE",
 		});
 
@@ -65,7 +65,7 @@ const PendingContainer = () => {
 		setLoading(true);
 
 		const res = await Fetch(
-			"http://localhost:9789/auth/users/enable/" + id,
+			"http://localhost:9789/api/auth/users/enable/" + id,
 			{
 				method: "POST",
 			}

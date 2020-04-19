@@ -24,7 +24,7 @@ const ChangePasswordContainer = () => {
 	const [error, setError] = useState(null);
 	const [success, setSuccess] = useState(null);
 
-	const handleSubmit = async e => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (
@@ -40,7 +40,7 @@ const ChangePasswordContainer = () => {
 
 		try {
 			const res = await Fetch(
-				"http://localhost:9789/auth/users/changepassword",
+				"http://localhost:9789/api/auth/users/changepassword",
 				{
 					method: "POST",
 					body: JSON.stringify({
@@ -69,7 +69,7 @@ const ChangePasswordContainer = () => {
 		setLoading(false);
 	};
 
-	const handleUpdateCurrentPassword = e => {
+	const handleUpdateCurrentPassword = (e) => {
 		const { value } = e.target;
 
 		const data = formData.currentPassword;
@@ -87,7 +87,7 @@ const ChangePasswordContainer = () => {
 		setFormData(newFormData);
 	};
 
-	const handleUpdateNewPassword = e => {
+	const handleUpdateNewPassword = (e) => {
 		const { value } = e.target;
 
 		const data = formData.newPassword;
@@ -105,7 +105,7 @@ const ChangePasswordContainer = () => {
 		setFormData(newFormData);
 	};
 
-	const handleUpdateConfirmPassword = e => {
+	const handleUpdateConfirmPassword = (e) => {
 		const { value } = e.target;
 
 		const data = formData.newPassword;

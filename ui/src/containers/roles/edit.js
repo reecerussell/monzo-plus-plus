@@ -21,16 +21,16 @@ const EditContainer = ({ id }) => {
 		setLoading(true);
 
 		await Fetch(
-			`auth/roles/${id}`,
+			`api/auth/roles/${id}`,
 			null,
-			async res => setFormData(await res.json()),
+			async (res) => setFormData(await res.json()),
 			setError
 		);
 
 		setLoading(false);
 	};
 
-	const handleSubmit = async e => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (loading) {
@@ -40,7 +40,7 @@ const EditContainer = ({ id }) => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/roles",
+			"api/auth/roles",
 			{
 				method: "PUT",
 				body: JSON.stringify(formData),
@@ -52,7 +52,7 @@ const EditContainer = ({ id }) => {
 		setLoading(false);
 	};
 
-	const handleFormUpdate = e => {
+	const handleFormUpdate = (e) => {
 		const { name, value } = e.target;
 		const data = { ...formData };
 		data[name] = value;

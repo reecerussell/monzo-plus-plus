@@ -17,16 +17,16 @@ const PermissionsContainer = ({ id }) => {
 		setLoading(true);
 
 		const permissions = Fetch(
-			`auth/roles/permissions/${id}`,
+			`api/auth/roles/permissions/${id}`,
 			null,
-			async res => setPerms(await res.json()),
+			async (res) => setPerms(await res.json()),
 			setError
 		);
 
 		const availablePermissions = Fetch(
-			`auth/roles/availablePermissions/${id}`,
+			`api/auth/roles/availablePermissions/${id}`,
 			null,
-			async res => setAvailable(await res.json()),
+			async (res) => setAvailable(await res.json()),
 			setError
 		);
 
@@ -35,9 +35,9 @@ const PermissionsContainer = ({ id }) => {
 		setLoading(false);
 	};
 
-	const handleAddPermission = async permissionId =>
+	const handleAddPermission = async (permissionId) =>
 		await Fetch(
-			"auth/roles/permission",
+			"api/auth/roles/permission",
 			{
 				method: "POST",
 				body: JSON.stringify({
@@ -49,9 +49,9 @@ const PermissionsContainer = ({ id }) => {
 			setError
 		);
 
-	const handleRemovePermission = async permissionId =>
+	const handleRemovePermission = async (permissionId) =>
 		await Fetch(
-			"auth/roles/permission",
+			"api/auth/roles/permission",
 			{
 				method: "DELETE",
 				body: JSON.stringify({

@@ -17,16 +17,16 @@ const DetailsContainer = ({ id }) => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users/" + id,
+			"api/auth/users/" + id,
 			null,
-			async res => setDetails(await res.json()),
+			async (res) => setDetails(await res.json()),
 			setError
 		);
 
 		setLoading(false);
 	};
 
-	const handleSubmit = async e => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (loading || readonly) {
@@ -51,14 +51,14 @@ const DetailsContainer = ({ id }) => {
 		setLoading(false);
 	};
 
-	const handleUpdate = e => {
+	const handleUpdate = (e) => {
 		const { name, value } = e.target;
 		const data = { ...details };
 		data[name] = value;
 		setDetails(data);
 	};
 
-	const toggleMode = e => {
+	const toggleMode = (e) => {
 		if (e) e.preventDefault();
 
 		setReadonly(!readonly);

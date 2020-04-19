@@ -8,7 +8,7 @@ const DeleteContainer = () => {
 	const [error, setError] = useState(null);
 	const [redirect, setRedirect] = useState(null);
 
-	const handleDelete = async e => {
+	const handleDelete = async (e) => {
 		e.preventDefault();
 
 		if (loading) {
@@ -19,7 +19,7 @@ const DeleteContainer = () => {
 
 		try {
 			const res = await Fetch(
-				"http://localhost:9789/auth/users/" + User.GetId(),
+				"http://localhost:9789/api/auth/users/" + User.GetId(),
 				{
 					method: "DELETE",
 				}

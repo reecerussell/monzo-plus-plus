@@ -13,7 +13,7 @@ const PluginsContainer = () => {
 
 	const toggleMore = () => setShowMore(!showMore);
 
-	const updateSearchTerm = e => setSearchTerm(e.target.value);
+	const updateSearchTerm = (e) => setSearchTerm(e.target.value);
 
 	const fetchPlugins = async () => {
 		if (loading) {
@@ -25,14 +25,14 @@ const PluginsContainer = () => {
 		await Fetch(
 			"api/plugins/?term=" + searchTerm,
 			null,
-			async res => setPlugins(await res.json()),
+			async (res) => setPlugins(await res.json()),
 			setError
 		);
 
 		setLoading(false);
 	};
 
-	const handleEnablePlugin = async pluginId => {
+	const handleEnablePlugin = async (pluginId) => {
 		if (loading) {
 			return;
 		}
@@ -40,7 +40,7 @@ const PluginsContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users/plugin",
+			"api/auth/users/plugin",
 			{
 				method: "POST",
 				body: JSON.stringify({
@@ -55,7 +55,7 @@ const PluginsContainer = () => {
 		setLoading(false);
 	};
 
-	const handleDisablePlugin = async pluginId => {
+	const handleDisablePlugin = async (pluginId) => {
 		if (loading) {
 			return;
 		}
@@ -63,7 +63,7 @@ const PluginsContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users/plugin",
+			"api/auth/users/plugin",
 			{
 				method: "DELETE",
 				body: JSON.stringify({
@@ -78,7 +78,7 @@ const PluginsContainer = () => {
 		setLoading(false);
 	};
 
-	const handleSearch = async e => {
+	const handleSearch = async (e) => {
 		e.preventDefault();
 		await fetchPlugins();
 	};

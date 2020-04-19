@@ -16,9 +16,9 @@ const ListContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/roles?term=" + searchTerm,
+			"api/auth/roles?term=" + searchTerm,
 			null,
-			async res => {
+			async (res) => {
 				setError(null);
 				setRoles(await res.json());
 			},
@@ -30,13 +30,13 @@ const ListContainer = () => {
 
 	const handleFlush = async () =>
 		await Fetch(
-			"auth/permissions/flush",
+			"api/auth/permissions/flush",
 			{ method: "POST" },
 			null,
 			setError
 		);
 
-	const handleSearchUpdate = e => setSearchTerm(e.target.value);
+	const handleSearchUpdate = (e) => setSearchTerm(e.target.value);
 
 	useEffect(() => {
 		handleFetch();

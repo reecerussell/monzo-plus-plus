@@ -10,8 +10,8 @@ const LoginContainer = () => {
 	const [loading, setLoading] = useState(false);
 	const [redirect, setRedirect] = useState(null);
 
-	const handleUpdateUsername = e => setUsername(e.target.value);
-	const handleUpdatePassword = e => setPassword(e.target.value);
+	const handleUpdateUsername = (e) => setUsername(e.target.value);
+	const handleUpdatePassword = (e) => setPassword(e.target.value);
 
 	const handleSubmit = async () => {
 		if (loading) {
@@ -31,7 +31,7 @@ const LoginContainer = () => {
 		setLoading(true);
 
 		try {
-			const res = await Fetch("http://localhost:9789/auth/token", {
+			const res = await Fetch("http://localhost:9789/api/auth/token", {
 				method: "POST",
 				body: JSON.stringify({
 					username,

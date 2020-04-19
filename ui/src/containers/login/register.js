@@ -9,9 +9,9 @@ const RegisterContainer = () => {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
 
-	const handleUpdateUsername = e => setUsername(e.target.value);
-	const handleUpdatePassword = e => setPassword(e.target.value);
-	const handleUpdateConfirm = e => setConfirm(e.target.value);
+	const handleUpdateUsername = (e) => setUsername(e.target.value);
+	const handleUpdatePassword = (e) => setPassword(e.target.value);
+	const handleUpdateConfirm = (e) => setConfirm(e.target.value);
 
 	const handleSubmit = async () => {
 		if (loading) {
@@ -36,7 +36,7 @@ const RegisterContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users/register",
+			"api/auth/users/register",
 			{
 				method: "POST",
 				redirect: "manual",
@@ -45,11 +45,12 @@ const RegisterContainer = () => {
 					password,
 				}),
 			},
-			async res => {
+			async (res) => {
 				const stateToken = await res.text();
 
 				window.location.replace(
-					"http://localhost:9789/auth/monzo/login?state=" + stateToken
+					"http://localhost:9789/api/auth/monzo/login?state=" +
+						stateToken
 				);
 			},
 			setError

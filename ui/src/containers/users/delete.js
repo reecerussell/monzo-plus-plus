@@ -14,12 +14,12 @@ const DeleteContainer = ({ id, onError }) => {
 	const [redirect, setRedirect] = useState(null);
 	const [isModelOpen, setIsModalOpen] = useState(false);
 
-	const toggleModal = e => {
+	const toggleModal = (e) => {
 		e.preventDefault();
 		setIsModalOpen(!isModelOpen);
 	};
 
-	const handleSubmit = async e => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (loading) {
@@ -29,12 +29,12 @@ const DeleteContainer = ({ id, onError }) => {
 		setLoading(true);
 
 		await Fetch(
-			`auth/users/${id}`,
+			`api/auth/users/${id}`,
 			{
 				method: "DELETE",
 			},
 			async () => setRedirect("/users"),
-			err => {
+			(err) => {
 				onError(err);
 				setIsModalOpen(false);
 			}

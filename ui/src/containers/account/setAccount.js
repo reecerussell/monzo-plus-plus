@@ -19,7 +19,7 @@ const SetAccountContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users/accounts/" + User.GetId(),
+			"api/auth/users/accounts/" + User.GetId(),
 			null,
 			async (res) => {
 				const accounts = await res.json();

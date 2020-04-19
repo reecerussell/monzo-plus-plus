@@ -16,7 +16,7 @@ const IndexContainer = () => {
 		setLoading(true);
 
 		const res = await Fetch(
-			"http://localhost:9789/auth/users/" + User.GetId()
+			"http://localhost:9789/api/auth/users/" + User.GetId()
 		);
 		if (res.ok) {
 			const data = await res.json();

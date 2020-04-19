@@ -12,7 +12,7 @@ const CreateContainer = () => {
 	const [error, setError] = useState(null);
 	const [redirect, setRedirect] = useState(null);
 
-	const handleSubmit = async e => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (loading) {
@@ -22,12 +22,12 @@ const CreateContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/roles",
+			"api/auth/roles",
 			{
 				method: "POST",
 				body: JSON.stringify(formData),
 			},
-			async res => {
+			async (res) => {
 				const { id } = await res.json();
 				setRedirect(`/roles/edit/${id}`);
 			},
@@ -38,7 +38,7 @@ const CreateContainer = () => {
 		setLoading(false);
 	};
 
-	const handleFormUpdate = e => {
+	const handleFormUpdate = (e) => {
 		const { name, value } = e.target;
 		const data = { ...formData };
 		data[name] = value;

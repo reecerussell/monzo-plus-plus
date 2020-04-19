@@ -16,16 +16,16 @@ const RolesContainer = ({ id }) => {
 		setLoading(true);
 
 		const roles = Fetch(
-			`auth/users/roles/${id}`,
+			`api/auth/users/roles/${id}`,
 			null,
-			async res => setRoles(await res.json()),
+			async (res) => setRoles(await res.json()),
 			setError
 		);
 
 		const availableRoles = Fetch(
-			`auth/users/availableRoles/${id}`,
+			`api/auth/users/availableRoles/${id}`,
 			null,
-			async res => setAvailable(await res.json()),
+			async (res) => setAvailable(await res.json()),
 			setError
 		);
 
@@ -34,9 +34,9 @@ const RolesContainer = ({ id }) => {
 		setLoading(false);
 	};
 
-	const handleAddRole = async roleId =>
+	const handleAddRole = async (roleId) =>
 		await Fetch(
-			"auth/users/roles",
+			"api/auth/users/roles",
 			{
 				method: "POST",
 				body: JSON.stringify({
@@ -48,9 +48,9 @@ const RolesContainer = ({ id }) => {
 			setError
 		);
 
-	const handleRemoveRole = async roleId =>
+	const handleRemoveRole = async (roleId) =>
 		await Fetch(
-			"auth/users/roles",
+			"api/auth/users/roles",
 			{
 				method: "DELETE",
 				body: JSON.stringify({

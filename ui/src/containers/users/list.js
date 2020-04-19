@@ -17,7 +17,7 @@ const ListContainer = () => {
 
 		try {
 			const res = await Fetch(
-				"http://localhost:9789/auth/users?term=" + searchTerm
+				"http://localhost:9789/api/auth/users?term=" + searchTerm
 			);
 
 			if (res.ok) {
@@ -41,7 +41,7 @@ const ListContainer = () => {
 		setLoading(false);
 	};
 
-	const search = async e => {
+	const search = async (e) => {
 		if (e) {
 			e.preventDefault();
 		}
