@@ -31,9 +31,11 @@ func main() {
 
 	go func() {
 		<-quit
+		web.Shutdown(bootstrap.ShutdownForce)
 		server.Shutdown(bootstrap.ShutdownForce)
 	}()
 
+	web.Shutdown(bootstrap.ShutdownGraceful)
 	server.Shutdown(bootstrap.ShutdownGraceful)
 
 	ctn.Clean()
