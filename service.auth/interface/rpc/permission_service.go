@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
@@ -53,5 +54,17 @@ func (ps *PermissionService) HasPermission(ctx context.Context, in *proto.Permis
 	return &proto.Error{
 		StatusCode: 200,
 		Message:    "",
+	}, nil
+}
+
+// GetMonzoAccessToken handles RPC to get a user's monzo access token.
+func (ps *PermissionService) GetMonzoAccessToken(ctx context.Context, in *proto.AccessTokenRequest) (*proto.AccessTokenResponse, error) {
+	token, err := ps.userAuthUsecase.GetMonzoAccessToken(in.GetUserID())
+	if err != nil {
+		return nil, fmt.Errorf(err.Text())
+	}
+
+	return &proto.AccessTokenResponse{
+		AccessToken: token,
 	}, nil
 }

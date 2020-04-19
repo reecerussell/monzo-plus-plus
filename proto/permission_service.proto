@@ -16,7 +16,16 @@ message Error {
     int32 StatusCode = 2;
 }
 
+message AccessTokenRequest {
+    string UserID = 1;
+}
+
+message AccessTokenResponse {
+    string AccessToken = 1;
+}
+
 service PermissionService {
     rpc ValidateToken(TokenData) returns (Error) {}
     rpc HasPermission(PermissionData) returns (Error) {}
+    rpc GetMonzoAccessToken(AccessTokenRequest) returns (AccessTokenResponse) {}
 }

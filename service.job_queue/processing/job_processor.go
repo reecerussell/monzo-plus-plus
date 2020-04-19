@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -76,15 +77,13 @@ func (jp *jobProcessor) Start(ctx context.Context) errors.Error {
 
 				err := j.Execute(jp.process)
 				if err != nil {
-					log.Printf("[ERROR]: %v", err.Text())
+					log.Printf("[ERROR] execute: %v", err.Text())
 				}
 
 				err = jp.jobs.Update(j)
 				if err != nil {
 					log.Printf("[ERROR]: %v", err.Text())
 				}
-
-				jp.mb.Notifier <- []byte(strconv.Itoa(c - idx))
 			}(jobs[i], i)
 		}
 
@@ -107,8 +106,15 @@ func (jp *jobProcessor) Push(j *model.Job) errors.Error {
 	return nil
 }
 
-func (jp *jobProcessor) process(userID, pluginName, data string) errors.Error {
+func (jp *jobProcessor) process(userID, accountID, pluginName, data string) errors.Error {
+	log.Printf("u: %s, a: %s, p: %s\n", userID, accountID, pluginName)
+
 	host, hErr := jp.getPluginHost(pluginName)
+	if hErr != nil {
+		return hErr
+	}
+
+	ac, hErr := jp.getAccessToken(userID)
 	if hErr != nil {
 		return hErr
 	}
@@ -120,12 +126,14 @@ func (jp *jobProcessor) process(userID, pluginName, data string) errors.Error {
 	defer conn.Close()
 
 	client := proto.NewPluginServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	payload := &proto.SendRequest{
-		UserID:   userID,
-		JSONData: data,
+		UserID:      userID,
+		AccountID:   accountID,
+		AccessToken: ac,
+		JSONData:    data,
 	}
 
 	_, err = client.Send(ctx, payload)
@@ -141,7 +149,7 @@ func (jp *jobProcessor) getPluginHost(pluginName string) (string, errors.Error) 
 	defer jp.mu.RUnlock()
 
 	host, ok := jp.hosts[pluginName]
-	if !ok {
+	if !ok || host == "" {
 		host, err := bootstrap.GetHost(pluginName)
 		if err != nil {
 			return "", errors.InternalError(err)
@@ -155,4 +163,27 @@ func (jp *jobProcessor) getPluginHost(pluginName string) (string, errors.Error) 
 	}
 
 	return host, nil
+}
+
+func (jp *jobProcessor) getAccessToken(userID string) (string, errors.Error) {
+	conn, err := grpc.Dial(os.Getenv("AUTH_RPC_HOST"), grpc.WithInsecure())
+	if err != nil {
+		return "", errors.InternalError(fmt.Errorf("dial: %v", err))
+	}
+	defer conn.Close()
+
+	client := proto.NewPermissionServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	payload := &proto.AccessTokenRequest{
+		UserID: userID,
+	}
+
+	res, err := client.GetMonzoAccessToken(ctx, payload)
+	if err != nil {
+		return "", errors.InternalError(fmt.Errorf("send: %v", err))
+	}
+
+	return res.GetAccessToken(), nil
 }
