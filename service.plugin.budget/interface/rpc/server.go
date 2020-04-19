@@ -12,9 +12,9 @@ import (
 
 func Build(ctn *di.Container) *bootstrap.RPCServer {
 	s := grpc.NewServer()
-	bs := service.NewBudgetService(ctn)
+	ps := service.NewService(ctn)
 
-	proto.RegisterBudgetServiceServer(s, bs)
+	proto.RegisterPluginServiceServer(s, ps)
 
 	return bootstrap.BuildRPCServer(s)
 }

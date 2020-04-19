@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
-
 	"github.com/reecerussell/monzo-plus-plus/libraries/di"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/interface/rpc/proto"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/registry"
 	"github.com/reecerussell/monzo-plus-plus/service.plugin.budget/usecase"
@@ -42,7 +41,7 @@ func NewService(ctn *di.Container) *Service {
 func (s *Service) Send(ctx context.Context, in *proto.SendRequest) (*proto.EmptySendResponse, error) {
 	userID, accountID, accessToken := in.GetUserID(), in.GetAccountID(), in.GetAccessToken()
 
-	budget, err := s.calculateBudget(userID, accessToken, accessToken)
+	budget, err := s.calculateBudget(userID, accountID, accessToken)
 	if err != nil {
 		if err == errNoMonthlyBudget {
 			return &proto.EmptySendResponse{}, nil
@@ -51,7 +50,7 @@ func (s *Service) Send(ctx context.Context, in *proto.SendRequest) (*proto.Empty
 		return &proto.EmptySendResponse{}, fmt.Errorf(err.Text())
 	}
 
-	err = s.sendFeedItem(accountID, accountID, budget)
+	err = s.sendFeedItem(accountID, accessToken, budget)
 	if err != nil {
 		return &proto.EmptySendResponse{}, fmt.Errorf(err.Text())
 	}
@@ -60,11 +59,11 @@ func (s *Service) Send(ctx context.Context, in *proto.SendRequest) (*proto.Empty
 }
 
 func (s *Service) calculateBudget(userID, accountID, accessToken string) (float64, errors.Error) {
-	total, today, monthly := make(chan float64), make(chan float64), make(chan float64)
+	total, today, monthly := make(chan float64, 1), make(chan float64, 1), make(chan float64, 1)
 
 	var eg errors.Group
 	eg.Go(func() errors.Error {
-		sum, err := s.sumOfTransactions(accountID, accountID)
+		sum, err := s.sumOfTransactions(accountID, accessToken)
 		if err != nil {
 			return err
 		}
