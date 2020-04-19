@@ -34,7 +34,7 @@ func NewMonzoController(r *routing.Router) *MonzoController {
 
 // HandleEvent is used to handle POST requests from Monzo's wehbook.
 func (c *MonzoController) HandleEvent(w http.ResponseWriter, r *http.Request) {
-	var data monzo.TransactionEventWrapper
+	var data monzo.TransactionEvent
 	_ = json.NewDecoder(r.Body).Decode(&data)
 	userID := r.URL.Query().Get("userId")
 
@@ -51,7 +51,7 @@ func (c *MonzoController) HandleEvent(w http.ResponseWriter, r *http.Request) {
 			wg.Add(1)
 			defer wg.Done()
 
-			err := c.jobs.Create(r.Context(), userID, id, &data.Data)
+			err := c.jobs.Create(r.Context(), userID, id, data.Data)
 			if err != nil {
 				log.Printf("[ERROR]: WEBHOOK ERROR\n\tUser Id: %s\n\tPlugin Id: %s\n\tError: %s", userID, id, err.Text())
 			}

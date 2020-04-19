@@ -306,7 +306,6 @@ func (c *client) CreateFeedItem(accountID, accessToken, title, imageURL string, 
 	}
 
 	target, _ := url.Parse(APIBaseURL + "feed")
-
 	req, err := http.NewRequest(http.MethodPost, target.String(), strings.NewReader(body.Encode()))
 	if err != nil {
 		return errors.InternalError(err)
@@ -377,7 +376,7 @@ type Balance struct {
 // account. An optional parameter, opts, is used to filter the transactions
 // requested - only the first option will be used.
 func (c *client) GetTransactions(accountID, accessToken string, opts ...*TransactionOpts) ([]*Transaction, errors.Error) {
-	qs := fmt.Sprintf("?account_id")
+	qs := fmt.Sprintf("?account_id=%s", accountID)
 	if len(opts) > 0 {
 		opt := opts[0]
 
@@ -442,6 +441,12 @@ type TransactionOpts struct {
 // TransactionList is a wrapper around an array of Transation.
 type TransactionList struct {
 	Transactions []*Transaction `json:"transactions"`
+}
+
+// TransactionEvent is a wrapper around Transaction.
+type TransactionEvent struct {
+	Type string       `json:"type"`
+	Data *Transaction `json:"data"`
 }
 
 // Transaction is a struct of transaction data and is used to read from Monzo.
@@ -519,6 +524,12 @@ type CounterParty struct {
 func readResponseError(resp *http.Response) error {
 	var body Error
 	_ = json.NewDecoder(resp.Body).Decode(&body)
+
+	// This is a temporary fix for while theres an issue with
+	// Monzo's API. 19/04/2020
+	if body.Code == "bad_request.missing_param.type" {
+		return nil
+	}
 
 	monzoMessage := getMonzoErrorMessage(resp.StatusCode)
 
