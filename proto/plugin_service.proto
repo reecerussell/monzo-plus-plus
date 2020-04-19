@@ -4,7 +4,9 @@ package proto;
 
 message SendRequest {
     string UserID = 1;
-    string JSONData = 2;
+    string AccountID = 2;
+    string AccessToken = 3;
+    string JSONData = 4;
 }
 
 message EmptySendResponse {
