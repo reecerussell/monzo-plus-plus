@@ -13,16 +13,15 @@ import (
 func Build() *bootstrap.HTTPServer {
 	r := routing.NewRouter()
 
-	controller.UI(r)
 	_ = controller.NewMonzoController(r)
 	_ = controller.NewAuthController(r)
 	_ = controller.NewPluginController(r)
+	controller.UI(r)
 
 	s := bootstrap.BuildServer(&http.Server{
 		Handler: r,
 		Addr:    fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")),
 	})
-	s.CORS(false)
 
 	return s
 }
