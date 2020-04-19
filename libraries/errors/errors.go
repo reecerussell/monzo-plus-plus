@@ -5,3 +5,8 @@ type Error interface {
 	ErrorCode() int
 	StackTrace() string
 }
+
+// New returns a new error.
+func New(err error) Error {
+	return InternalError(err)
+}
