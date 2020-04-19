@@ -85,9 +85,9 @@ type Client interface {
 	// own accounts will be returned; joint accounts will not be found.
 	Accounts(accessToken string) ([]*AccountData, error)
 
-	CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...FeedItemOpts) errors.Error
+	CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...*FeedItemOpts) errors.Error
 	GetBalance(accountID, accessToken string) (*Balance, errors.Error)
-	GetTransactions(accountID, accessToken string, opts ...TransactionOpts) ([]*Transaction, errors.Error)
+	GetTransactions(accountID, accessToken string, opts ...*TransactionOpts) ([]*Transaction, errors.Error)
 }
 
 var (
@@ -118,7 +118,7 @@ func Accounts(accessToken string) ([]*AccountData, error) {
 	return mustUseDefaultClient().Accounts(accessToken)
 }
 
-func CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...FeedItemOpts) errors.Error {
+func CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...*FeedItemOpts) errors.Error {
 	return mustUseDefaultClient().CreateFeedItem(accountID, accessToken, title, imageURL, opts...)
 }
 
@@ -126,7 +126,7 @@ func GetBalance(accountID, accessToken string) (*Balance, errors.Error) {
 	return mustUseDefaultClient().GetBalance(accountID, accessToken)
 }
 
-func GetTransactions(accountID, accessToken string, opts ...TransactionOpts) ([]*Transaction, errors.Error) {
+func GetTransactions(accountID, accessToken string, opts ...*TransactionOpts) ([]*Transaction, errors.Error) {
 	return mustUseDefaultClient().GetTransactions(accountID, accessToken, opts...)
 }
 
@@ -274,7 +274,7 @@ func (c *client) Accounts(accessToken string) ([]*AccountData, error) {
 // CreateFeedItem creates a feed item in the Monzo app for the given account.
 // opts is an optional parameter where you can customise the feed item - only
 // the first option item will be used.
-func (c *client) CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...FeedItemOpts) errors.Error {
+func (c *client) CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...*FeedItemOpts) errors.Error {
 	body := url.Values{}
 	body.Add("account_id", accountID)
 	body.Add("type", "basic")
@@ -376,7 +376,7 @@ type Balance struct {
 // GetTransactions is used to return an array of transactions for a specific
 // account. An optional parameter, opts, is used to filter the transactions
 // requested - only the first option will be used.
-func (c *client) GetTransactions(accountID, accessToken string, opts ...TransactionOpts) ([]*Transaction, errors.Error) {
+func (c *client) GetTransactions(accountID, accessToken string, opts ...*TransactionOpts) ([]*Transaction, errors.Error) {
 	qs := fmt.Sprintf("?account_id")
 	if len(opts) > 0 {
 		opt := opts[0]
