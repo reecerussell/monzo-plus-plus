@@ -2,7 +2,6 @@ package monzo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,19 +9,21 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 )
 
 // Monzo status code errors
 var (
-	ErrBadRequest          = errors.New("your request has missing arguments or is malformed")
-	ErrUnauthorized        = errors.New("your request is not authenticated")
-	ErrForbidden           = errors.New("your request is authenticated but has insufficent permissions")
-	ErrMethodNotAllowed    = errors.New("you are using an incorrect HTTP verb. double check whether it should be POST/GET/DELETE/etc")
-	ErrPageNotFound        = errors.New("the endpoint requested does not exist")
-	ErrNotAcceptable       = errors.New("your application does not accept the content format returned according to the accpet headers sent in the request")
-	ErrTooManyRequests     = errors.New("your application is exceeding its rate limit. back off, buddy :p")
-	ErrInternalServerError = errors.New("something is wrong on our end. whoopsie")
-	ErrGatewayTimeout      = errors.New("something has timed out on our end. whoopsie")
+	ErrBadRequest          = errors.New(fmt.Errorf("your request has missing arguments or is malformed"))
+	ErrUnauthorized        = errors.New(fmt.Errorf("your request is not authenticated"))
+	ErrForbidden           = errors.New(fmt.Errorf("your request is authenticated but has insufficent permissions"))
+	ErrMethodNotAllowed    = errors.New(fmt.Errorf("you are using an incorrect HTTP verb. double check whether it should be POST/GET/DELETE/etc"))
+	ErrPageNotFound        = errors.New(fmt.Errorf("the endpoint requested does not exist"))
+	ErrNotAcceptable       = errors.New(fmt.Errorf("your application does not accept the content format returned according to the accpet headers sent in the request"))
+	ErrTooManyRequests     = errors.New(fmt.Errorf("your application is exceeding its rate limit. back off, buddy :p"))
+	ErrInternalServerError = errors.New(fmt.Errorf("something is wrong on our end. whoopsie"))
+	ErrGatewayTimeout      = errors.New(fmt.Errorf("something has timed out on our end. whoopsie"))
 )
 
 const (
@@ -254,6 +255,250 @@ func (c *client) Accounts(accessToken string) ([]*AccountData, error) {
 	return list.Accounts, nil
 }
 
+// CreateFeedItem creates a feed item in the Monzo app for the given account.
+// opts is an optional parameter where you can customise the feed item - only
+// the first option item will be used.
+func (c *client) CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...FeedItemOpts) errors.Error {
+	body := url.Values{}
+	body.Add("account_id", accountID)
+	body.Add("type", "basic")
+	body.Add("params[title]", title)
+	body.Add("params[image_url]", imageURL)
+
+	if len(opts) > 0 {
+		opt := opts[0]
+
+		if opt.URL != "" {
+			body.Add("url", opt.URL)
+		}
+
+		if opt.TitleColor != "" {
+			body.Add("params[title_color]", opt.TitleColor)
+		}
+
+		if opt.Body != "" {
+			body.Add("params[body]", opt.Body)
+		}
+
+		if opt.BodyColor != "" {
+			body.Add("params[body_color]", opt.BodyColor)
+		}
+
+		if opt.BackgroundColor != "" {
+			body.Add("params[background_color]", opt.BackgroundColor)
+		}
+	}
+
+	target, _ := url.Parse(APIBaseURL + "feed")
+
+	req, err := http.NewRequest(http.MethodPost, target.String(), strings.NewReader(body.Encode()))
+	if err != nil {
+		return errors.InternalError(err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return errors.InternalError(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err = readResponseError(resp)
+		return errors.InternalError(err)
+	}
+
+	return nil
+}
+
+// FeedItemOpts is used to customise a feed item.
+type FeedItemOpts struct {
+	URL             string
+	TitleColor      string
+	Body            string
+	BodyColor       string
+	BackgroundColor string
+}
+
+// GetBalance requests the current balance for the given account.
+func (c *client) GetBalance(accountID, accessToken string) (*Balance, errors.Error) {
+	target, _ := url.Parse(APIBaseURL + fmt.Sprintf("balance?account_id=%s", accountID))
+	req, err := http.NewRequest(http.MethodGet, target.String(), nil)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err = readResponseError(resp)
+		return nil, errors.InternalError(err)
+	}
+
+	var data Balance
+	_ = json.NewDecoder(resp.Body).Decode(&data)
+
+	return &data, nil
+}
+
+// Balance holds balance data for a specific account.
+type Balance struct {
+	Balance      int    `json:"balance"`
+	TotalBalance int    `json:"total_balance"`
+	Currency     string `json:"currency"`
+	SpendToday   int    `json:"spend_today"`
+}
+
+// GetTransactions is used to return an array of transactions for a specific
+// account. An optional parameter, opts, is used to filter the transactions
+// requested - only the first option will be used.
+func (c *client) GetTransactions(accountID, accessToken string, opts ...TransactionOpts) ([]*Transaction, errors.Error) {
+	qs := fmt.Sprintf("?account_id")
+	if len(opts) > 0 {
+		opt := opts[0]
+
+		if opt.Since != nil {
+			qs += fmt.Sprintf("&since=%s", opt.Since.Format(time.RFC3339))
+		}
+
+		if opt.Before != nil {
+			qs += fmt.Sprintf("&before=%s", opt.Before.Format(time.RFC3339))
+		}
+
+		if opt.Merchant {
+			qs += "&expand[]=merchant"
+		}
+
+		if opt.Limit > 0 {
+			qs += fmt.Sprintf("&limit=%d", opt.Limit)
+		}
+	}
+
+	target, _ := url.Parse(APIBaseURL + "transactions" + qs)
+	req, err := http.NewRequest(http.MethodGet, target.String(), nil)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, errors.InternalError(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err = readResponseError(resp)
+		return nil, errors.InternalError(err)
+	}
+
+	var list TransactionList
+	_ = json.NewDecoder(resp.Body).Decode(&list)
+
+	return list.Transactions, nil
+}
+
+// TransactionOpts is used to filter transaction records.
+type TransactionOpts struct {
+	// If left nil, this option will not be used. This option is nil by default.
+	Since *time.Time
+
+	// If left nil, this option will not be used. This option is nil by default.
+	Before *time.Time
+
+	// If true, the merchant field will be expanded but is false by default.
+	Merchant bool
+
+	// Limit is used to limit the number of transactions. If the limit is 0
+	// this option will be ignored. Set to 0 by default.
+	Limit int
+}
+
+// TransactionList is a wrapper around an array of Transation.
+type TransactionList struct {
+	Transactions []*Transaction `json:"transactions"`
+}
+
+// Transaction is a struct of transaction data and is used to read from Monzo.
+type Transaction struct {
+	AccountBalance             int                    `json:"account_balance"`
+	Amount                     int                    `json:"amount"`
+	Created                    time.Time              `json:"created"`
+	Currency                   string                 `json:"currency"`
+	Category                   string                 `json:"category"`
+	Categories                 map[string]interface{} `json:"categories"`
+	Description                string                 `json:"description"`
+	ID                         string                 `json:"id"`
+	MetaData                   map[string]interface{} `json:"metadata"`
+	Notes                      string                 `json:"notes"`
+	IsLoad                     bool                   `json:"is_load"`
+	Settled                    *time.Time             `json:"settled"`
+	Scheme                     string                 `json:"scheme"`
+	LocalAmount                int                    `json:"local_amount"`
+	LocalCurrency              string                 `json:"local_currency"`
+	Updated                    *time.Time             `json:"updated"`
+	AccountID                  string                 `json:"account_id"`
+	UserID                     string                 `json:"user_id"`
+	CounterParty               *CounterParty          `json:"counterparty"`
+	DedupeID                   string                 `json:"dedupe_id"`
+	Originator                 bool                   `json:"originator"`
+	IncludeInSpending          bool                   `json:"include_in_spending"`
+	CanBeExcludedFromBreakdown bool                   `json:"can_be_excluded_from_breakdown"`
+	CanBeMadeSubscription      bool                   `json:"can_be_made_subscription"`
+	CanSplitTheBill            bool                   `json:"can_split_the_bill"`
+	CanAddToTab                bool                   `json:"can_Add_to_tab"`
+	AmountIsPending            bool                   `json:"amount_is_pending"`
+	Labels                     []string               `json:"labels"`
+}
+
+// Merchant is used to read merchant data from of a transactions.
+type Merchant struct {
+	Address         *MerchantAddress       `json:"address"`
+	Created         time.Time              `json:"created"`
+	GroupID         string                 `json:"group_id"`
+	ID              string                 `json:"id"`
+	Logo            string                 `json:"logo"`
+	Emoji           string                 `json:"emoji"`
+	Name            string                 `json:"name"`
+	Category        string                 `json:"category"`
+	Online          *bool                  `json:"online"`
+	ATM             *bool                  `json:"atm"`
+	MetaData        map[string]interface{} `json:"metadata"`
+	DisableFeedback *bool                  `json:"disable_Feedback"`
+}
+
+// MerchantAddress holds address data for a merchant.
+type MerchantAddress struct {
+	Address        string  `json:"address"`
+	City           string  `json:"city"`
+	Country        string  `json:"country"`
+	Latitude       float64 `json:"latitude"`
+	Longitude      float64 `json:"longitude"`
+	Postcode       string  `json:"postcode"`
+	Region         string  `json:"region"`
+	ShortFormatted *string `json:"short_formatted"`
+	Formatted      *string `json:"formatted"`
+	ZoomLevel      *int    `json:"zoom_level"`
+	Approximate    *bool   `json:"approximate"`
+}
+
+// CounterParty is used to read counterparty data.
+type CounterParty struct {
+	AccountNumber string `json:"account_number"`
+	Name          string `json:"name"`
+	SortCode      string `json:"sort_code"`
+	UserID        string `json:"user_id"`
+}
+
 // reads the standard Monzo error response and returns a detailed error.
 func readResponseError(resp *http.Response) error {
 	var body Error
@@ -265,7 +510,7 @@ func readResponseError(resp *http.Response) error {
 }
 
 // returns a predefined error for each status code.
-func getMonzoErrorMessage(code int) error {
+func getMonzoErrorMessage(code int) errors.Error {
 	switch code {
 	case http.StatusBadRequest:
 		return ErrBadRequest
@@ -286,7 +531,7 @@ func getMonzoErrorMessage(code int) error {
 	case http.StatusGatewayTimeout:
 		return ErrGatewayTimeout
 	default:
-		return fmt.Errorf("an error occured (unrecognized status code: %d)", code)
+		return errors.New(fmt.Errorf("an error occured (unrecognized status code: %d)", code))
 	}
 }
 
