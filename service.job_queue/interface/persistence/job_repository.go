@@ -68,7 +68,7 @@ func (jr *jobRepository) GetN(n int) ([]*model.Job, errors.Error) {
 			return nil, errors.InternalError(err)
 		}
 
-		return dm, nil
+		return &dm, nil
 	}, n)
 	if err != nil {
 		return nil, err
