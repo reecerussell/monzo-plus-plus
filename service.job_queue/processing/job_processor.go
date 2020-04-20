@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/bootstrap"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
-	"github.com/reecerussell/monzo-plus-plus/libraries/sse"
 	"github.com/reecerussell/monzo-plus-plus/service.job_queue/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.job_queue/domain/repository"
 	"github.com/reecerussell/monzo-plus-plus/service.job_queue/processing/proto"
@@ -19,104 +17,131 @@ import (
 	"google.golang.org/grpc"
 )
 
-type JobProcessor interface {
-	Start(ctx context.Context) errors.Error
-	Push(j *model.Job) errors.Error
+// Queue is a first-in, first-out queue used for executing and proccessing Jobs.
+type Queue struct {
+	jobs          repository.JobRepository
+	hold          chan bool
+	wg            sync.WaitGroup
+	pool          chan *Worker
+	workers       []*Worker
+	internalQueue chan *model.Job
 }
 
-type jobProcessor struct {
-	mu    *sync.RWMutex
-	hosts map[string]string
-	jobs  repository.JobRepository
-	con   chan int
-	mb    *sse.Broker
+// NewQueue returns a new instance of Queue.
+func NewQueue(repo repository.JobRepository, workerLimit int) *Queue {
+	q := &Queue{
+		jobs:          repo,
+		hold:          make(chan bool, 1),
+		wg:            sync.WaitGroup{},
+		pool:          make(chan *Worker, workerLimit),
+		workers:       make([]*Worker, workerLimit),
+		internalQueue: make(chan *model.Job, workerLimit),
+	}
 
-	WorkerLimit int
+	hosts := NewHostProvider()
+
+	for i := range q.workers {
+		q.workers[i] = &Worker{
+			jobs:  repo,
+			hosts: hosts,
+		}
+	}
+
+	return q
 }
 
-// NewJobProcessor returns a new instance of JobRepository.
-func NewJobProcessor(repo repository.JobRepository, workerLimit int, mb *sse.Broker) JobProcessor {
-	return &jobProcessor{
-		mu:          &sync.RWMutex{},
-		hosts:       make(map[string]string),
-		jobs:        repo,
-		con:         make(chan int, 1),
-		mb:          mb,
-		WorkerLimit: workerLimit,
+// Start begins the queue and pooling.
+func (q *Queue) Start() {
+	for _, w := range q.workers {
+		q.pool <- w
+	}
+
+	go q.dispatch()
+
+	for {
+		w := <-q.pool
+		go func() {
+			j := <-q.internalQueue
+			defer q.wg.Done()
+			w.Process(j)
+			q.pool <- w
+		}()
 	}
 }
 
-func (jp *jobProcessor) Start(ctx context.Context) errors.Error {
-	var wg sync.WaitGroup
-
-	for true {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
+func (q *Queue) dispatch() {
+	for {
+		q.wg.Wait()
+		jobs, err := q.jobs.GetN(len(q.workers))
+		if err != nil {
+			log.Printf("\t[ERROR]: failed to get jobs: %s\n", err.Text())
 			break
 		}
+		log.Printf("\tDone.\n")
 
-		jobs, err := jp.jobs.GetN(jp.WorkerLimit)
-		if err != nil {
-			return err
-		}
-
-		c := len(jobs)
-		if c < 1 {
-			<-jp.con
+		if c := len(jobs); c < 1 {
+			<-q.hold
 			continue
+		} else {
+			q.wg.Add(c)
 		}
 
-		jp.mb.Notifier <- []byte(strconv.Itoa(c))
-
-		for i := 0; i < c; i++ {
-			go func(j *model.Job, idx int) {
-				wg.Add(1)
-				defer wg.Done()
-
-				err := j.Execute(jp.process)
-				if err != nil {
-					log.Printf("[ERROR] execute: %v", err.Text())
-				}
-
-				err = jp.jobs.Update(j)
-				if err != nil {
-					log.Printf("[ERROR]: %v", err.Text())
-				}
-			}(jobs[i], i)
+		for _, j := range jobs {
+			q.internalQueue <- j
 		}
-
-		wg.Wait()
 	}
-
-	return nil
 }
 
-func (jp *jobProcessor) Push(j *model.Job) errors.Error {
-	err := jp.jobs.Add(j)
+// Push adds a Job database record and triggers the queue to start processing.
+func (q *Queue) Push(j *model.Job) errors.Error {
+	log.Printf("Job received, adding to database...")
+	err := q.jobs.Add(j)
 	if err != nil {
 		return err
 	}
+	log.Printf("\tDone.\n")
 
-	if len(jp.con) < 1 {
-		jp.con <- 1
+	if len(q.hold) < 1 {
+		q.hold <- true
+		log.Printf("Notified queue.")
 	}
 
 	return nil
 }
 
-func (jp *jobProcessor) process(userID, accountID, pluginName, data string) errors.Error {
-	log.Printf("u: %s, a: %s, p: %s\n", userID, accountID, pluginName)
+// Worker is used to individually handle the proccessing of a job.
+type Worker struct {
+	hosts *HostProvider
+	jobs  repository.JobRepository
+}
 
-	host, hErr := jp.getPluginHost(pluginName)
-	if hErr != nil {
-		return hErr
+// Process is the worker's entrypoint when it's used. It executed and
+// updates a Job, depending on the result of the execution.
+func (w *Worker) Process(j *model.Job) {
+	err := j.Execute(w.internalProcessor)
+	if err != nil {
+		log.Printf("[JOB:%d][ERROR]: an error occured while executing the job: %s\n", j.GetID(), err.Text())
 	}
 
-	ac, hErr := jp.getAccessToken(userID)
-	if hErr != nil {
-		return hErr
+	err = w.jobs.Update(j)
+	if err != nil {
+		log.Printf("[JOB:%d][ERROR]: an error occured while updating the job: %s\n", j.GetID(), err.Text())
+	}
+}
+
+// internalProcessor is a ProcessFunc used by a Job to process itself.
+func (w *Worker) internalProcessor(userID, accountID, pluginName, data string) errors.Error {
+	var host, accessToken string
+	if h, err := w.hosts.Get(pluginName); err == nil {
+		host = h
+	} else {
+		return err
+	}
+
+	if ac, err := getAccessToken(userID); err == nil {
+		accessToken = ac
+	} else {
+		return err
 	}
 
 	conn, err := grpc.Dial(host, grpc.WithInsecure())
@@ -132,7 +157,7 @@ func (jp *jobProcessor) process(userID, accountID, pluginName, data string) erro
 	payload := &proto.SendRequest{
 		UserID:      userID,
 		AccountID:   accountID,
-		AccessToken: ac,
+		AccessToken: accessToken,
 		JSONData:    data,
 	}
 
@@ -144,11 +169,28 @@ func (jp *jobProcessor) process(userID, accountID, pluginName, data string) erro
 	return nil
 }
 
-func (jp *jobProcessor) getPluginHost(pluginName string) (string, errors.Error) {
-	jp.mu.RLock()
-	defer jp.mu.RUnlock()
+// HostProvider is used to provider and cache plugin hostnames.
+type HostProvider struct {
+	mu    sync.RWMutex
+	hosts map[string]string
+}
 
-	host, ok := jp.hosts[pluginName]
+// NewHostProvider returns a new instance of HostProvider.
+func NewHostProvider() *HostProvider {
+	return &HostProvider{
+		mu:    sync.RWMutex{},
+		hosts: make(map[string]string),
+	}
+}
+
+// Get returns the hostname for the given plugin. If the hostname
+// is not in the provider's internal cache, a request will be made to
+// the registry for it, via RPC.
+func (p *HostProvider) Get(pluginName string) (string, errors.Error) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	host, ok := p.hosts[pluginName]
 	if !ok || host == "" {
 		host, err := bootstrap.GetHost(pluginName)
 		if err != nil {
@@ -159,13 +201,13 @@ func (jp *jobProcessor) getPluginHost(pluginName string) (string, errors.Error) 
 			return "", errors.InternalError(fmt.Errorf("host not found for %s", pluginName))
 		}
 
-		jp.hosts[pluginName] = fmt.Sprintf("%s:8080", host)
+		p.hosts[pluginName] = fmt.Sprintf("%s:8080", host)
 	}
 
 	return host, nil
 }
 
-func (jp *jobProcessor) getAccessToken(userID string) (string, errors.Error) {
+func getAccessToken(userID string) (string, errors.Error) {
 	conn, err := grpc.Dial(os.Getenv("AUTH_RPC_HOST"), grpc.WithInsecure())
 	if err != nil {
 		return "", errors.InternalError(fmt.Errorf("dial: %v", err))

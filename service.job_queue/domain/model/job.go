@@ -40,6 +40,12 @@ func NewJob(userID, pluginID, data string) *Job {
 	}
 }
 
+// Add for debugging purposes.
+// TODO: remove method.
+func (j *Job) GetID() int {
+	return j.id
+}
+
 // MarkAsCompleted is used to set the completed field to the current time
 // in UTC. Once a job has been marked as completed, it will not be added
 // to the queue again.

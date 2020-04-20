@@ -3,6 +3,7 @@ package monzo
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -275,6 +276,8 @@ func (c *client) Accounts(accessToken string) ([]*AccountData, error) {
 // opts is an optional parameter where you can customise the feed item - only
 // the first option item will be used.
 func (c *client) CreateFeedItem(accountID, accessToken, title, imageURL string, opts ...*FeedItemOpts) errors.Error {
+	log.Printf("Creating Feed Item.\n")
+
 	body := url.Values{}
 	body.Add("account_id", accountID)
 	body.Add("type", "basic")
@@ -322,8 +325,12 @@ func (c *client) CreateFeedItem(accountID, accessToken, title, imageURL string, 
 
 	if resp.StatusCode != http.StatusOK {
 		err = readResponseError(resp)
-		return errors.InternalError(err)
+		if err != nil {
+			return errors.InternalError(err)
+		}
 	}
+
+	log.Printf("Created Feed Item.")
 
 	return nil
 }

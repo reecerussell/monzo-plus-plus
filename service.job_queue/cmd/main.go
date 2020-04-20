@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"os/signal"
 	"strconv"
@@ -23,16 +22,16 @@ const DefaultWorkerLimit = 3
 func main() {
 	mb := sse.NewBroker()
 
-	repo := persistence.NewJobRepository()
-	processor := processing.NewJobProcessor(repo, getLimit(), mb)
-	pctx, cancelProcessing := context.WithCancel(context.Background())
-	go processor.Start(pctx)
-
 	web := http.Build(mb)
 	go web.Serve()
 
-	rpc := rpc.Build(processor)
+	repo := persistence.NewJobRepository()
+	queue := processing.NewQueue(repo, getLimit())
+
+	rpc := rpc.Build(queue)
 	go rpc.Serve()
+
+	go queue.Start()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
@@ -40,7 +39,6 @@ func main() {
 
 	web.Shutdown(bootstrap.ShutdownGraceful)
 	rpc.Shutdown(bootstrap.ShutdownGraceful)
-	cancelProcessing()
 }
 
 func getLimit() int {

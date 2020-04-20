@@ -11,13 +11,13 @@ import (
 
 // JobsService is a service which handles incompling RPC calls.
 type JobsService struct {
-	jp processing.JobProcessor
+	q *processing.Queue
 }
 
 // NewJobsService returns a new instance of JObsService.
-func NewJobsService(jp processing.JobProcessor) *JobsService {
+func NewJobsService(q *processing.Queue) *JobsService {
 	return &JobsService{
-		jp: jp,
+		q: q,
 	}
 }
 
@@ -25,7 +25,7 @@ func NewJobsService(jp processing.JobProcessor) *JobsService {
 func (js *JobsService) Push(ctx context.Context, in *proto.PushRequest) (*proto.EmptyPushResponse, error) {
 	j := model.NewJob(in.GetUserID(), in.GetPluginID(), in.GetData())
 
-	err := js.jp.Push(j)
+	err := js.q.Push(j)
 	if err != nil {
 		return nil, errors.New(err.Text())
 	}

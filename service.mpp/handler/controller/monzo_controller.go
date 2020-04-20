@@ -46,6 +46,11 @@ func (c *MonzoController) HandleEvent(w http.ResponseWriter, r *http.Request) {
 
 	var wg sync.WaitGroup
 
+	log.Printf("No. of Plugins: %d\n", len(pluginIDs))
+	for _, id := range pluginIDs {
+		log.Printf("\t- %s\n", id)
+	}
+
 	for _, pluginID := range pluginIDs {
 		go func(id string) {
 			wg.Add(1)

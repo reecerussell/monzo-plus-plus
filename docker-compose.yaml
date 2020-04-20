@@ -43,6 +43,7 @@ services:
             - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
             - "REGISTRY_HOST=registry:8080"
             - "AUTH_RPC_HOST=auth:8080"
+            - "WORKER_LIMIT=3"
         networks:
             - monzo
         depends_on:

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -39,21 +40,29 @@ func NewService(ctn *di.Container) *Service {
 // Send is a handle for the gRPC plugin service. It is the entrypoint
 // for the plugin handler and calculates the daily budget.
 func (s *Service) Send(ctx context.Context, in *proto.SendRequest) (*proto.EmptySendResponse, error) {
+	log.Println("[BUDGET]: Received.")
 	userID, accountID, accessToken := in.GetUserID(), in.GetAccountID(), in.GetAccessToken()
 
+	log.Println("[BUDGET]: Attempting to calculate budget.")
 	budget, err := s.calculateBudget(userID, accountID, accessToken)
 	if err != nil {
 		if err == errNoMonthlyBudget {
+			log.Println("[BUDGET]: No monthly budget set, bailing.")
 			return &proto.EmptySendResponse{}, nil
 		}
 
+		log.Println("[BUDGET][ERROR]: " + err.Text())
 		return &proto.EmptySendResponse{}, fmt.Errorf(err.Text())
 	}
+	log.Println("[BUDGET]: Done.")
 
+	log.Println("[BUDGET]: Attempting to send a feed item.")
 	err = s.sendFeedItem(accountID, accessToken, budget)
 	if err != nil {
+		log.Println("[BUDGET][ERROR]: " + err.Text())
 		return &proto.EmptySendResponse{}, fmt.Errorf(err.Text())
 	}
+	log.Println("[BUDGET]: Done.")
 
 	return &proto.EmptySendResponse{}, nil
 }

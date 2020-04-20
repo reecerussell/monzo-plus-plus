@@ -6,7 +6,7 @@ RUN apk update && apk upgrade && \
 
 COPY service.mpp/ /go/src/github.com/reecerussell/monzo-plus-plus/service.mpp/
 COPY libraries/ /go/src/github.com/reecerussell/monzo-plus-plus/libraries/
-COPY ui/ /go/src/github.com/reecerussell/monzo-plus-plus/ui/
+# COPY ui/ /go/src/github.com/reecerussell/monzo-plus-plus/ui/
 
 #
 # BUILD GO
@@ -26,14 +26,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 # BUILD UI
 #
 
-WORKDIR /go/src/github.com/reecerussell/monzo-plus-plus/ui
+# WORKDIR /go/src/github.com/reecerussell/monzo-plus-plus/ui
 
-RUN npm run build
+# RUN npm run build
 
 FROM scratch
 
 COPY --from=builder /go/src/github.com/reecerussell/monzo-plus-plus/service.mpp/main  /app/
-COPY --from=builder /go/src/github.com/reecerussell/monzo-plus-plus/ui/build /app/ui/
+# COPY --from=builder /go/src/github.com/reecerussell/monzo-plus-plus/ui/build /app/ui/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 WORKDIR /app

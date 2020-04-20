@@ -8,9 +8,9 @@ import (
 )
 
 // Build returns a new RPCServer
-func Build(jp processing.JobProcessor) *bootstrap.RPCServer {
+func Build(q *processing.Queue) *bootstrap.RPCServer {
 	server := grpc.NewServer()
-	service := NewJobsService(jp)
+	service := NewJobsService(q)
 
 	proto.RegisterJobsServiceServer(server, service)
 
