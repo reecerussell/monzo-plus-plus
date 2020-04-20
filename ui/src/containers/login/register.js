@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Fetch } from "../../utils/fetch";
+import { Fetch, BaseUrl } from "../../utils/fetch";
 import Register from "../../components/login/register";
 
 const RegisterContainer = () => {
@@ -49,8 +49,7 @@ const RegisterContainer = () => {
 				const stateToken = await res.text();
 
 				window.location.replace(
-					"http://localhost:9789/api/auth/monzo/login?state=" +
-						stateToken
+					BaseUrl + "/api/auth/monzo/login?state=" + stateToken
 				);
 			},
 			setError

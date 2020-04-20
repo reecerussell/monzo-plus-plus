@@ -1,15 +1,8 @@
 import React from "react";
-import {
-	Header,
-	Loader,
-	Message,
-	List,
-	Grid,
-	Button,
-	Divider,
-} from "semantic-ui-react";
+import { Header, Loader, Message, List, Grid, Button } from "semantic-ui-react";
 import Layout from "./layout";
 import * as User from "../../utils/user";
+import { BaseUrl } from "../../utils/fetch";
 
 export default function Index({ data, error, loading }) {
 	if (data === null) {
@@ -49,7 +42,8 @@ export default function Index({ data, error, loading }) {
 							<Button
 								as="a"
 								href={
-									"http://localhost:9789/auth/monzo/login?id=" +
+									BaseUrl +
+									"api/auth/monzo/login?id=" +
 									User.GetId()
 								}
 								style={{
