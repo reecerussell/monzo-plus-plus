@@ -38,33 +38,25 @@ const ChangePasswordContainer = () => {
 
 		setLoading(true);
 
-		try {
-			const res = await Fetch(
-				"http://localhost:9789/api/auth/users/changepassword",
-				{
-					method: "POST",
-					body: JSON.stringify({
-						currentPassword: formData.currentPassword.value,
-						newPassword: formData.newPassword.value,
-					}),
-				}
-			);
-
-			if (res.status == 200) {
+		await Fetch(
+			"api/auth/users/changepassword",
+			{
+				method: "POST",
+				body: JSON.stringify({
+					currentPassword: formData.currentPassword.value,
+					newPassword: formData.newPassword.value,
+				}),
+			},
+			async () => {
 				setError(null);
 				setFormData(defaultFormData);
 				setSuccess("Password changed successfully!");
-			} else {
-				const data = await res.json();
-				setError(data.error);
+			},
+			(err) => {
+				setError(err);
 				setSuccess(null);
 			}
-		} catch {
-			setError(
-				"It seems like you don't have connection to the internet. Try again later!"
-			);
-			setSuccess(null);
-		}
+		);
 
 		setLoading(false);
 	};

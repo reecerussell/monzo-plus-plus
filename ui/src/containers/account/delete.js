@@ -17,27 +17,18 @@ const DeleteContainer = () => {
 
 		setLoading(true);
 
-		try {
-			const res = await Fetch(
-				"http://localhost:9789/api/auth/users/" + User.GetId(),
-				{
-					method: "DELETE",
-				}
-			);
-
-			if (res.status == 200) {
+		await Fetch(
+			"api/auth/users/" + User.GetId(),
+			{
+				method: "DELETE",
+			},
+			async () => {
 				setError(null);
 				User.Logout();
 				setRedirect("/");
-			} else {
-				const data = await res.json();
-				setError(data.error);
-			}
-		} catch {
-			setError(
-				"It seems like you don't have connection to the internet. Try again later!"
-			);
-		}
+			},
+			setError
+		);
 
 		setLoading(false);
 	};

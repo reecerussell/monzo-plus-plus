@@ -24,9 +24,9 @@ const Send = async (url, options) => {
 	return await fetch(url, options);
 };
 
-const defaultFail = err => console.error(err);
+const defaultFail = (err) => console.error(err);
 
-const BaseUrl = "http://localhost:9789/";
+const BaseUrl = "/";
 
 const Fetch = async (
 	url,
@@ -67,10 +67,10 @@ const Fetch = async (
 	} catch (e) {
 		console.log(e);
 		onFail(
-			"It seems like you don't have connection to the internet. Try again later!"
+			"It seems like we can't connect to the server. Try again later!"
 		);
 	}
 };
 
-export default Send;
+export default Fetch;
 export { Fetch, BaseUrl };

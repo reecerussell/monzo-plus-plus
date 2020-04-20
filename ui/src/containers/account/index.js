@@ -15,20 +15,12 @@ const IndexContainer = () => {
 
 		setLoading(true);
 
-		const res = await Fetch(
-			"http://localhost:9789/api/auth/users/" + User.GetId()
+		await Fetch(
+			"api/auth/users/" + User.GetId(),
+			null,
+			async (res) => setUserData(await res.json()),
+			setError
 		);
-		if (res.ok) {
-			const data = await res.json();
-
-			if (res.status === 200) {
-				setUserData(data);
-			} else {
-				setError(data.error);
-			}
-		} else {
-			setError(res.statusText);
-		}
 
 		setLoading(false);
 	};

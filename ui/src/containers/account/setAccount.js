@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Fetch } from "../../utils/fetch";
+import Fetch from "../../utils/fetch";
 import * as User from "../../utils/user";
 import SetAccount from "../../components/account/setAccount";
 

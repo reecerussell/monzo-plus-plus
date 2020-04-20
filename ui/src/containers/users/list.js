@@ -15,28 +15,15 @@ const ListContainer = () => {
 
 		setLoading(true);
 
-		try {
-			const res = await Fetch(
-				"http://localhost:9789/api/auth/users?term=" + searchTerm
-			);
-
-			if (res.ok) {
-				const data = await res.json();
-
-				if (res.status == 200) {
-					setUsers(data);
-					setError(null);
-				} else {
-					setError(data.error);
-				}
-			} else {
-				setError(res.statusText);
-			}
-		} catch {
-			setError(
-				"It seems like you don't have connection to the internet. Try again later!"
-			);
-		}
+		await Fetch(
+			"api/auth/users?term=" + searchTerm,
+			null,
+			async (res) => {
+				setUsers(await res.json());
+				setError(null);
+			},
+			setError
+		);
 
 		setLoading(false);
 	};

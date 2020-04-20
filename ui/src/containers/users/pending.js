@@ -8,20 +8,23 @@ const PendingContainer = () => {
 	const [loading, setLoading] = useState(false);
 
 	const handleFetchUsers = async () => {
-		const res = await Fetch("http://localhost:9789/api/auth/users/pending");
-
-		if (res.status === 200) {
-			const data = await res.json();
-			setUsers(data);
-			setError(null);
-		} else {
-			if (res.headers.get("Content-Type") === "application/json") {
-				const data = await res.json();
-				setError(data.error);
-			} else {
-				setError(res.statusText);
-			}
+		if (loading) {
+			return;
 		}
+
+		setLoading(true);
+
+		await Fetch(
+			"api/auth/users/pending",
+			null,
+			async (res) => {
+				setError(null);
+				setUsers(await res.json());
+			},
+			setError
+		);
+
+		setLoading(false);
 	};
 
 	const handleDelete = async (id, e) => {
@@ -35,20 +38,14 @@ const PendingContainer = () => {
 
 		setLoading(true);
 
-		const res = await Fetch("http://localhost:9789/api/auth/users/" + id, {
-			method: "DELETE",
-		});
-
-		if (res.status === 200) {
-			await handleFetchUsers();
-		} else {
-			if (res.headers.get("Content-Type") === "application/json") {
-				const data = await res.json();
-				setError(data.error);
-			} else {
-				setError(res.statusText);
-			}
-		}
+		await Fetch(
+			"api/auth/users/enable/" + id,
+			{
+				method: "DELETE",
+			},
+			handleFetchUsers,
+			setError
+		);
 
 		setLoading(false);
 	};
@@ -62,25 +59,14 @@ const PendingContainer = () => {
 			return;
 		}
 
-		setLoading(true);
-
-		const res = await Fetch(
-			"http://localhost:9789/api/auth/users/enable/" + id,
+		await Fetch(
+			"api/auth/users/enable/" + id,
 			{
 				method: "POST",
-			}
+			},
+			handleFetchUsers,
+			setError
 		);
-
-		if (res.status === 200) {
-			await handleFetchUsers();
-		} else {
-			if (res.headers.get("Content-Type") === "application/json") {
-				const data = await res.json();
-				setError(data.error);
-			} else {
-				setError(res.statusText);
-			}
-		}
 
 		setLoading(false);
 	};

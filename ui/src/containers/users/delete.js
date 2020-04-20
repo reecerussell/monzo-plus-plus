@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Fetch } from "../../utils/fetch";
+import Fetch from "../../utils/fetch";
 import Delete from "../../components/users/delete";
 
 const propTypes = {

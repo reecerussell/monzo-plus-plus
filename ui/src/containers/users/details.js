@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Fetch } from "../../utils/fetch";
+import Fetch from "../../utils/fetch";
 import Details from "../../components/users/details";
 
 const DetailsContainer = ({ id }) => {

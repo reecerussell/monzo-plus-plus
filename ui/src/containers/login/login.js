@@ -30,32 +30,25 @@ const LoginContainer = () => {
 
 		setLoading(true);
 
-		try {
-			const res = await Fetch("http://localhost:9789/api/auth/token", {
+		await Fetch(
+			"api/auth/token",
+			{
 				method: "POST",
 				body: JSON.stringify({
 					username,
 					password,
 				}),
-			});
-
-			if (res.status === 200) {
+			},
+			async (res) => {
 				setError(null);
 
 				const { accessToken, expires } = await res.json();
 				User.SetAccessToken(accessToken, expires * 1000);
 
 				setRedirect("/account");
-				return;
-			}
-
-			const data = await res.json();
-			setError(data.error);
-		} catch {
-			setError(
-				"It seems like you don't have connection to the internet. Try again later!"
-			);
-		}
+			},
+			setError
+		);
 
 		setLoading(false);
 	};

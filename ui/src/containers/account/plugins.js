@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Fetch } from "../../utils/fetch";
+import Fetch from "../../utils/fetch";
 import Plugins from "../../components/account/plugins";
 import * as User from "../../utils/user";
 
