@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,6 +26,7 @@ type Queue struct {
 	pool          chan *Worker
 	workers       []*Worker
 	internalQueue chan *model.Job
+	logger        *log.Logger
 }
 
 // NewQueue returns a new instance of Queue.
@@ -36,15 +38,13 @@ func NewQueue(repo repository.JobRepository, workerLimit int) *Queue {
 		pool:          make(chan *Worker, workerLimit),
 		workers:       make([]*Worker, workerLimit),
 		internalQueue: make(chan *model.Job, workerLimit),
+		logger:        log.New(os.Stderr, "[QUEUE]: ", log.LstdFlags),
 	}
 
 	hosts := NewHostProvider()
 
 	for i := range q.workers {
-		q.workers[i] = &Worker{
-			jobs:  repo,
-			hosts: hosts,
-		}
+		q.workers[i] = NewWorker(i+1, hosts, repo)
 	}
 
 	return q
@@ -52,6 +52,9 @@ func NewQueue(repo repository.JobRepository, workerLimit int) *Queue {
 
 // Start begins the queue and pooling.
 func (q *Queue) Start() {
+	q.logger.Println("Starting...")
+
+	q.logger.Printf("Adding %d workers to the pool.\n", len(q.workers))
 	for _, w := range q.workers {
 		q.pool <- w
 	}
@@ -60,10 +63,13 @@ func (q *Queue) Start() {
 
 	for {
 		w := <-q.pool
+		w.logger.Println("Queued - waiting for job.")
 		go func() {
 			j := <-q.internalQueue
+			w.logger.Println("Job received - processing...")
 			defer q.wg.Done()
 			w.Process(j)
+			w.logger.Println("Job completed - worker moving back to pool.")
 			q.pool <- w
 		}()
 	}
@@ -72,17 +78,20 @@ func (q *Queue) Start() {
 func (q *Queue) dispatch() {
 	for {
 		q.wg.Wait()
+		q.logger.Printf("Attempting to fetch %d jobs.\n", len(q.workers))
 		jobs, err := q.jobs.GetN(len(q.workers))
 		if err != nil {
-			log.Printf("\t[ERROR]: failed to get jobs: %s\n", err.Text())
+			q.logger.Printf("\t[ERROR]: failed to get jobs: %s\n", err.Text())
 			break
 		}
-		log.Printf("\tDone.\n")
 
 		if c := len(jobs); c < 1 {
+			q.logger.Println("0 jobs left in queue - dispatcher resting.")
 			<-q.hold
+			log.Println("Continuing dispatcher.")
 			continue
 		} else {
+			q.logger.Printf("%d jobs fetched - adding to the queue.\n", c)
 			q.wg.Add(c)
 		}
 
@@ -94,16 +103,17 @@ func (q *Queue) dispatch() {
 
 // Push adds a Job database record and triggers the queue to start processing.
 func (q *Queue) Push(j *model.Job) errors.Error {
-	log.Printf("Job received, adding to database...")
+	q.logger.Println("Job received - attempting to add to queue.")
 	err := q.jobs.Add(j)
 	if err != nil {
+		q.logger.Printf("Failed to add job to queue: %s\n", err.Text())
 		return err
 	}
-	log.Printf("\tDone.\n")
+
+	q.logger.Println("Job successfully added to queue.")
 
 	if len(q.hold) < 1 {
 		q.hold <- true
-		log.Printf("Notified queue.")
 	}
 
 	return nil
@@ -111,8 +121,18 @@ func (q *Queue) Push(j *model.Job) errors.Error {
 
 // Worker is used to individually handle the proccessing of a job.
 type Worker struct {
-	hosts *HostProvider
-	jobs  repository.JobRepository
+	hosts  *HostProvider
+	jobs   repository.JobRepository
+	logger *log.Logger
+}
+
+// NewWorker returns a new Worker instance with a logger.
+func NewWorker(id int, hosts *HostProvider, jobs repository.JobRepository) *Worker {
+	return &Worker{
+		hosts:  hosts,
+		jobs:   jobs,
+		logger: log.New(os.Stderr, fmt.Sprintf("[QUEUE][WORKER-%d]: ", id), log.LstdFlags),
+	}
 }
 
 // Process is the worker's entrypoint when it's used. It executed and
@@ -120,12 +140,12 @@ type Worker struct {
 func (w *Worker) Process(j *model.Job) {
 	err := j.Execute(w.internalProcessor)
 	if err != nil {
-		log.Printf("[JOB:%d][ERROR]: an error occured while executing the job: %s\n", j.GetID(), err.Text())
+		w.logger.Printf("[JOB:%d][ERROR]: an error occured while executing the job: %s\n", j.GetID(), err.Text())
 	}
 
 	err = w.jobs.Update(j)
 	if err != nil {
-		log.Printf("[JOB:%d][ERROR]: an error occured while updating the job: %s\n", j.GetID(), err.Text())
+		w.logger.Printf("[JOB:%d][ERROR]: an error occured while updating the job: %s\n", j.GetID(), err.Text())
 	}
 }
 
@@ -171,15 +191,17 @@ func (w *Worker) internalProcessor(userID, accountID, pluginName, data string) e
 
 // HostProvider is used to provider and cache plugin hostnames.
 type HostProvider struct {
-	mu    sync.RWMutex
-	hosts map[string]string
+	mu     sync.RWMutex
+	hosts  map[string]string
+	logger *log.Logger
 }
 
 // NewHostProvider returns a new instance of HostProvider.
 func NewHostProvider() *HostProvider {
 	return &HostProvider{
-		mu:    sync.RWMutex{},
-		hosts: make(map[string]string),
+		mu:     sync.RWMutex{},
+		hosts:  make(map[string]string),
+		logger: log.New(os.Stderr, "[HOSTS]: ", log.LstdFlags),
 	}
 }
 
@@ -191,17 +213,23 @@ func (p *HostProvider) Get(pluginName string) (string, errors.Error) {
 	defer p.mu.RUnlock()
 
 	host, ok := p.hosts[pluginName]
-	if !ok || host == "" {
+	if !ok || strings.TrimSpace(host) == "" {
+		p.logger.Printf("Host for plugin '%s' not found - getting host.\n", pluginName)
 		host, err := bootstrap.GetHost(pluginName)
 		if err != nil {
+			p.logger.Printf("Failed to get host for plugin '%s': %v\n", pluginName, err)
 			return "", errors.InternalError(err)
 		}
 
+		host = strings.TrimSpace(host)
 		if host == "" {
+			p.logger.Printf("Host for plugin '%s' not found: %v\n", pluginName, err)
 			return "", errors.InternalError(fmt.Errorf("host not found for %s", pluginName))
 		}
 
-		p.hosts[pluginName] = fmt.Sprintf("%s:8080", host)
+		p.logger.Printf("Successfully retreived host for plugin '%s' - adding to cache.", pluginName)
+		host = fmt.Sprintf("%s:8080", host)
+		p.hosts[pluginName] = host
 	}
 
 	return host, nil
