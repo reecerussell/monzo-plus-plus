@@ -5,13 +5,21 @@ networks:
         driver: bridge
 
 services:
+    db:
+        build: ./service.mysql
+        restart: always
+        ports:
+            - "9999:3306"
+        networks:
+            - monzo
+
     plugin.budget:
         image: reecerussell/monzo-plus-plus:plugin.budget
         build:
             context: .
             dockerfile: service.plugin.budget/Dockerfile
         environment:
-            - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
+            - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"
             - "NAME=budget"
@@ -22,6 +30,7 @@ services:
         networks:
             - monzo
         depends_on:
+            - db
             - registry
 
     registry:
@@ -40,13 +49,14 @@ services:
         environment:
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"
-            - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
+            - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "REGISTRY_HOST=registry:8080"
             - "AUTH_RPC_HOST=auth:8080"
             - "WORKER_LIMIT=3"
         networks:
             - monzo
         depends_on:
+            - db
             - registry
 
     auth:
@@ -60,12 +70,15 @@ services:
             - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
             - "OAUTH_CALLBACK_URL=http://localhost:9789/auth/monzo/callback"
             - "SUCCESS_CALLBACK_URL=http://localhost:3000/#login"
-            - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
+            - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"
             - "HTTP_ERROR=DEBUG"
+        restart: unless-stopped
         networks:
             - monzo
+        depends_on:
+            - db
 
     plugins:
         image: reecerussell/monzo-plus-plus:plugins
@@ -73,18 +86,20 @@ services:
             context: .
             dockerfile: service.plugins/Dockerfile
         environment:
-            - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
+            - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "HTTP_ERROR=DEBUG"
             - "AUTH_RPC_ADDRESS=auth:8080"
         networks:
             - monzo
+        depends_on:
+            - db
 
     mpp:
         image: reecerussell/monzo-plus-plus
         build:
             context: .
-            dockerfile: service.mpp/Dockerfile.dev
+            dockerfile: service.mpp/Dockerfile
         restart: unless-stopped
         ports:
             - "9789:80"
@@ -93,7 +108,7 @@ services:
             - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
             - "OAUTH_CALLBACK_URL=http://localhost:9789/monzo/callback"
             - "SUCCESS_CALLBACK_URL=http://localhost:9789/monzo/callback"
-            - "CONN_STRING=root:password@tcp(host.docker.internal)/monzo_plus_plus?parseTime=true"
+            - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "AUTH_HTTP_HOST=http://auth:80"
             - "PLUGINS_HTTP_HOST=http://plugins:80"
@@ -104,3 +119,4 @@ services:
             - monzo
         depends_on:
             - registry
+            - db

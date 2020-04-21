@@ -1,6 +1,4 @@
-CREATE DATABASE  IF NOT EXISTS `monzo_plus_plus` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `monzo_plus_plus`;
--- MySQL dump 10.13  Distrib 5.7.29, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.18, for Win64 (x86_64)
 --
 -- Host: localhost    Database: monzo_plus_plus
 -- ------------------------------------------------------
@@ -9,7 +7,7 @@ USE `monzo_plus_plus`;
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -23,7 +21,7 @@ USE `monzo_plus_plus`;
 
 DROP TABLE IF EXISTS `budget_preferences`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `budget_preferences` (
   `user_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `monthly_budget` int(11) NOT NULL DEFAULT '0',
@@ -47,7 +45,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `jobs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
@@ -80,7 +78,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `permissions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `permissions` (
   `id` int(11) NOT NULL,
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -105,7 +103,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `plugins`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `plugins` (
   `id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
@@ -133,7 +131,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `role_permissions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `role_permissions` (
   `role_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `permission_id` int(11) NOT NULL,
@@ -157,7 +155,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `roles` (
   `id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
@@ -182,7 +180,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `user_plugins`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_plugins` (
   `user_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `plugin_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
@@ -208,7 +206,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `user_roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_roles` (
   `user_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `role_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
@@ -235,7 +233,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `user_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_tokens` (
   `user_id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `access_token` text COLLATE utf8_unicode_ci NOT NULL,
@@ -262,7 +260,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `username` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
@@ -303,7 +301,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `add_permission_to_role`(IN permissionId INT, IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `add_permission_to_role`(IN permissionId INT, IN roleId VARCHAR(128))
 BEGIN
 	DECLARE hasRole BOOLEAN;
     SET hasRole = (SELECT 
@@ -332,7 +330,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `add_user_to_role`(IN userId VARCHAR(128), IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `add_user_to_role`(IN userId VARCHAR(128), IN roleId VARCHAR(128))
 BEGIN
 	DECLARE in_role BOOL;
     SET in_role = EXISTS(SELECT * FROM user_roles WHERE `user_id` = userId AND `role_id` = roleId);
@@ -356,7 +354,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `create_job`(IN userId VARCHAR(128), IN pluginId VARCHAR(128), IN receivedDate DATETIME, IN payloadData TEXT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `create_job`(IN userId VARCHAR(128), IN pluginId VARCHAR(128), IN receivedDate DATETIME, IN payloadData TEXT)
 BEGIN
 	INSERT INTO `jobs` (`user_id`,`plugin_id`,`retry_count`,`received`,`completed`,`last_executed`,`data`)
 		VALUES (userId,pluginId,0,receivedDate,NULL,NULL,payloadData);
@@ -376,7 +374,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `create_new_user`(in id varchar(128), in state_token varchar(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `create_new_user`(in id varchar(128), in state_token varchar(128))
 BEGIN
 	INSERT INTO users (`id`,`monzo_id`, `state_token`) VALUES (id, '', state_token);
 END ;;
@@ -395,7 +393,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_user_token`(IN userId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `delete_user_token`(IN userId VARCHAR(128))
 BEGIN
 	DELETE FROM user_tokens WHERE user_id = userId;
 END ;;
@@ -414,7 +412,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `disable_plugin_for_user`(IN pluginId VARCHAR(128), IN userId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `disable_plugin_for_user`(IN pluginId VARCHAR(128), IN userId VARCHAR(128))
 BEGIN
 	DELETE FROM user_plugins WHERE user_id = userId AND plugin_id = pluginId;
 END ;;
@@ -433,7 +431,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `enable_plugin_for_user`(IN pluginId VARCHAR(128), IN userId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `enable_plugin_for_user`(IN pluginId VARCHAR(128), IN userId VARCHAR(128))
 BEGIN
 	DECLARE alreadyEnabled BOOL;
     SET alreadyEnabled = (SELECT COUNT(*) FROM user_plugins WHERE plugin_id = pluginId AND user_id = userId) > 0;
@@ -457,7 +455,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_available_permissions_for_role`(IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_available_permissions_for_role`(IN roleId VARCHAR(128))
 BEGIN
 	SELECT 
     *
@@ -487,7 +485,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_available_roles_for_user`(IN userID VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_available_roles_for_user`(IN userID VARCHAR(128))
 BEGIN
 	SELECT
 		r.id, r.name
@@ -515,7 +513,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_latest_jobs`(IN upperLimit INT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_latest_jobs`(IN upperLimit INT)
 BEGIN
 	SELECT 
 		j.id,
@@ -554,7 +552,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_pending_users`(IN term TEXT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_pending_users`(IN term TEXT)
 BEGIN
 	IF term IS NULL THEN
 		SELECT 
@@ -588,7 +586,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_permissions_for_role`(IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_permissions_for_role`(IN roleId VARCHAR(128))
 BEGIN
 	SELECT p.id, p.name
 	FROM role_permissions AS rp
@@ -610,7 +608,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_plugin`(in pluginId varchar(128), in userId varchar(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_plugin`(in pluginId varchar(128), in userId varchar(128))
 BEGIN
 	SELECT 
     p.id,
@@ -649,7 +647,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_plugins`(IN term text, IN userId varchar(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_plugins`(IN term text, IN userId varchar(128))
 BEGIN
 	SELECT 
     p.id,
@@ -691,7 +689,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_role`(IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_role`(IN roleId VARCHAR(128))
 BEGIN
 	SELECT id, name FROM roles WHERE id = roleId;
     
@@ -716,7 +714,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_roles_for_user`(IN userID VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_roles_for_user`(IN userID VARCHAR(128))
 BEGIN
 	SELECT
 		r.id, r.name
@@ -744,7 +742,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_users`(IN term TEXT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_users`(IN term TEXT)
 BEGIN
 	IF term IS NULL THEN
 		SELECT 
@@ -775,7 +773,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_user_budget_preferences`(IN user_id VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_user_budget_preferences`(IN user_id VARCHAR(128))
 BEGIN
 	DECLARE hasPrefs BOOL;
     SET hasPrefs = EXISTS(SELECT * FROM budget_preferences WHERE `user_id` = user_id);
@@ -807,7 +805,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_user_by_id`(IN userId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_user_by_id`(IN userId VARCHAR(128))
 BEGIN
 	SELECT 
 		id, username, password_hash, state_token, enabled, account_id
@@ -847,7 +845,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_user_id_by_state_token`(IN input_state_token TEXT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_user_id_by_state_token`(IN input_state_token TEXT)
 BEGIN
 	SELECT id FROM users WHERE `state_token` = input_state_token;
 END ;;
@@ -866,7 +864,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_user_id_by_username`(IN input_username TEXT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_user_id_by_username`(IN input_username TEXT)
 BEGIN
 	SELECT id FROM users WHERE `username` LIKE input_username;
 END ;;
@@ -885,7 +883,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_user_plugins`(IN userId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `get_user_plugins`(IN userId VARCHAR(128))
 BEGIN
 	SELECT 
 		up.plugin_id
@@ -908,7 +906,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `remove_permission_from_role`(IN permissionId INT, IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `remove_permission_from_role`(IN permissionId INT, IN roleId VARCHAR(128))
 BEGIN
 	DECLARE hasRole BOOLEAN;
     SET hasRole = (SELECT 
@@ -937,7 +935,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `remove_user_from_role`(IN userId VARCHAR(128), IN roleId VARCHAR(128))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `remove_user_from_role`(IN userId VARCHAR(128), IN roleId VARCHAR(128))
 BEGIN
 	DECLARE in_role BOOL;
     SET in_role = EXISTS(SELECT * FROM user_roles WHERE `user_id` = userId AND `role_id` = roleId);
@@ -961,7 +959,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `update_job`(IN jobId INT, IN retryCount INT, IN dateCompleted DATETIME, IN lastExecuted DATETIME)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `update_job`(IN jobId INT, IN retryCount INT, IN dateCompleted DATETIME, IN lastExecuted DATETIME)
 BEGIN
 	UPDATE jobs SET retry_count = retryCount, completed = dateCompleted, last_executed = lastExecuted WHERE id = jobId;
 END ;;
@@ -980,7 +978,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `update_user`(IN userId VARCHAR(128), IN userName VARCHAR(45), IN accountId VARCHAR(128), IN stateToken VARCHAR(128), IN passwordHash TEXT, IN dateEnabled DATETIME)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `update_user`(IN userId VARCHAR(128), IN userName VARCHAR(45), IN accountId VARCHAR(128), IN stateToken VARCHAR(128), IN passwordHash TEXT, IN dateEnabled DATETIME)
 BEGIN
 	UPDATE users SET `username` = userName, `password_hash` = passwordHash, `account_id` = accountId, `state_token` = stateToken, `enabled` = dateEnabled WHERE `id` = userId;
 END ;;
@@ -999,7 +997,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `update_user_budget_preferences`(IN user_id VARCHAR(128), IN monthly_budget INT)
+CREATE DEFINER=`monzo`@`%` PROCEDURE `update_user_budget_preferences`(IN user_id VARCHAR(128), IN monthly_budget INT)
 BEGIN
 	DECLARE hasPrefs BOOL;
     SET hasPrefs = EXISTS(SELECT * FROM budget_preferences WHERE `user_id` = user_id);
@@ -1025,7 +1023,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `update_user_token`(IN userId VARCHAR(128), IN accessToken TEXT, IN refreshToken TEXT, IN expiryDate DATETIME, IN tokenType VARCHAR(45))
+CREATE DEFINER=`monzo`@`%` PROCEDURE `update_user_token`(IN userId VARCHAR(128), IN accessToken TEXT, IN refreshToken TEXT, IN expiryDate DATETIME, IN tokenType VARCHAR(45))
 BEGIN
 	DECLARE hasToken BOOLEAN;
     SET hasToken = EXISTS(SELECT * FROM user_tokens WHERE user_id = userId);
@@ -1059,4 +1057,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-04-20 23:28:21
+-- Dump completed on 2020-04-21 12:18:08
