@@ -361,28 +361,29 @@ const HomepageLayout = () => (
 						</List>
 					</Grid.Column>
 					<Grid.Column width={10}>
-						<Header inverted as="h4" content="Footer Header" />
+						<Header inverted as="h4" content="About" />
 						<p>
-							Extra space for a call to action inside the footer
-							that could help re-engage users.
+							Monzo++ is an experimental project, built to explore
+							and make use of webhooks through a custom third
+							party system. Although experimental, Monzo++ is
+							completely functional and can provide users with
+							additional features.
 						</p>
 					</Grid.Column>
 				</Grid>
 
 				<Divider inverted section />
-				<Image centered size="mini" src="/logo.png" />
+				<Image
+					centered
+					size="mini"
+					src="https://lh3.googleusercontent.com/iDeb12CKMVdgDqBD9yJ9UehaWkKXFdPMtuUA8Jt0sOvxXzOm21qNGbA6D5_gdDZtAk4=w300"
+				/>
 				<List horizontal inverted divided link size="small">
-					<List.Item as="a" href="#">
-						Site Map
-					</List.Item>
-					<List.Item as="a" href="#">
-						Contact Us
-					</List.Item>
-					<List.Item as="a" href="#">
-						Terms and Conditions
-					</List.Item>
-					<List.Item as="a" href="#">
-						Privacy Policy
+					<List.Item as="a" href="http://reece-russell.co.uk">
+						Designed and developed by{" "}
+						<span style={{ textDecoration: "underline" }}>
+							Reece Russell
+						</span>
 					</List.Item>
 				</List>
 			</Container>
