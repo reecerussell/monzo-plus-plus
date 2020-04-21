@@ -1,0 +1,5 @@
+{
+	"audiences": ["service.auth"],
+	"issuer": "service.auth",
+	"expiryHours": 1
+}

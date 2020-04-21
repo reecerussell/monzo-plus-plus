@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
 )
 
 // Environemt variables.
@@ -21,18 +23,30 @@ const (
 
 type HTTPServer struct {
 	base     *http.Server
+	cors     bool
 	shutdown chan int
 }
 
 func BuildServer(s *http.Server) *HTTPServer {
 	return &HTTPServer{
 		base:     s,
+		cors:     true,
 		shutdown: make(chan int),
 	}
 }
 
+func (hs *HTTPServer) CORS(enabled bool) {
+	hs.cors = enabled
+}
+
 func (hs *HTTPServer) Serve() {
 	hs.base.Addr = fmt.Sprintf(":%s", HTTPPort)
+
+	if hs.cors {
+		hs.base.Handler = panicHandler(corsHandler(hs.base.Handler))
+	} else {
+		hs.base.Handler = panicHandler(hs.base.Handler)
+	}
 
 	sc := make(chan struct{})
 	go hs.listenForShutdown()
@@ -52,30 +66,71 @@ func (hs *HTTPServer) Shutdown(mode int) {
 }
 
 func (hs *HTTPServer) listenForShutdown() {
-	go func() {
-		mode := <-hs.shutdown
-		var err error
+	mode := <-hs.shutdown
+	var err error
 
-		switch mode {
-		case ShutdownGraceful:
-			log.Printf("HTTP Server gracefully shutting down...")
-			err = hs.base.Shutdown(context.Background())
-			break
-		case ShutdownForce:
-			log.Printf("HTTP Server forcefully shutting down...")
-			err = hs.base.Close()
-			break
-		default:
-			log.Panicf("http: shutdown: %d is not a valid mode", mode)
-			break
+	switch mode {
+	case ShutdownGraceful:
+		log.Printf("HTTP Server gracefully shutting down...")
+		err = hs.base.Shutdown(context.Background())
+		break
+	case ShutdownForce:
+		log.Printf("HTTP Server forcefully shutting down...")
+		err = hs.base.Close()
+		break
+	default:
+		log.Panicf("http: shutdown: %d is not a valid mode", mode)
+		break
+	}
+
+	if err != nil {
+		log.Fatalf("HTTP Server failed to shutdown: %v", err)
+	}
+
+	log.Printf("HTTP Server shutdown.")
+
+	close(hs.shutdown)
+}
+
+func panicHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			p := recover()
+			if p == nil {
+				return
+			}
+
+			err := fmt.Errorf("%v", p)
+			errors.HandleHTTPError(w, r, errors.InternalError(err))
+		}()
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+func corsHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+			w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+			w.WriteHeader(http.StatusOK)
+			return
 		}
 
-		if err != nil {
-			log.Fatalf("HTTP Server failed to shutdown: %v", err)
+		h.ServeHTTP(w, r)
+
+		if _, ok := w.Header()["Access-Control-Allow-Origin"]; !ok {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		}
 
-		log.Printf("HTTP Server shutdown.")
+		if _, ok := w.Header()["Access-Control-Allow-Methods"]; !ok {
+			w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
+		}
 
-		close(hs.shutdown)
-	}()
+		if _, ok := w.Header()["Access-Control-Allow-Headers"]; !ok {
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
+	})
 }
