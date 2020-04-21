@@ -36,7 +36,7 @@ const DetailsContainer = ({ id }) => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users",
+			"api/auth/users",
 			{
 				method: "PUT",
 				body: JSON.stringify(details),

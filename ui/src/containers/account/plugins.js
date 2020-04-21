@@ -4,7 +4,6 @@ import Plugins from "../../components/account/plugins";
 import * as User from "../../utils/user";
 
 const PluginsContainer = () => {
-	const [isMounted, setIsMounted] = useState(false);
 	const [plugins, setPlugins] = useState([]);
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
@@ -84,12 +83,8 @@ const PluginsContainer = () => {
 	};
 
 	useEffect(() => {
-		if (!isMounted) {
-			fetchPlugins();
-
-			setIsMounted(true);
-		}
-	}, [isMounted, fetchPlugins]);
+		fetchPlugins();
+	}, []);
 
 	return (
 		<Plugins

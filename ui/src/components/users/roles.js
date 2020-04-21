@@ -21,7 +21,7 @@ const Roles = ({
 					<List.Content>
 						<List.Header as="span">{p.name}</List.Header>
 						<List.Description>
-							<a onClick={() => handleRemoveRole(p.id)}>
+							<a href="#" onClick={() => handleRemoveRole(p.id)}>
 								Click to remove role
 							</a>
 						</List.Description>
@@ -43,7 +43,7 @@ const Roles = ({
 					<List.Content>
 						<List.Header as="span">{p.name}</List.Header>
 						<List.Description>
-							<a onClick={() => handleAddRole(p.id)}>
+							<a href="#" onClick={() => handleAddRole(p.id)}>
 								Click to add role
 							</a>
 						</List.Description>

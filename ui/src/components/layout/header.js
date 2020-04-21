@@ -15,8 +15,8 @@ const Header = () => {
 	};
 
 	useEffect(() => {
-		User.SubscribeLogin("header", () => setState(1));
-		User.SubscribeLogout("header", () => setState(null));
+		User.SubscribeLogin("header", () => setState(state + 1));
+		User.SubscribeLogout("header", () => setState(state + 1));
 
 		return () => {
 			User.UnsubscripeLogin("header");

@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from "react";
+import React, { Suspense } from "react";
 import {
 	Item,
 	Button,
@@ -8,7 +8,6 @@ import {
 	Divider,
 	Label,
 	ButtonGroup,
-	Modal,
 } from "semantic-ui-react";
 import * as User from "../../utils/user";
 

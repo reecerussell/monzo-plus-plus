@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
 		} else {
 			setRedirect(activePath);
 		}
-	}, [activePath]);
+	}, [activePath, pathname]);
 
 	if (redirect) {
 		return <Redirect to={redirect} />;

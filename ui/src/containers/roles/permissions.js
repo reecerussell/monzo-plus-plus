@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Fetch } from "../../utils/fetch";
-import PropTypes from "prop-types";
 import Permissions from "../../components/roles/permissions";
 
 const PermissionsContainer = ({ id }) => {

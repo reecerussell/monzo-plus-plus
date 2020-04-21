@@ -1,5 +1,5 @@
 import React from "react";
-import { Redirect, useLocation } from "react-router-dom";
+import { Redirect } from "react-router-dom";
 import * as User from "../../utils/user";
 import PropTypes from "prop-types";
 
@@ -23,7 +23,6 @@ const defaultProps = {
 };
 
 const Authorise = ({ children, roles, contentOnly }) => {
-	const { pathname } = useLocation();
 	let canProceed = true;
 
 	if (!User.IsAuthenticated()) {

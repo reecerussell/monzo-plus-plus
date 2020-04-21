@@ -9,7 +9,6 @@ const SetAccountContainer = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [success, setSuccess] = useState(null);
-	const [redirect, setRedirect] = useState(null);
 
 	const fetchAccounts = async () => {
 		if (loading) {
@@ -86,7 +85,6 @@ const SetAccountContainer = () => {
 
 	return (
 		<SetAccount
-			redirect={redirect}
 			error={error}
 			success={success}
 			loading={loading}

@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Fetch, BaseUrl } from "../utils/fetch";
 
-const ListState = path => {
-	const [isMounted, setIsMounted] = useState(false);
+const ListState = (path) => {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
@@ -21,7 +20,7 @@ const ListState = path => {
 		await Fetch(
 			url.toString(),
 			null,
-			async res => setItems(await res.json()),
+			async (res) => setItems(await res.json()),
 			setError,
 			""
 		);
@@ -30,12 +29,8 @@ const ListState = path => {
 	};
 
 	useEffect(() => {
-		if (!isMounted) {
-			handleFetch();
-
-			setIsMounted(true);
-		}
-	}, [isMounted, handleFetch]);
+		handleFetch();
+	}, []);
 
 	return [items, loading, error, searchTerm, setSearchTerm, handleFetch];
 };

@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Button, Modal, Header, Icon, Form } from "semantic-ui-react";
+import { Button, Modal, Header, Icon } from "semantic-ui-react";
 import { Redirect } from "react-router-dom";
 
 const propTypes = {

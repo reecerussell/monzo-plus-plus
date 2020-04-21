@@ -52,7 +52,7 @@ const GetUsername = () => getClaim("username") ?? "User";
 
 const GetId = () => getClaim("user_id");
 
-const HasAccount = () => getClaim("has_account") == true;
+const HasAccount = () => getClaim("has_account") === true;
 
 const getClaim = (claimName) => {
 	const payload = getCurrentPayload();

@@ -17,7 +17,10 @@ const Permissions = ({
 					<List.Content>
 						<List.Header as="span">{p.name}</List.Header>
 						<List.Description>
-							<a onClick={() => handleRemovePermission(p.id)}>
+							<a
+								href="#"
+								onClick={() => handleRemovePermission(p.id)}
+							>
 								Click to remove permission
 							</a>
 						</List.Description>
@@ -35,7 +38,10 @@ const Permissions = ({
 					<List.Content>
 						<List.Header as="span">{p.name}</List.Header>
 						<List.Description>
-							<a onClick={() => handleAddPermission(p.id)}>
+							<a
+								href="#"
+								onClick={() => handleAddPermission(p.id)}
+							>
 								Click to add permission
 							</a>
 						</List.Description>
