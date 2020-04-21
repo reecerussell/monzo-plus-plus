@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/monzo"
 
@@ -398,6 +399,10 @@ func (uu *userUsecase) GetAccounts(ctx context.Context, id string) ([]*monzo.Acc
 
 	accounts, aErr := monzo.Accounts(ac)
 	if aErr != nil {
+		if strings.Contains(aErr.Error(), monzo.ErrForbidden.Text()) {
+			return nil, errors.BadRequest("Open your Monzo app to allow Monzo++ to get your accounts.")
+		}
+
 		return nil, errors.InternalError(aErr)
 	}
 
@@ -424,6 +429,10 @@ func (uu *userUsecase) SetAccount(ctx context.Context, d *dto.UserAccount) error
 
 	err = u.UpdateAccountID(d.AccountID, ac)
 	if err != nil {
+		if strings.Contains(err.Text(), monzo.ErrForbidden.Text()) {
+			return errors.BadRequest("Open your Monzo app to allow Monzo++ to get your accounts.")
+		}
+
 		return err
 	}
 

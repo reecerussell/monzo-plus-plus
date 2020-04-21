@@ -535,15 +535,8 @@ func readResponseError(resp *http.Response) error {
 	var body Error
 	_ = json.NewDecoder(resp.Body).Decode(&body)
 
-	// This is a temporary fix for while theres an issue with
-	// Monzo's API. 19/04/2020
-	if body.Code == "bad_request.missing_param.type" {
-		return nil
-	}
-
 	monzoMessage := getMonzoErrorMessage(resp.StatusCode)
-
-	return fmt.Errorf("%v: %s", monzoMessage, body.Message)
+	return fmt.Errorf("%s: %s", monzoMessage.Text(), body.Message)
 }
 
 // returns a predefined error for each status code.

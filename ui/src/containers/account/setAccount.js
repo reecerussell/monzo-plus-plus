@@ -64,7 +64,7 @@ const SetAccountContainer = () => {
 					setError
 				);
 
-				setTimeout(() => setRedirect("/account"), 750);
+				window.location.reload();
 			},
 			setError
 		);
