@@ -318,6 +318,7 @@ func (u *User) UpdateAccountID(accountID, accessToken string) errors.Error {
 	u.RaiseEvent(&event.RegisterWebhook{
 		AccessToken: accessToken,
 		AccountID:   accountID,
+		UserID:      u.id,
 	})
 
 	return nil

@@ -79,8 +79,8 @@ type Client interface {
 	// authentication status, client id and user's id.
 	WhoAmI(accessToken string) (*AuthenticationData, error)
 
-	// RegisterHook is used to register a webhook to Monz++, on the user's account.
-	RegisterHook(accountID, accessToken string) error
+	// RegisterHook is used to register a webhook to Monzo++, on the user's account.
+	RegisterHook(userID, accountID, accessToken string) error
 
 	// Accounts returns an array of a user's personal accounts. Only a user's
 	// own accounts will be returned; joint accounts will not be found.
@@ -111,8 +111,9 @@ func WhoAmI(accessToken string) (*AuthenticationData, error) {
 	return mustUseDefaultClient().WhoAmI(accessToken)
 }
 
-func RegisterHook(accountID, accessToken string) error {
-	return mustUseDefaultClient().RegisterHook(accountID, accessToken)
+// RegisterHook uses the default client to register a web hook.
+func RegisterHook(userID, accountID, accessToken string) error {
+	return mustUseDefaultClient().RegisterHook(userID, accountID, accessToken)
 }
 
 func Accounts(accessToken string) ([]*AccountData, error) {
@@ -227,11 +228,12 @@ func (c *client) WhoAmI(accessToken string) (*AuthenticationData, error) {
 }
 
 // RegisterHook is used to regsiter a web hook to Monzo++, on the given account.
-func (c *client) RegisterHook(accountID, accessToken string) error {
+func (c *client) RegisterHook(userID, accountID, accessToken string) error {
 	target, _ := url.Parse(APIBaseURL + "webhooks")
+	webhookURL := fmt.Sprintf("%s?userId=%s", getEnvVar(VarWebhookURL), userID)
 	body := url.Values{
 		"account_id": {accountID},
-		"url":        {getEnvVar(VarWebhookURL)},
+		"url":        {webhookURL},
 	}
 
 	req, _ := http.NewRequest(http.MethodPost, target.String(), strings.NewReader(body.Encode()))
