@@ -12,7 +12,10 @@ import (
 
 // Environemt variables.
 var (
-	HTTPPort = os.Getenv("HTTP_PORT")
+	HTTPPort    = os.Getenv("HTTP_PORT")
+	HTTPSPort   = os.Getenv("HTTPS_PORT")
+	SSLCertFile = os.Getenv("SSL_CERT_FILE")
+	SSLKeyFile  = os.Getenv("SSL_KEY_FILE")
 )
 
 // Shutdown modes.
@@ -54,6 +57,27 @@ func (hs *HTTPServer) Serve() {
 	log.Printf("HTTP Server listening on: %s\n", hs.base.Addr)
 
 	if err := hs.base.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("http: serve: %v", err)
+	}
+
+	<-sc
+}
+
+func (hs *HTTPServer) ServeTLS() {
+	hs.base.Addr = fmt.Sprintf(":%s", HTTPPort)
+
+	if hs.cors {
+		hs.base.Handler = panicHandler(corsHandler(hs.base.Handler))
+	} else {
+		hs.base.Handler = panicHandler(hs.base.Handler)
+	}
+
+	sc := make(chan struct{})
+	go hs.listenForShutdown()
+
+	log.Printf("HTTP Server listening on: %s\n", hs.base.Addr)
+
+	if err := hs.base.ListenAndServeTLS(SSLCertFile, SSLKeyFile); err != http.ErrServerClosed {
 		log.Fatalf("http: serve: %v", err)
 	}
 
