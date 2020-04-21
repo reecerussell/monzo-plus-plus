@@ -64,7 +64,7 @@ func (hs *HTTPServer) Serve() {
 }
 
 func (hs *HTTPServer) ServeTLS() {
-	hs.base.Addr = fmt.Sprintf(":%s", HTTPPort)
+	hs.base.Addr = fmt.Sprintf(":%s", HTTPSPort)
 
 	if hs.cors {
 		hs.base.Handler = panicHandler(corsHandler(hs.base.Handler))
