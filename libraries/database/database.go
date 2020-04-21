@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
+	"github.com/reecerussell/monzo-plus-plus/libraries/util"
 
 	// MySQl driver
 	_ "github.com/go-sql-driver/mysql"
@@ -45,12 +47,15 @@ type ReaderFunc func(s ScannerFunc) (interface{}, errors.Error)
 // of features and methods. These methods make interacting with
 // sql.DB easier.
 type DB struct {
-	sql *sql.DB
+	sql    *sql.DB
+	errLog *log.Logger
 }
 
 // New returns a new instance of DB.
 func New() *DB {
-	return new(DB)
+	return &DB{
+		errLog: log.New(os.Stderr, "[DB][ERROR]: ", log.LstdFlags),
+	}
 }
 
 // EnsureConnected ensures there is an open connection to the database,
@@ -73,6 +78,41 @@ func (db *DB) EnsureConnected() errors.Error {
 	}
 
 	return nil
+}
+
+// WaitForConnection is used to hold an application, to ensure the database
+// is reachable and/or has finished setting up.
+//
+// This will hold for a maximum of 2 minutes and try to reach the database
+// every 5 seconds.
+//
+// Will panic if the database could not be reached by then end of the 2
+// minute span.
+func WaitForConnection() {
+	var err error
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+
+	for {
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				panic(err)
+			}
+		default:
+			db, err := sql.Open("mysql", ConnectionString)
+			if err != nil {
+				cancel()
+				break
+			}
+
+			err = db.Ping()
+			if err != nil {
+				cancel()
+				break
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}
 }
 
 // Execute takes a query and a set of arguments, then executes the query
@@ -155,14 +195,14 @@ func (db *DB) Read(query string, reader ReaderFunc, args ...interface{}) ([]inte
 	ctx := context.Background()
 	stmt, err := db.sql.PrepareContext(ctx, query)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("%v\n", err)
 		return nil, errors.InternalError(ErrPrepareFailed)
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.QueryContext(ctx, args...)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("%v\n", err)
 		return nil, errors.InternalError(ErrFailedToReadResults)
 	}
 	defer rows.Close()
@@ -188,6 +228,65 @@ func (db *DB) Read(query string, reader ReaderFunc, args ...interface{}) ([]inte
 	}
 
 	return items, nil
+}
+
+// ReadMultiple is used to execute a single query, but handle one or
+// more result sets. Each result set needs its own ReaderFunc, so should
+// be given in the array.
+//
+// A 2D array is returned, where the number of arrays within is equal
+// to the number of ReaderFunc given.
+//
+// A non-Nil error is returned if either there was a problem with communicating
+// with the database or if a ReaderFunc returns an error.
+func (db *DB) ReadMultiple(query string, readers []ReaderFunc, args ...interface{}) ([][]interface{}, errors.Error) {
+	if err := db.EnsureConnected(); err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	stmt, err := db.sql.PrepareContext(ctx, query)
+	if err != nil {
+		db.errLog.Printf("prep: %v\n", err)
+		return nil, errors.InternalError(ErrPrepareFailed)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.QueryContext(ctx, args...)
+	if err != nil {
+		db.errLog.Printf("query: %v\n", err)
+		return nil, errors.InternalError(ErrFailedToReadResults)
+	}
+	defer rows.Close()
+
+	results := make([][]interface{}, len(readers))
+
+	ri := 0
+	for rows.Next() {
+		rdr := readers[ri]
+
+		row, rdrErr := rdr(rows.Scan)
+		if rdrErr != nil {
+			db.errLog.Printf("rdr: %s\n", rdrErr.Text())
+			return nil, rdrErr
+		}
+
+		if results[ri] == nil {
+			results[ri] = []interface{}{row}
+		} else {
+			results[ri] = append(results[ri], row)
+		}
+
+		if rows.NextResultSet() {
+			ri++
+		}
+	}
+	if err := rows.Err(); err != nil {
+		db.errLog.Printf("rows: %v", err)
+		return nil, errors.InternalError(err)
+	}
+
+	return results, nil
 }
 
 // Count is used to read a record with a single integer value. An example
@@ -225,4 +324,56 @@ func (db *DB) Exists(query string, args ...interface{}) (bool, errors.Error) {
 	}
 
 	return c > 0, nil
+}
+
+// Tx is a wrapper around *sql.Tx to provide more higher-level
+// methods used for reading and writing. As well as, handling
+// the majority of the overhead.
+type Tx struct {
+	internalTx *sql.Tx
+	ctx        context.Context
+	errLog     *log.Logger
+}
+
+const contextErrorKey = util.ContextKey("tx_error")
+
+// Close is used to finish a transaction, but handling the commiting
+// and rolling back of the transaction. This should be deferred to the
+// end of a func.
+//
+// If an error occured within the Tx, when close is called, the transaction
+// with be rolled back, otherwise it will be committed.
+func (tx *Tx) Close() {
+	if tx.ctx.Value(contextErrorKey) != nil {
+		tx.errLog.Printf("Rolling back.")
+		tx.internalTx.Rollback()
+		return
+	}
+
+	tx.internalTx.Commit()
+}
+
+func (tx *Tx) setError(err errors.Error) {
+	tx.ctx = context.WithValue(tx.ctx, contextErrorKey, err)
+}
+
+// Execute attempts to execute the given query against the Tx.
+func (tx *Tx) Execute(query string, args ...interface{}) (int, errors.Error) {
+	stmt, err := tx.internalTx.PrepareContext(tx.ctx, query)
+	if err != nil {
+		tx.errLog.Printf("prep: %v,\n", err)
+		tx.setError(errors.InternalError(err))
+		return 0, errors.InternalError(ErrPrepareFailed)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.ExecContext(tx.ctx, args...)
+	if err != nil {
+		tx.errLog.Printf("exec: %v,\n", err)
+		tx.setError(errors.InternalError(err))
+		return 0, errors.InternalError(ErrExecutionFailed)
+	}
+
+	rows, _ := res.RowsAffected()
+	return int(rows), nil
 }
