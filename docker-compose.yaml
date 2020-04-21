@@ -8,8 +8,6 @@ services:
     db:
         build: ./service.mysql
         restart: always
-        ports:
-            - "9999:3306"
         networks:
             - monzo
 
@@ -25,7 +23,6 @@ services:
             - "NAME=budget"
             - "HOSTNAME=plugin.budget"
             - "REGISTRY_HOST=registry:8080"
-            - "HTTP_ERROR=DEBUG"
             - "AUTH_RPC_ADDRESS=auth:8080"
         networks:
             - monzo
@@ -73,7 +70,6 @@ services:
             - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "RPC_PORT=8080"
-            - "HTTP_ERROR=DEBUG"
         restart: unless-stopped
         networks:
             - monzo
@@ -106,14 +102,14 @@ services:
         environment:
             - "MONZO_CLIENT_ID=oauth2client_00009s8M2iOG06xOrzfwVm"
             - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
-            - "OAUTH_CALLBACK_URL=http://localhost:9789/monzo/callback"
-            - "SUCCESS_CALLBACK_URL=http://localhost:9789/monzo/callback"
+            - "OAUTH_CALLBACK_URL=https://mpp.reece-russell.co.uk/monzo/callback"
+            - "SUCCESS_CALLBACK_URL=https://mpp.reece-russell.co.uk/monzo/callback"
             - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
             - "HTTP_PORT=80"
             - "AUTH_HTTP_HOST=http://auth:80"
             - "PLUGINS_HTTP_HOST=http://plugins:80"
             - "JOBS_HOST=job_queue:8080"
-            - "MONZO_WEBHOOK_URL="
+            - "MONZO_WEBHOOK_URL=https://mpp.reece-russell.co.uk/monzo/hook"
             - "REGISTRY_HOST=registry:8080"
         networks:
             - monzo
