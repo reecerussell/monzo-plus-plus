@@ -11,7 +11,7 @@ const Login = () => (
 			<Link to="/register">Don't have an account?</Link>
 		</p>
 
-		<Grid>
+		<Grid stackable>
 			<Grid.Row>
 				<Grid.Column width={5}>
 					<LoginContainer />
