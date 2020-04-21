@@ -23,14 +23,17 @@ func NewRoleController(ctn *di.Container, r *routing.Router) *RoleController {
 		u: u,
 	}
 
-	r.GetFunc("/roles", c.HandleGetList)
-	r.GetFunc("/roles/{id}", c.HandleGet)
-	r.PostFunc("/roles", c.HandleCreate)
-	r.PutFunc("/roles", c.HandleUpdate)
-	r.PostFunc("/roles/permission", c.HandleAddPermission)
-	r.DeleteFunc("/roles/permission", c.HandleRemovePermission)
 	r.GetFunc("/roles/permissions/{id}", c.HandleGetPermissions)
 	r.GetFunc("/roles/availablePermissions/{id}", c.HandleGetAvailablePermissions)
+	r.GetFunc("/roles/{id}", c.HandleGet)
+	r.GetFunc("/roles", c.HandleGetList)
+
+	r.PostFunc("/roles/permission", c.HandleAddPermission)
+	r.PostFunc("/roles", c.HandleCreate)
+
+	r.PutFunc("/roles", c.HandleUpdate)
+
+	r.DeleteFunc("/roles/permission", c.HandleRemovePermission)
 	r.DeleteFunc("/roles/{id}", c.HandleDelete)
 
 	return c

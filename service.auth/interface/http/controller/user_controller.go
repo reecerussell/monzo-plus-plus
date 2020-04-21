@@ -26,22 +26,25 @@ func NewUserController(ctn *di.Container, r *routing.Router) *UserController {
 		userAuthUsecase: uau,
 	}
 
-	r.GetFunc("/users", c.HandleGetList)
+	r.GetFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles)
+	r.GetFunc("/users/accounts/{id}", c.HandleGetAccounts)
+	r.GetFunc("/users/roles/{id}", c.HandleGetRoles)
 	r.GetFunc("/users/pending", c.HandleGetPending)
 	r.GetFunc("/users/{id}", c.HandleGet)
-	r.PostFunc("/users", c.HandleCreate)
-	r.PostFunc("/users/register", c.HandleRegister)
-	r.PutFunc("/users", c.HandleUpdate)
-	r.PostFunc("/users/changepassword", c.HandleChangePassword)
+	r.GetFunc("/users", c.HandleGetList)
+
 	r.PostFunc("/users/enable/{id}", c.HandleEnable)
+	r.PostFunc("/users/changepassword", c.HandleChangePassword)
 	r.PostFunc("/users/roles", c.HandleAddToRole)
-	r.DeleteFunc("/users/roles", c.HandleRemoveFromRole)
-	r.GetFunc("/users/roles/{id}", c.HandleGetRoles)
-	r.GetFunc("/users/availableRoles/{id}", c.HandleGetAvailableRoles)
+	r.PostFunc("/users/register", c.HandleRegister)
 	r.PostFunc("/users/plugin", c.HandleEnablePlugin)
-	r.DeleteFunc("/users/plugin", c.HandleDisablePlugin)
 	r.PostFunc("/users/account", c.HandleSetAccount)
-	r.GetFunc("/users/accounts/{id}", c.HandleGetAccounts)
+	r.PostFunc("/users", c.HandleCreate)
+
+	r.PutFunc("/users", c.HandleUpdate)
+
+	r.DeleteFunc("/users/roles", c.HandleRemoveFromRole)
+	r.DeleteFunc("/users/plugin", c.HandleDisablePlugin)
 	r.DeleteFunc("/users/{id}", c.HandleDelete)
 
 	return c
