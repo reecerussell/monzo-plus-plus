@@ -329,7 +329,7 @@ func (db *DB) Exists(query string, args ...interface{}) (bool, errors.Error) {
 // methods used for reading and writing. As well as, handling
 // the majority of the overhead.
 type Tx struct {
-	internalTx *sql.Tx
+	InternalTx *sql.Tx
 	ctx        context.Context
 	errLog     *log.Logger
 }
@@ -343,7 +343,7 @@ func (db *DB) Begin(ctx context.Context) (*Tx, errors.Error) {
 	}
 
 	return &Tx{
-		internalTx: tx,
+		InternalTx: tx,
 		ctx:        ctx,
 		errLog:     log.New(os.Stderr, "[TX][ERROR]: ", log.LstdFlags),
 	}, nil
@@ -360,11 +360,11 @@ const contextErrorKey = util.ContextKey("tx_error")
 func (tx *Tx) Close() {
 	if tx.ctx.Value(contextErrorKey) != nil {
 		tx.errLog.Printf("Rolling back.")
-		tx.internalTx.Rollback()
+		tx.InternalTx.Rollback()
 		return
 	}
 
-	tx.internalTx.Commit()
+	tx.InternalTx.Commit()
 }
 
 func (tx *Tx) setError(err errors.Error) {
@@ -373,7 +373,7 @@ func (tx *Tx) setError(err errors.Error) {
 
 // Execute attempts to execute the given query against the Tx.
 func (tx *Tx) Execute(query string, args ...interface{}) (int, errors.Error) {
-	stmt, err := tx.internalTx.PrepareContext(tx.ctx, query)
+	stmt, err := tx.InternalTx.PrepareContext(tx.ctx, query)
 	if err != nil {
 		tx.errLog.Printf("prep: %v,\n", err)
 		tx.setError(errors.InternalError(err))
