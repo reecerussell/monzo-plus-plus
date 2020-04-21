@@ -65,7 +65,7 @@ func (db *DB) EnsureConnected() errors.Error {
 	if db.sql == nil {
 		sqlDB, err := sql.Open("mysql", ConnectionString)
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			db.errLog.Printf("open: %v\n", err)
 			return errors.InternalError(ErrConnectionFailed)
 		}
 
@@ -73,7 +73,7 @@ func (db *DB) EnsureConnected() errors.Error {
 	}
 
 	if err := db.sql.PingContext(context.Background()); err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("ping: %v\n", err)
 		return errors.InternalError(ErrPingFailed)
 	}
 
@@ -127,7 +127,7 @@ func (db *DB) Execute(query string, args ...interface{}) (int, errors.Error) {
 	ctx := context.Background()
 	tx, err := db.sql.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("begin tx: %v\n", err)
 		return 0, errors.InternalError(ErrTransactionFailed)
 	}
 	defer func() {
@@ -140,19 +140,18 @@ func (db *DB) Execute(query string, args ...interface{}) (int, errors.Error) {
 
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("prep: %v\n", err)
 		return 0, errors.InternalError(ErrPrepareFailed)
 	}
 	defer stmt.Close()
 
 	res, err := stmt.ExecContext(ctx, args...)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		log.Printf("exec: %v", err)
 		return 0, errors.InternalError(ErrExecutionFailed)
 	}
 
 	rows, _ := res.RowsAffected()
-
 	return int(rows), nil
 }
 
@@ -168,7 +167,7 @@ func (db *DB) ReadOne(query string, reader ReaderFunc, args ...interface{}) (int
 	ctx := context.Background()
 	stmt, err := db.sql.PrepareContext(ctx, query)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("prep: %v\n", err)
 		return nil, errors.InternalError(ErrPrepareFailed)
 	}
 	defer stmt.Close()
@@ -176,7 +175,7 @@ func (db *DB) ReadOne(query string, reader ReaderFunc, args ...interface{}) (int
 	row := stmt.QueryRowContext(ctx, args...)
 	item, readerErr := reader(row.Scan)
 	if readerErr != nil {
-		log.Printf("ERROR: %v", readerErr.Text())
+		db.errLog.Printf("reader: %s\n", readerErr.Text())
 		return nil, readerErr
 	}
 
@@ -195,14 +194,14 @@ func (db *DB) Read(query string, reader ReaderFunc, args ...interface{}) ([]inte
 	ctx := context.Background()
 	stmt, err := db.sql.PrepareContext(ctx, query)
 	if err != nil {
-		db.errLog.Printf("%v\n", err)
+		db.errLog.Printf("prep: %v\n", err)
 		return nil, errors.InternalError(ErrPrepareFailed)
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.QueryContext(ctx, args...)
 	if err != nil {
-		db.errLog.Printf("%v\n", err)
+		db.errLog.Printf("query: %v\n", err)
 		return nil, errors.InternalError(ErrFailedToReadResults)
 	}
 	defer rows.Close()
@@ -212,7 +211,7 @@ func (db *DB) Read(query string, reader ReaderFunc, args ...interface{}) ([]inte
 	for rows.Next() {
 		item, readerErr := reader(rows.Scan)
 		if readerErr != nil {
-			log.Panicf("ERROR: %s", readerErr.Text())
+			db.errLog.Printf("reader: %v\n", readerErr.Text())
 			return nil, readerErr
 		}
 
@@ -223,7 +222,7 @@ func (db *DB) Read(query string, reader ReaderFunc, args ...interface{}) ([]inte
 			return make([]interface{}, 0), nil
 		}
 
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("rows: %v\n", err)
 		return nil, errors.InternalError(err)
 	}
 
@@ -299,7 +298,7 @@ func (db *DB) Count(query string, args ...interface{}) (int, errors.Error) {
 	ctx := context.Background()
 	stmt, err := db.sql.PrepareContext(ctx, query)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("prep: %v\n", err)
 		return 0, errors.InternalError(ErrPrepareFailed)
 	}
 	defer stmt.Close()
@@ -308,7 +307,7 @@ func (db *DB) Count(query string, args ...interface{}) (int, errors.Error) {
 
 	err = stmt.QueryRowContext(ctx, args...).Scan(&count)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		db.errLog.Printf("query row: %v\n", err)
 		return 0, errors.InternalError(ErrFailedToReadResults)
 	}
 
@@ -333,6 +332,21 @@ type Tx struct {
 	internalTx *sql.Tx
 	ctx        context.Context
 	errLog     *log.Logger
+}
+
+// Begin returns a new instance of Tx for the current DB.
+func (db *DB) Begin(ctx context.Context) (*Tx, errors.Error) {
+	tx, err := db.sql.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	if err != nil {
+		db.errLog.Printf("begin: %v\n", err)
+		return nil, errors.InternalError(err)
+	}
+
+	return &Tx{
+		internalTx: tx,
+		ctx:        ctx,
+		errLog:     log.New(os.Stderr, "[TX][ERROR]: ", log.LstdFlags),
+	}, nil
 }
 
 const contextErrorKey = util.ContextKey("tx_error")
