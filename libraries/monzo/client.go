@@ -50,10 +50,11 @@ const (
 
 // Environment Variable names.
 const (
-	VarClientID         = "MONZO_CLIENT_ID"
-	VarClientSecret     = "MONZO_CLIENT_SECRET"
-	VarOAuthCallbackURL = "OAUTH_CALLBACK_URL"
-	VarWebhookURL       = "MONZO_WEBHOOK_URL"
+	VarClientID           = "MONZO_CLIENT_ID"
+	VarClientSecret       = "MONZO_CLIENT_SECRET"
+	VarOAuthCallbackURL   = "OAUTH_CALLBACK_URL"
+	VarWebhookURL         = "MONZO_WEBHOOK_URL"
+	VarSuccessCallbackURL = "SUCCESS_CALLBACK_URL"
 )
 
 // Client is a high-level interface, used to communicate and interact with
