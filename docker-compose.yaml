@@ -98,7 +98,8 @@ services:
             dockerfile: service.mpp/Dockerfile
         restart: unless-stopped
         ports:
-            - "9789:80"
+            - "80:80"
+            - "443:80"
         environment:
             - "MONZO_CLIENT_ID=oauth2client_00009s8M2iOG06xOrzfwVm"
             - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
