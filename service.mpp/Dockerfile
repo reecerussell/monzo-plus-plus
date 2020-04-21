@@ -28,6 +28,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 
 WORKDIR /go/src/github.com/reecerussell/monzo-plus-plus/ui
 
+RUN npm install
+RUN npm audit fix
 RUN npm run build
 
 FROM scratch
