@@ -42,7 +42,7 @@ const SetAccountContainer = () => {
 		setLoading(true);
 
 		await Fetch(
-			"auth/users/account",
+			"api/auth/users/account",
 			{
 				method: "POST",
 				body: JSON.stringify({
@@ -55,7 +55,7 @@ const SetAccountContainer = () => {
 				setSuccess("Your changes have been saved successfully!");
 
 				await Fetch(
-					"auth/refresh",
+					"api/auth/refresh",
 					null,
 					async (res) => {
 						const { accessToken, expires } = await res.json();
