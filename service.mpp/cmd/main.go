@@ -10,7 +10,7 @@ import (
 
 func main() {
 	s := handler.Build()
-	go s.Serve()
+	go s.ServeTLS()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
