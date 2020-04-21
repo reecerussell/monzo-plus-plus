@@ -26,7 +26,7 @@ const Send = async (url, options) => {
 
 const defaultFail = (err) => console.error(err);
 
-const BaseUrl = "/";
+const BaseUrl = window.location.origin + "/";
 
 const Fetch = async (
 	url,
