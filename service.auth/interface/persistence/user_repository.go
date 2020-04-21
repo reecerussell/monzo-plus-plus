@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/reecerussell/monzo-plus-plus/libraries/database"
 	"github.com/reecerussell/monzo-plus-plus/libraries/errors"
-
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/datamodel"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/model"
 	"github.com/reecerussell/monzo-plus-plus/service.auth/domain/repository"
@@ -20,12 +20,15 @@ type scannerFunc func(dsts ...interface{}) error
 
 // userRepository is an implementation of the repository.UserRepository interface for MySQL.
 type userRepository struct {
-	db *sql.DB
+	db  *database.DB
+	sql *sql.DB
 }
 
 // NewUserRepository returns a new instance of the UserRepository interface.
 func NewUserRepository() repository.UserRepository {
-	return new(userRepository)
+	return &userRepository{
+		db: database.New(),
+	}
 }
 
 func (ur *userRepository) Get(id string) (*model.User, errors.Error) {
@@ -37,7 +40,7 @@ func (ur *userRepository) Get(id string) (*model.User, errors.Error) {
 	query := "CALL get_user_by_id(?);"
 
 	ctx := context.Background()
-	stmt, err := ur.db.PrepareContext(ctx, query)
+	stmt, err := ur.sql.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
 	}
@@ -108,7 +111,7 @@ func (ur *userRepository) GetByUsername(username string) (*model.User, errors.Er
 	query := "CALL get_user_id_by_username(?);"
 
 	ctx := context.Background()
-	stmt, err := ur.db.PrepareContext(ctx, query)
+	stmt, err := ur.sql.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
 	}
@@ -136,7 +139,7 @@ func (ur *userRepository) GetByStateToken(stateToken string) (*model.User, error
 	query := "CALL get_user_id_by_state_token(?);"
 
 	ctx := context.Background()
-	stmt, err := ur.db.PrepareContext(ctx, query)
+	stmt, err := ur.sql.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
 	}
@@ -157,47 +160,65 @@ func (ur *userRepository) GetByStateToken(stateToken string) (*model.User, error
 }
 
 func (ur *userRepository) GetList(term string) ([]*model.User, errors.Error) {
-	return ur.readUsers("CALL get_users(?);", term)
+	dms, err := ur.db.Read("CALL get_users(?);", func(s database.ScannerFunc) (interface{}, errors.Error) {
+		var dm datamodel.User
+
+		err := s(
+			&dm.ID,
+			&dm.Username,
+			&dm.PasswordHash,
+			&dm.StateToken,
+			&dm.Enabled,
+			&dm.AccountID,
+		)
+		if err != nil {
+			return nil, errors.InternalError(err)
+		}
+
+		return &dm, nil
+	}, term)
+	if err != nil {
+		return nil, err
+	}
+
+	u := make([]*model.User, len(dms))
+
+	for i, dm := range dms {
+		u[i] = model.UserFromDataModel(dm.(*datamodel.User), nil, nil)
+	}
+
+	return u, nil
 }
 
 func (ur *userRepository) GetPending(term string) ([]*model.User, errors.Error) {
-	return ur.readUsers("CALL get_pending_users(?);", term)
-}
+	dms, err := ur.db.Read("CALL get_pending_users(?);", func(s database.ScannerFunc) (interface{}, errors.Error) {
+		var dm datamodel.User
 
-func (ur *userRepository) readUsers(query string, args ...interface{}) ([]*model.User, errors.Error) {
-	openErr := ur.openConnection()
-	if openErr != nil {
-		return nil, openErr
-	}
-
-	ctx := context.Background()
-	stmt, err := ur.db.PrepareContext(ctx, query)
-	if err != nil {
-		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.QueryContext(ctx, args...)
-	if err != nil {
-		return nil, errors.InternalError(fmt.Errorf("rows: %v", err))
-	}
-	defer rows.Close()
-
-	var users []*model.User
-
-	for rows.Next() {
-		user, readErr := readUser(rows.Scan)
-		if readErr != nil {
-			return nil, readErr
+		err := s(
+			&dm.ID,
+			&dm.Username,
+			&dm.PasswordHash,
+			&dm.StateToken,
+			&dm.Enabled,
+			&dm.AccountID,
+		)
+		if err != nil {
+			return nil, errors.InternalError(err)
 		}
 
-		users = append(users, model.UserFromDataModel(user, nil, nil))
-	}
-	if err := rows.Err(); err != nil {
-		return nil, errors.InternalError(err)
+		return &dm, nil
+	}, term)
+	if err != nil {
+		return nil, err
 	}
 
-	return users, nil
+	u := make([]*model.User, len(dms))
+
+	for i, dm := range dms {
+		u[i] = model.UserFromDataModel(dm.(*datamodel.User), nil, nil)
+	}
+
+	return u, nil
 }
 
 func readUser(s scannerFunc) (*datamodel.User, errors.Error) {
@@ -257,7 +278,7 @@ func (ur *userRepository) EnsureExists(id string) errors.Error {
 	query := "SELECT id FROM users WHERE id = ?;"
 
 	ctx := context.Background()
-	stmt, err := ur.db.PrepareContext(ctx, query)
+	stmt, err := ur.sql.PrepareContext(ctx, query)
 	if err != nil {
 		return errors.InternalError(err)
 	}
@@ -308,7 +329,7 @@ func (ur *userRepository) Update(u *model.User) errors.Error {
 	}
 
 	ctx := context.Background()
-	tx, err := ur.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	tx, err := ur.sql.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
 	if err != nil {
 		return errors.InternalError(err)
 	}
@@ -383,7 +404,7 @@ func (ur *userRepository) execute(query string, args ...interface{}) errors.Erro
 	}
 
 	ctx := context.Background()
-	tx, err := ur.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	tx, err := ur.sql.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
 	if err != nil {
 		return errors.InternalError(err)
 	}
@@ -416,11 +437,11 @@ func (ur *userRepository) openConnection() errors.Error {
 			return errors.InternalError(err)
 		}
 
-		ur.db = db
+		ur.sql = db
 	}
 
 	ctx := context.Background()
-	err := ur.db.PingContext(ctx)
+	err := ur.sql.PingContext(ctx)
 	if err != nil {
 		return errors.InternalError(err)
 	}
