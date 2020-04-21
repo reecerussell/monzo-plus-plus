@@ -23,9 +23,30 @@ func NewMonzoController(ctn *di.Container, r *routing.Router) *MonzoController {
 		userAuthUsecase: userAuthUsecase,
 	}
 
+	r.GetFunc("/monzo/login", c.HandleLogin)
 	r.GetFunc("/monzo/callback", c.HandleCallback)
 
 	return c
+}
+
+func (c *MonzoController) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	state, id := query.Get("state"), query.Get("id")
+	if state == "" && id == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	if id != "" {
+		var err errors.Error
+		state, err = c.userAuthUsecase.GetStateToken(id)
+		if err != nil {
+			errors.HandleHTTPError(w, r, err)
+			return
+		}
+	}
+
+	monzo.Login(w, r, state)
 }
 
 func (c *MonzoController) HandleCallback(w http.ResponseWriter, r *http.Request) {
