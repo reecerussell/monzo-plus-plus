@@ -889,7 +889,9 @@ BEGIN
 		up.plugin_id
 	FROM
 		user_plugins AS up
-	WHERE up.user_id = userId;
+			INNER JOIN
+		users AS u ON u.id = up.user_id
+	WHERE u.id = userId AND u.enabled IS NOT NULL;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1057,4 +1059,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-04-21 12:18:08
+-- Dump completed on 2020-04-21 13:00:42
