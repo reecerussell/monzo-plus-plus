@@ -556,14 +556,14 @@ CREATE DEFINER=`monzo`@`%` PROCEDURE `get_pending_users`(IN term TEXT)
 BEGIN
 	IF term IS NULL THEN
 		SELECT 
-			id, username, password_hash, state_token, enabled
+			id, username, password_hash, state_token, enabled, account_id
 		FROM
 			users
 		WHERE
 			enabled IS NULL;
     ELSE
 		SELECT 
-			id, username, password_hash, state_token, enabled
+			id, username, password_hash, state_token, enabled, account_id
 		FROM
 			users
 		WHERE
@@ -1059,4 +1059,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-04-21 13:00:42
+-- Dump completed on 2020-04-21 15:23:39
