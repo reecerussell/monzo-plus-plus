@@ -308,7 +308,12 @@ func (ur *userRepository) Insert(u *model.User) errors.Error {
 		dm.Enabled,
 	}
 
-	return ur.execute(query, args...)
+	_, err := ur.db.Execute(query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ur *userRepository) Update(u *model.User) errors.Error {
@@ -394,44 +399,20 @@ func updateToken(ctx context.Context, tx *sql.Tx, u *model.User) error {
 func (ur *userRepository) Delete(id string) errors.Error {
 	query := "DELETE FROM users WHERE id = ?;"
 
-	return ur.execute(query, id)
-}
-
-func (ur *userRepository) execute(query string, args ...interface{}) errors.Error {
-	openErr := ur.openConnection()
-	if openErr != nil {
-		return openErr
+	c, err := ur.db.Execute(query, id)
+	if err != nil {
+		return err
 	}
 
-	ctx := context.Background()
-	tx, err := ur.sql.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
-	if err != nil {
-		return errors.InternalError(err)
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-
-	stmt, err := tx.PrepareContext(ctx, query)
-	if err != nil {
-		return errors.InternalError(err)
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, args...)
-	if err != nil {
-		return errors.InternalError(err)
+	if c < 1 {
+		return errors.NotFound("user not found")
 	}
 
 	return nil
 }
 
 func (ur *userRepository) openConnection() errors.Error {
-	if ur.db == nil {
+	if ur.sql == nil {
 		db, err := sql.Open("mysql", os.Getenv("CONN_STRING"))
 		if err != nil {
 			return errors.InternalError(err)
@@ -440,8 +421,7 @@ func (ur *userRepository) openConnection() errors.Error {
 		ur.sql = db
 	}
 
-	ctx := context.Background()
-	err := ur.sql.PingContext(ctx)
+	err := ur.sql.Ping()
 	if err != nil {
 		return errors.InternalError(err)
 	}
