@@ -42,12 +42,6 @@ const Authorise = ({ children, roles, contentOnly }) => {
 		return <Redirect to="/login" />;
 	}
 
-	if (!contentOnly && !User.HasAccount()) {
-		if (pathname.toLowerCase() !== "/setaccount") {
-			return <Redirect to="/setAccount" />;
-		}
-	}
-
 	return children;
 };
 
