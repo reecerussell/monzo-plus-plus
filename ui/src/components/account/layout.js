@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createRef } from "react";
 import { Menu, Sticky, Ref, Grid, Header, Divider } from "semantic-ui-react";
 import { Redirect, useLocation } from "react-router-dom";
+import SetAccountContainer from "../../containers/account/setAccount";
 import * as User from "../../utils/user";
 
 const Layout = ({ children }) => {
@@ -86,7 +87,9 @@ const Layout = ({ children }) => {
 							</Sticky>
 						</Ref>
 					</Grid.Column>
-					<Grid.Column width={12}>{children}</Grid.Column>
+					<Grid.Column width={12}>
+						{User.HasAccount() ? children : <SetAccountContainer />}
+					</Grid.Column>
 				</Grid.Row>
 			</Grid>
 		</>

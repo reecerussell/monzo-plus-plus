@@ -16,9 +16,6 @@ const AccountChangePassword = React.lazy(() =>
 );
 const AccountPlugins = React.lazy(() => import("./views/account/plugins"));
 const AccountDelete = React.lazy(() => import("./views/account/delete"));
-const AccountSetAccount = React.lazy(() =>
-	import("./views/account/setAccount")
-);
 
 const Login = React.lazy(() => import("./views/login/login"));
 const Register = React.lazy(() => import("./views/login/register"));
@@ -82,12 +79,6 @@ export default [
 		name: "delete account",
 		path: "/account/delete",
 		component: AccountDelete,
-	},
-	{
-		name: "set account",
-		path: "/setAccount",
-		exact: true,
-		component: AccountSetAccount,
 	},
 	{
 		name: "login",
