@@ -101,8 +101,8 @@ services:
             - "80:80"
             - "443:80"
         environment:
-            - "MONZO_CLIENT_ID=oauth2client_00009s8M2iOG06xOrzfwVm"
-            - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
+            - "MONZO_CLIENT_ID="
+            - "MONZO_CLIENT_SECRET="
             - "OAUTH_CALLBACK_URL=https://mpp.reece-russell.co.uk/monzo/callback"
             - "SUCCESS_CALLBACK_URL=https://mpp.reece-russell.co.uk/monzo/callback"
             - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
