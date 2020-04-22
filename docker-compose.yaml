@@ -66,8 +66,8 @@ services:
             dockerfile: service.auth/Dockerfile
         environment:
             - "MONZO_WEBHOOK_URL=https://mpp.reece-russell.co.uk/api/monzo/hook"
-            - "MONZO_CLIENT_ID=oauth2client_00009s8M2iOG06xOrzfwVm"
-            - "MONZO_CLIENT_SECRET=mnzconf.Lq8WbdehEdPfQTjEc0BQvxC3DciZK++gk/ib0IXUEUr81okDA4AhHM4+jAPNGvLa5rgIug3lpsXBd8Nx4B95"
+            - "MONZO_CLIENT_ID="
+            - "MONZO_CLIENT_SECRET="
             - "OAUTH_CALLBACK_URL=https://mpp.reece-russell.co.uk/api/auth/monzo/callback"
             - "SUCCESS_CALLBACK_URL=https://mpp.reece-russell.co.uk/#login"
             - "CONN_STRING=monzo:m0nz0-Pl5s-pluS@tcp(db)/monzo_plus_plus?parseTime=true"
