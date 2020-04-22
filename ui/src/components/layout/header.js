@@ -55,6 +55,7 @@ const Header = () => {
 								</span>
 							</Dropdown.Item>
 							<Authorise
+								contentOnly={true}
 								roles={[
 									"Admin",
 									"Role Manager",
@@ -65,7 +66,10 @@ const Header = () => {
 								<Dropdown.Divider />
 								<Dropdown.Header>Admin</Dropdown.Header>
 							</Authorise>
-							<Authorise roles={["Admin", "User Manager"]}>
+							<Authorise
+								roles={["Admin", "User Manager"]}
+								contentOnly={true}
+							>
 								<Dropdown.Item>
 									<i className="dropdown icon" />
 									<span className="text">
@@ -82,10 +86,23 @@ const Header = () => {
 									</Dropdown.Menu>
 								</Dropdown.Item>
 							</Authorise>
-							<Authorise roles={["Admin", "Role Manager"]}>
+							<Authorise
+								roles={["Admin", "Role Manager"]}
+								contentOnly={true}
+							>
 								<Dropdown.Item>
 									<span className="text">
 										<Link to="/roles">Roles</Link>
+									</span>
+								</Dropdown.Item>
+							</Authorise>
+							<Authorise
+								roles={["Admin", "Plugin Manager"]}
+								contentOnly={true}
+							>
+								<Dropdown.Item>
+									<span className="text">
+										<Link to="/plugins">Plugins</Link>
 									</span>
 								</Dropdown.Item>
 							</Authorise>

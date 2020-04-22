@@ -19,7 +19,10 @@ const Permissions = ({
 						<List.Description>
 							<a
 								href="#"
-								onClick={() => handleRemovePermission(p.id)}
+								onClick={(e) => {
+									e.preventDefault();
+									handleRemovePermission(p.id);
+								}}
 							>
 								Click to remove permission
 							</a>
@@ -40,7 +43,10 @@ const Permissions = ({
 						<List.Description>
 							<a
 								href="#"
-								onClick={() => handleAddPermission(p.id)}
+								onClick={(e) => {
+									e.preventDefault();
+									handleAddPermission(p.id);
+								}}
 							>
 								Click to add permission
 							</a>

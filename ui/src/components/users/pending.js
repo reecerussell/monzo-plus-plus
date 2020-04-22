@@ -13,22 +13,25 @@ const Pending = ({ users, loading, error, handleDelete, handleEnable }) => {
 					<Card key={key}>
 						<Card.Content>
 							<Card.Header>{user.username}</Card.Header>
-							<Card.Meta>New User</Card.Meta>
-							<Card.Description>add some text</Card.Description>
+							<Card.Meta>Newly registered user</Card.Meta>
+							<Card.Description>
+								To activate this user, click 'Approve' below,
+								otherwise click 'Decline'.
+							</Card.Description>
 						</Card.Content>
 						<Card.Content extra>
 							<div className="ui two buttons">
 								<Button
 									basic
 									color="green"
-									onClick={e => handleEnable(user.id, e)}
+									onClick={(e) => handleEnable(user.id, e)}
 								>
 									Approve
 								</Button>
 								<Button
 									basic
 									color="red"
-									onClick={e => handleDelete(user.id, e)}
+									onClick={(e) => handleDelete(user.id, e)}
 								>
 									Decline
 								</Button>
@@ -38,7 +41,7 @@ const Pending = ({ users, loading, error, handleDelete, handleEnable }) => {
 				))}
 			</Card.Group>
 		) : (
-			<p>No New Users!</p>
+			<p>There are currently no new users.</p>
 		);
 
 	return (
