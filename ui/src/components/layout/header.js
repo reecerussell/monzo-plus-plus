@@ -39,7 +39,7 @@ const Header = () => {
 					Home
 				</Menu.Item>
 
-				<Authorise>
+				<Authorise contentOnly={true}>
 					<Dropdown item simple text={User.GetUsername()}>
 						<Dropdown.Menu>
 							<Dropdown.Item>
