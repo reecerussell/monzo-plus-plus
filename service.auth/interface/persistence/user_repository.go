@@ -32,131 +32,113 @@ func NewUserRepository() repository.UserRepository {
 }
 
 func (ur *userRepository) Get(id string) (*model.User, errors.Error) {
-	openErr := ur.openConnection()
-	if openErr != nil {
-		return nil, openErr
-	}
-
 	query := "CALL get_user_by_id(?);"
-
-	ctx := context.Background()
-	stmt, err := ur.sql.PrepareContext(ctx, query)
+	readers := []database.ReaderFunc{readUser, readUserRole, readToken}
+	results, err := ur.db.ReadMultiple(query, readers, id)
 	if err != nil {
-		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
+		return nil, err
 	}
-	defer stmt.Close()
 
-	rows, err := stmt.QueryContext(ctx, id)
+	user := results[0][0].(*datamodel.User)
+	roles := make([]*datamodel.Role, len(results[1]))
+
+	for i, dm := range results[1] {
+		roles[i] = dm.(*datamodel.Role)
+	}
+
+	token := results[2][0].(*datamodel.UserToken)
+
+	return model.UserFromDataModel(user, roles, token), nil
+}
+
+func readUser(s database.ScannerFunc) (interface{}, errors.Error) {
+	var dm datamodel.User
+
+	err := s(
+		&dm.ID,
+		&dm.Username,
+		&dm.PasswordHash,
+		&dm.StateToken,
+		&dm.Enabled,
+		&dm.AccountID,
+	)
 	if err != nil {
-		return nil, errors.InternalError(fmt.Errorf("rows: %v", err))
-	}
-	defer rows.Close()
-
-	var user *datamodel.User
-	var roles []*datamodel.Role
-	var token *datamodel.UserToken
-
-	if rows.Next() {
-		u, readErr := readUser(rows.Scan)
-		if readErr != nil {
-			return nil, readErr
-		}
-
-		user = u
-	} else {
-		return nil, errors.NotFound("user not found")
-	}
-
-	if err = rows.Err(); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NotFound("user not found")
 		}
 
-		return nil, errors.InternalError(err)
+		return nil, errors.InternalError(fmt.Errorf("read user: %v", err))
 	}
 
-	if rows.NextResultSet() {
-		for rows.Next() {
-			r, readErr := readRole(rows.Scan)
-			if err != nil {
-				return nil, readErr
-			}
+	return &dm, nil
+}
 
-			roles = append(roles, r)
-		}
+func readUserRole(s database.ScannerFunc) (interface{}, errors.Error) {
+	var dm datamodel.Role
+
+	err := s(&dm.ID, &dm.Name)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.InternalError(fmt.Errorf("read role: %v", err))
 	}
 
-	if rows.NextResultSet() {
-		if rows.Next() {
-			t, readErr := readToken(rows.Scan)
-			if err != nil {
-				return nil, readErr
-			}
+	return &dm, nil
+}
 
-			token = t
-		}
+func readToken(s database.ScannerFunc) (interface{}, errors.Error) {
+	var dm datamodel.UserToken
+
+	err := s(
+		&dm.AccessToken,
+		&dm.RefreshToken,
+		&dm.Expires,
+		&dm.TokenType,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.InternalError(fmt.Errorf("read token: %v", err))
 	}
 
-	return model.UserFromDataModel(user, roles, token), nil
+	return &dm, nil
 }
 
 // GetByUsername attempts to get a user from the database with the given username.
 // With the given username, an attempt to get the user's id is made, on success
 // Get() is then called, which handles the getting and reading the user.
 func (ur *userRepository) GetByUsername(username string) (*model.User, errors.Error) {
-	if openErr := ur.openConnection(); openErr != nil {
-		return nil, openErr
-	}
-
 	query := "CALL get_user_id_by_username(?);"
+	id, err := ur.db.ReadOne(query, func(s database.ScannerFunc) (interface{}, errors.Error) {
+		var userID string
 
-	ctx := context.Background()
-	stmt, err := ur.sql.PrepareContext(ctx, query)
-	if err != nil {
-		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
-	}
-	defer stmt.Close()
-
-	var userID string
-
-	err = stmt.QueryRowContext(ctx, username).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.NotFound("user not found")
+		err := s(&userID)
+		if err != nil {
+			return nil, errors.InternalError(err)
 		}
 
-		return nil, errors.InternalError(fmt.Errorf("read: %v", err))
+		return userID, nil
+	}, username)
+	if err != nil {
+		return nil, err
 	}
 
-	return ur.Get(userID)
+	return ur.Get(id.(string))
 }
 
 func (ur *userRepository) GetByStateToken(stateToken string) (*model.User, errors.Error) {
-	if openErr := ur.openConnection(); openErr != nil {
-		return nil, openErr
-	}
-
 	query := "CALL get_user_id_by_state_token(?);"
+	id, err := ur.db.ReadOne(query, func(s database.ScannerFunc) (interface{}, errors.Error) {
+		var userID string
 
-	ctx := context.Background()
-	stmt, err := ur.sql.PrepareContext(ctx, query)
-	if err != nil {
-		return nil, errors.InternalError(fmt.Errorf("prepare: %v", err))
-	}
-	defer stmt.Close()
-
-	var userID string
-
-	err = stmt.QueryRowContext(ctx, stateToken).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.NotFound("user not found")
+		err := s(&userID)
+		if err != nil {
+			return nil, errors.InternalError(err)
 		}
 
-		return nil, errors.InternalError(fmt.Errorf("read: %v", err))
+		return userID, nil
+	}, stateToken)
+	if err != nil {
+		return nil, err
 	}
 
-	return ur.Get(userID)
+	return ur.Get(id.(string))
 }
 
 func (ur *userRepository) GetList(term string) ([]*model.User, errors.Error) {
@@ -221,77 +203,16 @@ func (ur *userRepository) GetPending(term string) ([]*model.User, errors.Error) 
 	return u, nil
 }
 
-func readUser(s scannerFunc) (*datamodel.User, errors.Error) {
-	var dm datamodel.User
-
-	err := s(
-		&dm.ID,
-		&dm.Username,
-		&dm.PasswordHash,
-		&dm.StateToken,
-		&dm.Enabled,
-		&dm.AccountID,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.NotFound("user not found")
-		}
-
-		return nil, errors.InternalError(fmt.Errorf("read user: %v", err))
-	}
-
-	return &dm, nil
-}
-
-func readUserRole(s scannerFunc) (*datamodel.Role, errors.Error) {
-	var dm datamodel.Role
-
-	err := s(&dm.ID, &dm.Name)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.InternalError(fmt.Errorf("read role: %v", err))
-	}
-
-	return &dm, nil
-}
-
-func readToken(s scannerFunc) (*datamodel.UserToken, errors.Error) {
-	var dm datamodel.UserToken
-
-	err := s(
-		&dm.AccessToken,
-		&dm.RefreshToken,
-		&dm.Expires,
-		&dm.TokenType,
-	)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.InternalError(fmt.Errorf("read token: %v", err))
-	}
-
-	return &dm, nil
-}
-
 func (ur *userRepository) EnsureExists(id string) errors.Error {
-	if openErr := ur.openConnection(); openErr != nil {
-		return openErr
+	query := "SELECT COUNT(*) FROM users WHERE id = ?;"
+
+	c, err := ur.db.Count(query, id)
+	if err != nil {
+		return err
 	}
 
-	query := "SELECT id FROM users WHERE id = ?;"
-
-	ctx := context.Background()
-	stmt, err := ur.sql.PrepareContext(ctx, query)
-	if err != nil {
-		return errors.InternalError(err)
-	}
-	defer stmt.Close()
-
-	var userID string
-	err = stmt.QueryRowContext(ctx, id).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return errors.NotFound("user not found")
-		}
-
-		return errors.InternalError(err)
+	if c < 1 {
+		return errors.BadRequest("user not found")
 	}
 
 	return nil
@@ -334,45 +255,39 @@ func (ur *userRepository) Update(u *model.User) errors.Error {
 	}
 
 	ctx := context.Background()
-	tx, err := ur.sql.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	tx, err := ur.db.Begin(ctx)
 	if err != nil {
-		return errors.InternalError(err)
+		return err
 	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+	defer tx.Close()
 
-	stmt, err := tx.PrepareContext(ctx, query)
+	_, err = tx.Execute(query, args...)
 	if err != nil {
-		return errors.InternalError(err)
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, args...)
-	if err != nil {
-		return errors.InternalError(err)
+		return err
 	}
 
 	err = updateToken(ctx, tx, u)
 	if err != nil {
-		return errors.InternalError(err)
+		tx.InternalTx.Rollback()
+		return err
 	}
 
-	return u.DispatchEvents(ctx, tx)
+	err = u.DispatchEvents(ctx, tx.InternalTx)
+	if err != nil {
+		tx.InternalTx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
-func updateToken(ctx context.Context, tx *sql.Tx, u *model.User) error {
+func updateToken(ctx context.Context, tx *database.Tx, u *model.User) errors.Error {
 	ut := u.GetToken()
 	if ut == nil {
 		return nil
 	}
 
 	dm := ut.DataModel()
-
 	query := "CALL update_user_token(?,?,?,?,?);"
 	args := []interface{}{
 		u.GetID(),
@@ -382,13 +297,7 @@ func updateToken(ctx context.Context, tx *sql.Tx, u *model.User) error {
 		dm.TokenType,
 	}
 
-	stmt, err := tx.PrepareContext(ctx, query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, args...)
+	_, err := tx.Execute(query, args...)
 	if err != nil {
 		return err
 	}
