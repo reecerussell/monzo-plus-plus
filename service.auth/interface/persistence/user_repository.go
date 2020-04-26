@@ -3,7 +3,6 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"os"
 
 	"github.com/reecerussell/monzo-plus-plus/libraries/database"
@@ -32,72 +31,117 @@ func NewUserRepository() repository.UserRepository {
 }
 
 func (ur *userRepository) Get(id string) (*model.User, errors.Error) {
-	query := "CALL get_user_by_id(?);"
-	readers := []database.ReaderFunc{readUser, readUserRole, readToken}
-	results, err := ur.db.ReadMultiple(query, readers, id)
-	if err != nil {
+	user := &datamodel.User{}
+	roles := &[]*datamodel.Role{}
+	token := &datamodel.UserToken{}
+
+	var eg errors.Group
+	eg.Go(func() errors.Error {
+		dm, err := ur.db.ReadOne(
+			"CALL get_user_by_id(?);",
+			func(s database.ScannerFunc) (interface{}, errors.Error) {
+				var dm datamodel.User
+
+				err := s(
+					&dm.ID,
+					&dm.Username,
+					&dm.PasswordHash,
+					&dm.StateToken,
+					&dm.Enabled,
+					&dm.AccountID,
+				)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						return nil, errors.NotFound("user not found")
+					}
+
+					return nil, errors.InternalError(err)
+				}
+
+				return dm, nil
+			},
+			id,
+		)
+		if err != nil {
+			return err
+		}
+
+		*user = dm.(datamodel.User)
+
+		return nil
+	})
+	eg.Go(func() errors.Error {
+		dms, err := ur.db.Read(
+			"CALL get_roles_for_user(?);",
+			func(s database.ScannerFunc) (interface{}, errors.Error) {
+				var dm datamodel.Role
+
+				err := s(
+					&dm.ID,
+					&dm.Name,
+				)
+				if err != nil {
+					return nil, errors.InternalError(err)
+				}
+
+				return &dm, nil
+			},
+			id,
+		)
+		if err != nil {
+			return err
+		}
+
+		rs := make([]*datamodel.Role, len(dms))
+
+		for i, dm := range dms {
+			rs[i] = dm.(*datamodel.Role)
+		}
+
+		*roles = rs
+
+		return nil
+	})
+	eg.Go(func() errors.Error {
+		dm, err := ur.db.ReadOne(
+			"CALL get_user_token(?);",
+			func(s database.ScannerFunc) (interface{}, errors.Error) {
+				var dm datamodel.UserToken
+
+				err := s(
+					&dm.AccessToken,
+					&dm.RefreshToken,
+					&dm.Expires,
+					&dm.TokenType,
+				)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						return nil, nil
+					}
+
+					return nil, errors.InternalError(err)
+				}
+
+				return dm, nil
+			},
+			id,
+		)
+		if err != nil {
+			return err
+		}
+
+		if dm != nil {
+			*token = dm.(datamodel.UserToken)
+		}
+
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
 
-	user := results[0][0].(*datamodel.User)
-	roles := make([]*datamodel.Role, len(results[1]))
-
-	for i, dm := range results[1] {
-		roles[i] = dm.(*datamodel.Role)
-	}
-
-	token := results[2][0].(*datamodel.UserToken)
-
-	return model.UserFromDataModel(user, roles, token), nil
-}
-
-func readUser(s database.ScannerFunc) (interface{}, errors.Error) {
-	var dm datamodel.User
-
-	err := s(
-		&dm.ID,
-		&dm.Username,
-		&dm.PasswordHash,
-		&dm.StateToken,
-		&dm.Enabled,
-		&dm.AccountID,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.NotFound("user not found")
-		}
-
-		return nil, errors.InternalError(fmt.Errorf("read user: %v", err))
-	}
-
-	return &dm, nil
-}
-
-func readUserRole(s database.ScannerFunc) (interface{}, errors.Error) {
-	var dm datamodel.Role
-
-	err := s(&dm.ID, &dm.Name)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.InternalError(fmt.Errorf("read role: %v", err))
-	}
-
-	return &dm, nil
-}
-
-func readToken(s database.ScannerFunc) (interface{}, errors.Error) {
-	var dm datamodel.UserToken
-
-	err := s(
-		&dm.AccessToken,
-		&dm.RefreshToken,
-		&dm.Expires,
-		&dm.TokenType,
-	)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.InternalError(fmt.Errorf("read token: %v", err))
-	}
-
-	return &dm, nil
+	return model.UserFromDataModel(user, *roles, token), nil
 }
 
 // GetByUsername attempts to get a user from the database with the given username.
