@@ -82,7 +82,8 @@ func (q *Queue) dispatch() {
 		jobs, err := q.jobs.GetN(len(q.workers))
 		if err != nil {
 			q.logger.Printf("\t[ERROR]: failed to get jobs: %s\n", err.Text())
-			break
+			<-q.hold
+			continue
 		}
 
 		if c := len(jobs); c < 1 {
